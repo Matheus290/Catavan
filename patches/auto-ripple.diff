@@ -540,7 +540,7 @@
  <?xml version="1.0"?>
  <!DOCTYPE kpartgui SYSTEM "kpartgui.dtd">
 -<kpartgui name="kdenlive" version="250" translationDomain="kdenlive">
-+<kpartgui name="kdenlive" version="251" translationDomain="kdenlive">
++<kpartgui name="kdenlive" version="252" translationDomain="catavan">
    <MenuBar>
      <Menu name="file">
        <Action name="file_new"/>
@@ -864,7 +864,15 @@
              int kdenliveYear = kdenliveVersion.at(0).toInt(&ok);
 --- a/kdenlive-26.08.2/src/timeline2/model/timelinefunctions.hpp
 +++ b/kdenlive-26.08.2/src/timeline2/model/timelinefunctions.hpp
-@@ -44,7 +44,8 @@
+@@ -13,6 +13,7 @@
+ #include <memory>
+ #include <unordered_set>
+ #include <unordered_map>
++#include <vector>
+ 
+ #include <QDir>
+ 
+@@ -44,7 +45,8 @@
      static bool processClipCut(const std::shared_ptr<TimelineItemModel> &timeline, int clipId, int position, int &newId, Fun &undo, Fun &redo);
  
      /** @brief Cuts all clips at given position */
@@ -874,7 +882,7 @@
  
      /** @brief Makes a perfect clone of a given clip, but do not insert it */
      static bool cloneClip(const std::shared_ptr<TimelineItemModel> &timeline, int clipId, int &newId, PlaylistState::ClipState state, int audioStream,
-@@ -119,16 +120,20 @@
+@@ -119,16 +121,20 @@
          @param position
          @param ignoreMultiTrackGroups
          @param allowGroupBreaking Whether independent move of grouped items is allowed
@@ -897,7 +905,7 @@
      static bool extractZone(const std::shared_ptr<TimelineItemModel> &timeline, const QVector<int> &tracks, QPoint zone, bool liftOnly, int clipToUnGroup = -1,
                              std::unordered_set<int> clipsToRegroup = {});
      static bool extractZoneWithUndo(const std::shared_ptr<TimelineItemModel> &timeline, const QVector<int> &tracks, QPoint zone, bool liftOnly,
-@@ -142,6 +147,34 @@
+@@ -142,6 +148,52 @@
      */
      static bool requestInsertSpace(const std::shared_ptr<TimelineItemModel> &timeline, QPoint zone, Fun &undo, Fun &redo,
                                     const QVector<int> &allowedTracks = QVector<int>());
@@ -920,6 +928,24 @@
 +        starts before @p floor (if > -1). @returns false on failure */
 +    static bool rippleMoveItems(const std::shared_ptr<TimelineItemModel> &timeline, const std::unordered_set<int> &items, int delta, int floor,
 +                                Fun &undo, Fun &redo);
++    /** @brief Catavan (Auto Ripple): a crossfade (mix) taken out during a ripple, to put back between the same clips */
++    struct RippleMix
++    {
++        int firstId;
++        int secondId;
++        int afterCut;
++        int beforeCut;
++        std::pair<QString, QVector<QPair<QString, QVariant>>> params;
++    };
++    /** @brief Catavan (Auto Ripple): remove the mixes of @p items (the two clips of each are cut at the mix cut), so the ripple
++        moves and resizes plain clips; the mixes go to @p mixes. @returns false on failure */
++    static bool removeRippleMixes(const std::shared_ptr<TimelineItemModel> &timeline, const std::unordered_set<int> &items, std::vector<RippleMix> &mixes,
++                                  Fun &undo, Fun &redo);
++    /** @brief Catavan (Auto Ripple): put back each of @p mixes whose two clips still meet on the same track, with the same cut and
++        transition (a crossfade whose clips the ripple left apart is not rebuilt) */
++    static void restoreRippleMixes(const std::shared_ptr<TimelineItemModel> &timeline, const std::vector<RippleMix> &mixes, Fun &undo, Fun &redo);
++    /** @brief Catavan (Auto Ripple): shortest playtime of clip @p itemId in a ripple trim: its crossfades and one frame */
++    static int rippleMinPlaytime(const std::shared_ptr<TimelineItemModel> &timeline, int itemId);
 +    /** @brief Catavan (Auto Ripple): delete @p items (and their groups) and pull back what follows them on all tracks,
 +        each track as far as the free space allows, not before the deleted start. @returns the deleted duration (negative), or
 +        INT_MIN on failure */
@@ -1038,7 +1064,7 @@
          if (clips.size() > 1) {
              final = timeline->requestGroupMove(itemId, mainGroup, 0, endPosition - startPosition, true, true, undo, redo);
              for (auto i : clips) {
-@@ -1070,6 +1093,350 @@
+@@ -1070,6 +1093,461 @@
      return result;
  }
  
@@ -1116,6 +1142,11 @@
 +    if (delta == 0 || items.empty()) {
 +        return true;
 +    }
++    // Moving a clip alone breaks its mixes: they come out first and go back after the move
++    std::vector<RippleMix> mixes;
++    if (!removeRippleMixes(timeline, items, mixes, undo, redo)) {
++        return false;
++    }
 +    // Moved items of each track, by position
 +    std::map<int, std::vector<std::pair<int, int>>> perTrack;
 +    for (int id : items) {
@@ -1168,7 +1199,98 @@
 +            }
 +        }
 +    }
++    restoreRippleMixes(timeline, mixes, undo, redo);
 +    return true;
++}
++
++bool TimelineFunctions::removeRippleMixes(const std::shared_ptr<TimelineItemModel> &timeline, const std::unordered_set<int> &items,
++                                          std::vector<RippleMix> &mixes, Fun &undo, Fun &redo)
++{
++    std::unordered_set<int> seconds;
++    std::vector<RippleMix> found;
++    auto add = [&](int firstId, int secondId) {
++        if (firstId < 0 || secondId < 0 || seconds.count(secondId) > 0) {
++            return;
++        }
++        seconds.insert(secondId);
++        const std::shared_ptr<ClipModel> &second = timeline->m_allClips[secondId];
++        int afterCut = second->getMixCutPosition();
++        found.push_back({firstId, secondId, afterCut, second->getMixDuration() - afterCut,
++                         timeline->getTrackById(second->getCurrentTrackId())->getMixParams(secondId)});
++    };
++    for (int id : items) {
++        if (!timeline->isClip(id)) {
++            continue;
++        }
++        int tid = timeline->getClipTrackId(id);
++        if (tid < 0 || timeline->getTrackById_const(tid)->isLocked()) {
++            continue;
++        }
++        std::pair<MixInfo, MixInfo> mixData = timeline->getTrackById_const(tid)->getMixInfo(id);
++        add(mixData.first.firstClipId, mixData.first.secondClipId);
++        add(mixData.second.firstClipId, mixData.second.secondClipId);
++    }
++    for (const RippleMix &mix : found) {
++        if (!timeline->getTrackById(timeline->getClipTrackId(mix.secondId))->requestRemoveMix({mix.firstId, mix.secondId}, undo, redo)) {
++            return false;
++        }
++        mixes.push_back(mix);
++    }
++    return true;
++}
++
++void TimelineFunctions::restoreRippleMixes(const std::shared_ptr<TimelineItemModel> &timeline, const std::vector<RippleMix> &mixes, Fun &undo, Fun &redo)
++{
++    for (const RippleMix &mix : mixes) {
++        if (!timeline->isClip(mix.firstId) || !timeline->isClip(mix.secondId)) {
++            continue;
++        }
++        int tid = timeline->getClipTrackId(mix.secondId);
++        int cut = timeline->getClipPosition(mix.secondId);
++        if (tid < 0 || timeline->getClipTrackId(mix.firstId) != tid || timeline->getClipPosition(mix.firstId) + timeline->getClipPlaytime(mix.firstId) != cut) {
++            continue;
++        }
++        auto track = timeline->getTrackById(tid);
++        // Each side of the cut fits in what the ripple left of the other clip (up to its other mix), one frame kept
++        std::pair<MixInfo, MixInfo> firstMixes = track->getMixInfo(mix.firstId);
++        std::pair<MixInfo, MixInfo> secondMixes = track->getMixInfo(mix.secondId);
++        int firstFree = cut - (firstMixes.first.firstClipId > -1 ? firstMixes.first.firstClipInOut.second : timeline->getClipPosition(mix.firstId));
++        int secondEnd = secondMixes.second.secondClipId > -1 ? secondMixes.second.secondClipInOut.first : cut + timeline->getClipPlaytime(mix.secondId);
++        int afterCut = qMax(0, qMin(mix.afterCut, secondEnd - cut - 1));
++        int beforeCut = qMax(0, qMin(mix.beforeCut, firstFree - 1));
++        if (afterCut + beforeCut < 2) {
++            continue;
++        }
++        const QString mixId = track->isAudioTrack() ? QStringLiteral("mix") : QStringLiteral("luma");
++        Fun local_undo = []() { return true; };
++        Fun local_redo = []() { return true; };
++        // On failure (no material left to extend a clip over the cut) it reverts itself and the clips stay cut
++        if (!timeline->requestClipMix(mixId, {mix.firstId, mix.secondId}, {afterCut, beforeCut}, tid, cut, true, true, true, local_undo, local_redo,
++                                      false)) {
++            continue;
++        }
++        if (!track->isAudioTrack() && !mix.params.first.isEmpty()) {
++            track->setMixAsset(mix.secondId, mix.params.first, mix.params.second, local_undo, local_redo);
++        }
++        UPDATE_UNDO_REDO_NOLOCK(local_redo, local_undo, undo, redo);
++    }
++}
++
++int TimelineFunctions::rippleMinPlaytime(const std::shared_ptr<TimelineItemModel> &timeline, int itemId)
++{
++    int tid = timeline->getItemTrackId(itemId);
++    if (!timeline->isClip(itemId) || tid < 0) {
++        return 1;
++    }
++    int minimum = 1;
++    std::pair<MixInfo, MixInfo> mixData = timeline->getTrackById_const(tid)->getMixInfo(itemId);
++    if (mixData.first.firstClipId > -1) {
++        minimum += timeline->m_allClips[itemId]->getMixDuration();
++    }
++    if (mixData.second.secondClipId > -1) {
++        minimum += timeline->m_allClips[mixData.second.secondClipId]->getMixDuration();
++    }
++    return minimum;
 +}
 +
 +int TimelineFunctions::rippleDelete(const std::shared_ptr<TimelineItemModel> &timeline, const std::unordered_set<int> &items, bool moveGuides, Fun &undo,
@@ -1230,7 +1352,8 @@
 +        // Limits of the source media: after the out point on the right, before the in point on the left
 +        delta = qMin(delta, right ? maxDuration - in - playtime : in);
 +    }
-+    delta = qMax(delta, 1 - playtime);
++    // The crossfades stay whole (the one on the trimmed edge moves with it), with one frame of the clip between them
++    delta = qMax(delta, rippleMinPlaytime(timeline, itemId) - playtime);
 +    if (delta == 0) {
 +        return true;
 +    }
@@ -1260,7 +1383,7 @@
 +                    int partIn = timeline->getClipIn(id);
 +                    d = qMin(d, right ? partMax - partIn - (e - s) : partIn);
 +                }
-+                d = qMax(d, 1 - (e - s));
++                d = qMax(d, rippleMinPlaytime(timeline, id) - (e - s));
 +                if (d != 0 && (d > 0) == (delta > 0)) {
 +                    parts.push_back({id, d});
 +                }
@@ -1336,19 +1459,33 @@
 +        }
 +        return timeline->getGuideModel()->rippleMarkers(from, d, undo, redo);
 +    };
-+    if (delta > 0) {
-+        // Make room, then extend the clips (revealing earlier content for the left edge)
-+        return rippleMoveItems(timeline, following, delta, -1, undo, redo) && moveGuidesBy(right ? end : start, delta) && resizeParts() &&
-+            trimPushed();
++    // The crossfades of everything that changes come out first (resizing or moving one clip of a mix leaves the mix
++    // where it was) and go back at the end: a crossfade on the trimmed edge moves with it
++    std::unordered_set<int> changed = following;
++    changed.insert(partIds.begin(), partIds.end());
++    for (const Part &p : pushed) {
++        changed.insert(p.id);
 +    }
-+    if (!resizeParts() || !trimPushed()) {
++    std::vector<RippleMix> mixes;
++    if (!removeRippleMixes(timeline, changed, mixes, undo, redo)) {
 +        return false;
 +    }
-+    if (right) {
-+        return rippleMoveItems(timeline, following, delta, -1, undo, redo) && moveGuidesBy(end, delta);
++    bool ok;
++    if (delta > 0) {
++        // Make room, then extend the clips (revealing earlier content for the left edge)
++        ok = rippleMoveItems(timeline, following, delta, -1, undo, redo) && moveGuidesBy(right ? end : start, delta) && resizeParts() && trimPushed();
++    } else if (!resizeParts() || !trimPushed()) {
++        ok = false;
++    } else if (right) {
++        ok = rippleMoveItems(timeline, following, delta, -1, undo, redo) && moveGuidesBy(end, delta);
++    } else {
++        // Left edge: what starts after the clip start moves back, not before that start (clips reaching it align there)
++        ok = rippleMoveItems(timeline, following, delta, start, undo, redo) && moveGuidesBy(start - delta, delta);
 +    }
-+    // Left edge: what starts after the clip start moves back, not before that start (clips reaching it align there)
-+    return rippleMoveItems(timeline, following, delta, start, undo, redo) && moveGuidesBy(start - delta, delta);
++    if (ok) {
++        restoreRippleMixes(timeline, mixes, undo, redo);
++    }
++    return ok;
 +}
 +
 +bool TimelineFunctions::insertClipPushing(const std::shared_ptr<TimelineItemModel> &timeline, const QString &binId, int tid, int position, int duration,
@@ -1389,7 +1526,7 @@
  bool TimelineFunctions::requestItemCopy(const std::shared_ptr<TimelineItemModel> &timeline, int clipId, int trackId, int position)
  {
      Q_ASSERT(timeline->isClip(clipId) || timeline->isComposition(clipId));
-@@ -2660,7 +3027,7 @@
+@@ -2660,7 +3138,7 @@
  
          pos -= offset;
          double speed = prod.attribute(QStringLiteral("speed")).toDouble();
@@ -3292,7 +3429,7 @@
  include(ECMAddTests)
 --- a/kdenlive-26.08.2/tests/vegasrippletest.cpp
 +++ b/kdenlive-26.08.2/tests/vegasrippletest.cpp
-@@ -0,0 +1,670 @@
+@@ -0,0 +1,789 @@
 +/*
 +    Catavan: Auto Ripple and pushing drop
 +    SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
@@ -3959,6 +4096,125 @@
 +        REQUIRE(timeline->getClipPlaytime(a) == 36);
 +        REQUIRE(timeline->getClipPosition(b) == 10);
 +        REQUIRE(timeline->getClipPlaytime(b) == 38);
++    }
++
++    pCore->projectManager()->closeCurrentDocument(false, false);
++}
++
++
++TEST_CASE("Auto Ripple with crossfades and slipped clips", "[VegasRipple]")
++{
++    auto binModel = pCore->projectItemModel();
++    binModel->clean();
++    std::shared_ptr<DocUndoStack> undoStack = std::make_shared<DocUndoStack>(nullptr);
++    KdenliveDoc document(undoStack);
++    pCore->projectManager()->testSetDocument(&document);
++    QDateTime documentDate = QDateTime::currentDateTime();
++    KdenliveTests::updateTimeline(false, QString(), QString(), documentDate, 0);
++    auto timeline = document.getTimeline(document.uuid());
++    pCore->projectManager()->testSetActiveTimeline(timeline);
++    int videoTrack = timeline->getTrackIndexFromPosition(2);
++
++    // Clips with audio and video, 100 frames of material. A: 100 to 140, B: 200 to 240, both from frame 10
++    QString binId = KdenliveTests::createProducerWithSound(pCore->getProjectProfile(), binModel, 100);
++    QMap<int, QString> audioInfo;
++    audioInfo.insert(1, QStringLiteral("stream1"));
++    KdenliveTests::setAudioTargets(timeline, audioInfo);
++    int a, b;
++    REQUIRE(timeline->requestClipInsertion(binId, videoTrack, 100, a));
++    REQUIRE(timeline->requestItemResize(a, 90, false, true));
++    REQUIRE(timeline->requestItemResize(a, 40, true, true));
++    REQUIRE(timeline->requestClipMove(a, videoTrack, 100));
++    REQUIRE(timeline->requestClipInsertion(binId, videoTrack, 200, b));
++    REQUIRE(timeline->requestItemResize(b, 90, false, true));
++    REQUIRE(timeline->requestItemResize(b, 40, true, true));
++    REQUIRE(timeline->requestClipMove(b, videoTrack, 200));
++    const int audioA = timeline->getClipSplitPartner(a);
++    const int audioB = timeline->getClipSplitPartner(b);
++    REQUIRE(audioA > -1);
++    REQUIRE(audioB > -1);
++    const int inA = timeline->getClipIn(a);
++    const int inB = timeline->getClipIn(b);
++    Fun undo = []() { return true; };
++    Fun redo = []() { return true; };
++    // The audio part always at the same place and content as the video part
++    auto inSync = [&]() {
++        REQUIRE(timeline->checkConsistency());
++        REQUIRE(timeline->getClipPosition(audioA) == timeline->getClipPosition(a));
++        REQUIRE(timeline->getClipIn(audioA) == timeline->getClipIn(a));
++        REQUIRE(timeline->getClipPosition(audioB) == timeline->getClipPosition(b));
++        REQUIRE(timeline->getClipIn(audioB) == timeline->getClipIn(b));
++    };
++    // B over the last 10 frames of A: a crossfade 130 to 140
++    auto crossfade = [&]() {
++        REQUIRE(timeline->requestFakeClipMove(b, videoTrack, 130, true, false, false));
++        REQUIRE(timeline->requestCrossfadeMove(b, true) == 1);
++        REQUIRE(timeline->getMixDuration(b) == 10);
++        inSync();
++    };
++
++    SECTION("Right edge of the first clip of a crossfade: the crossfade moves with the edge")
++    {
++        crossfade();
++        REQUIRE(TimelineFunctions::rippleResize(timeline, a, 25, true, false, undo, redo));
++        inSync();
++        REQUIRE(timeline->getClipPlaytime(a) == 25);
++        REQUIRE(timeline->getClipIn(a) == inA);
++        REQUIRE(timeline->getClipPosition(b) == 115);
++        REQUIRE(timeline->getClipIn(b) == inB);
++        REQUIRE(timeline->getMixDuration(b) == 10);
++        REQUIRE(timeline->getMixDuration(audioB) == 10);
++        REQUIRE(undo());
++        inSync();
++        REQUIRE(timeline->getClipPlaytime(a) == 40);
++        REQUIRE(timeline->getClipPosition(b) == 130);
++        REQUIRE(timeline->getMixDuration(b) == 10);
++    }
++
++    SECTION("A clip never gets shorter than its crossfades and one frame")
++    {
++        crossfade();
++        REQUIRE(TimelineFunctions::rippleResize(timeline, a, 1, true, false, undo, redo));
++        inSync();
++        REQUIRE(timeline->getClipPlaytime(a) == 11);
++        REQUIRE(timeline->getClipPosition(b) == 101);
++        REQUIRE(timeline->getMixDuration(b) == 10);
++    }
++
++    SECTION("Left edge of the second clip of a crossfade: the crossfade stays, the content slips")
++    {
++        crossfade();
++        REQUIRE(TimelineFunctions::rippleResize(timeline, b, 30, false, false, undo, redo));
++        inSync();
++        REQUIRE(timeline->getClipPosition(b) == 130);
++        REQUIRE(timeline->getClipPlaytime(b) == 30);
++        REQUIRE(timeline->getClipIn(b) == inB + 10);
++        REQUIRE(timeline->getMixDuration(b) == 10);
++    }
++
++    SECTION("A slipped clip keeps its content when it moves")
++    {
++        // The left edge slips the content of both parts; MLT used to give the old in point back on a move
++        REQUIRE(TimelineFunctions::rippleResize(timeline, a, 30, false, false, undo, redo));
++        inSync();
++        REQUIRE(timeline->getClipIn(a) == inA + 10);
++        REQUIRE(timeline->requestClipMove(a, videoTrack, 300));
++        inSync();
++        REQUIRE(timeline->getClipPosition(a) == 300);
++        REQUIRE(timeline->getClipIn(a) == inA + 10);
++        // The same after a ripple: B (pulled back to 190 by the first trim) slipped, then pulled back by the right edge of A
++        REQUIRE(TimelineFunctions::rippleResize(timeline, b, 20, false, false, undo, redo));
++        REQUIRE(timeline->requestClipMove(a, videoTrack, 150));
++        REQUIRE(TimelineFunctions::rippleResize(timeline, a, 10, true, false, undo, redo));
++        inSync();
++        REQUIRE(timeline->getClipPosition(b) == 170);
++        REQUIRE(timeline->getClipIn(b) == inB + 20);
++    }
++
++    SECTION("A crossfade drag needs at least two frames of overlap")
++    {
++        REQUIRE(timeline->suggestCrossfadeMove(b, videoTrack, 139, 0, 0).at(0).toInt() != 139);
++        REQUIRE(timeline->suggestCrossfadeMove(b, videoTrack, 138, 0, 0).at(0).toInt() == 138);
 +    }
 +
 +    pCore->projectManager()->closeCurrentDocument(false, false);
@@ -5009,3 +5265,259 @@
  Fun MarkerListModel::changeComment_lambda(GenTime pos, const QString &comment, int type)
  {
      QWriteLocker locker(&m_lock);
+--- a/kdenlive-26.08.2/src/timeline2/model/clipmodel.cpp
++++ b/kdenlive-26.08.2/src/timeline2/model/clipmodel.cpp
+@@ -71,7 +71,7 @@
+ }
+ 
+ int ClipModel::construct(const std::shared_ptr<TimelineModel> &parent, const QString &binClipId, int id, PlaylistState::ClipState state, int audioStream,
+-                         double speed, bool warp_pitch)
++                         double speed, int warp_pitch)
+ {
+     id = (id == -1 ? TimelineModel::getNextId() : id);
+     std::shared_ptr<ProjectClip> binClip = pCore->projectItemModel()->getClipByBinID(binClipId);
+@@ -82,10 +82,11 @@
+     videoAudio.second = videoAudio.second && binClip->hasAudio();
+     state = stateFromBool(videoAudio);
+     qDebug() << "// GET TIMELINE PROD FOR STREAM: " << audioStream;
+-    std::shared_ptr<Mlt::Producer> cutProducer = binClip->getTimelineProducer(-1, id, state, audioStream, speed);
++    std::shared_ptr<Mlt::Producer> cutProducer =
++        binClip->getTimelineProducer(-1, id, state, audioStream, speed, false, {}, qFuzzyCompare(speed, 1.) ? -1 : warp_pitch);
+     std::shared_ptr<ClipModel> clip(new ClipModel(parent, cutProducer, binClipId, id, state, speed));
+     if (!qFuzzyCompare(speed, 1.)) {
+-        cutProducer->parent().set("warp_pitch", warp_pitch ? 1 : 0);
++        setPitchCompensation(cutProducer->parent(), warp_pitch);
+     }
+     TRACE_CONSTR(clip.get(), parent, binClipId, id, state, speed);
+     clip->setClipState_lambda(state)();
+@@ -116,15 +117,15 @@
+     state = stateFromBool(videoAudio);
+ 
+     double speed = 1.0;
+-    bool warp_pitch = false;
++    int warp_pitch = 0;
+     if (producer->parent().property_exists("warp_speed")) {
+         speed = producer->parent().get_double("warp_speed");
+-        warp_pitch = producer->parent().get_int("warp_pitch");
++        warp_pitch = pitchCompensationOf(producer->parent());
+     }
+     auto result = binClip->giveMasterAndGetTimelineProducer(id, producer, state, tid, playlist == 1);
+     std::shared_ptr<ClipModel> clip(new ClipModel(parent, result.first, binClipId, id, state, speed));
+     if (warp_pitch) {
+-        result.first->parent().set("warp_pitch", 1);
++        setPitchCompensation(result.first->parent(), warp_pitch);
+     }
+     clip->setClipState_lambda(state)();
+     clip->setSubPlaylistIndex(playlist, -1);
+@@ -385,6 +386,8 @@
+         setInOut(inPoint, outPoint);
+         if (m_currentTrackId > -1) {
+             if (auto ptr = m_parent.lock()) {
++                // Catavan: the playlist entry too, or a move puts the old in point back
++                ptr->getTrackById(m_currentTrackId)->syncClipEntry(m_subPlaylistIndex, m_position, inPoint, outPoint);
+                 QModelIndex ix = ptr->makeClipIndexFromID(m_id);
+                 ptr->notifyChange(ix, ix, roles);
+                 pCore->refreshProjectMonitorOnce();
+@@ -411,6 +414,7 @@
+             setInOut(old_in, old_out);
+             if (m_currentTrackId > -1) {
+                 if (auto ptr = m_parent.lock()) {
++                    ptr->getTrackById(m_currentTrackId)->syncClipEntry(m_subPlaylistIndex, m_position, old_in, old_out);
+                     QModelIndex ix = ptr->makeClipIndexFromID(m_id);
+                     ptr->notifyChange(ix, ix, roles);
+                     pCore->refreshProjectMonitorOnce();
+@@ -450,6 +454,31 @@
+     return service()->get_int(name.toUtf8().constData());
+ }
+ 
++int ClipModel::getPitchCompensation() const
++{
++    READ_LOCK();
++    return pitchCompensationOf(service()->parent());
++}
++
++int ClipModel::pitchCompensationOf(Mlt::Properties &producer)
++{
++    if (producer.get_int("warp_pitch") == 0) {
++        return 0;
++    }
++    return qstrcmp(producer.get("warp_pitch_method"), "wsola") == 0 ? 2 : 1;
++}
++
++void ClipModel::setPitchCompensation(Mlt::Properties &producer, int mode)
++{
++    producer.set("warp_pitch", mode > 0 ? 1 : 0);
++    // warp_pitch_method is only written once WSOLA was used, so untouched clips stay as in upstream
++    if (mode == 2) {
++        producer.set("warp_pitch_method", "wsola");
++    } else if (producer.property_exists("warp_pitch_method")) {
++        producer.set("warp_pitch_method", "rubberband");
++    }
++}
++
+ QSize ClipModel::getFrameSize() const
+ {
+     READ_LOCK();
+@@ -865,7 +894,7 @@
+     return m_currentState == PlaylistState::AudioOnly;
+ }
+ 
+-void ClipModel::refreshProducerFromBin(int trackId, PlaylistState::ClipState state, int stream, double speed, bool hasPitch, bool secondPlaylist,
++void ClipModel::refreshProducerFromBin(int trackId, PlaylistState::ClipState state, int stream, double speed, int hasPitch, bool secondPlaylist,
+                                        bool timeremap)
+ {
+     // We require that the producer is not in the track when we refresh the producer, because otherwise the modification will not be propagated. Remove the clip
+@@ -925,7 +954,8 @@
+ 
+     std::shared_ptr<ProjectClip> binClip = pCore->projectItemModel()->getClipByBinID(m_binClipId);
+     // Q_ASSERT(binClip->statusReady());
+-    std::shared_ptr<Mlt::Producer> binProducer = binClip->getTimelineProducer(trackId, m_id, state, stream, m_speed, secondPlaylist, remapInfo);
++    // Catavan (shareSpeedProducers): the pitch compensation is a property of the shared producer, part of its key
++    std::shared_ptr<Mlt::Producer> binProducer = binClip->getTimelineProducer(trackId, m_id, state, stream, m_speed, secondPlaylist, remapInfo, hasPitch);
+     int length = m_producer->get_int("length");
+     m_producer = std::move(binProducer);
+     if (m_endlessResize && m_producer->parent().get_length() < length) {
+@@ -964,9 +994,9 @@
+     }
+     if (hasPitch) {
+         // Check if pitch shift is enabled
+-        m_producer->parent().set("warp_pitch", 1);
++        setPitchCompensation(m_producer->parent(), hasPitch);
+     } else if (!qFuzzyCompare(m_speed, 1.)) {
+-        m_producer->parent().set("warp_pitch", 0);
++        setPitchCompensation(m_producer->parent(), 0);
+     }
+     // replant effect stack in updated service
+     int activeEffect = m_effectStack->getActiveEffect();
+@@ -984,9 +1014,9 @@
+     if (trackId == -1) {
+         trackId = m_currentTrackId;
+     }
+-    bool hasPitch = false;
++    int hasPitch = 0;
+     if (!qFuzzyCompare(getSpeed(), 1.)) {
+-        hasPitch = m_producer->parent().get_int("warp_pitch") == 1;
++        hasPitch = pitchCompensationOf(m_producer->parent());
+     }
+     int stream = m_producer->parent().get_int("audio_index");
+     if (m_producer->property_exists("kdenlive:audio_index")) {
+@@ -1062,7 +1092,7 @@
+     };
+ }
+ 
+-bool ClipModel::useTimewarpProducer(double speed, bool pitchCompensate, bool changeDuration, Fun &undo, Fun &redo)
++bool ClipModel::useTimewarpProducer(double speed, int pitchCompensate, bool changeDuration, Fun &undo, Fun &redo)
+ {
+     if (m_endlessResize) {
+         // no timewarp for endless producers
+@@ -1084,7 +1114,7 @@
+     } else if (previousSpeed < 0) {
+         revertSpeed = true;
+     }
+-    bool hasPitch = getIntProperty(QStringLiteral("warp_pitch"));
++    int hasPitch = getPitchCompensation();
+     int audioStream = getIntProperty(QStringLiteral("audio_index"));
+     auto operation = useTimewarpProducer_lambda(speed, audioStream, pitchCompensate);
+     auto reverse = useTimewarpProducer_lambda(previousSpeed, audioStream, hasPitch);
+@@ -1132,7 +1162,7 @@
+     return false;
+ }
+ 
+-Fun ClipModel::useTimewarpProducer_lambda(double speed, int stream, bool pitchCompensate)
++Fun ClipModel::useTimewarpProducer_lambda(double speed, int stream, int pitchCompensate)
+ {
+     QWriteLocker locker(&m_lock);
+     return [speed, stream, pitchCompensate, this]() {
+@@ -1409,7 +1439,7 @@
+     container.setAttribute(QStringLiteral("speed"), QString::number(m_speed, 'f'));
+     container.setAttribute(QStringLiteral("audioStream"), getIntProperty(QStringLiteral("audio_index")));
+     if (!qFuzzyCompare(m_speed, 1.)) {
+-        container.setAttribute(QStringLiteral("warp_pitch"), getIntProperty(QStringLiteral("warp_pitch")));
++        container.setAttribute(QStringLiteral("warp_pitch"), getPitchCompensation());
+     }
+     if (m_hasTimeRemap) {
+         if (m_producer->parent().type() == mlt_service_chain_type) {
+--- a/kdenlive-26.08.2/src/timeline2/model/trackmodel.hpp
++++ b/kdenlive-26.08.2/src/timeline2/model/trackmodel.hpp
+@@ -133,6 +133,13 @@
+     /** @brief Get the mix tracks */
+     std::pair<int, int> getMixTracks(int cid) const;
+     void switchMix(int cid, const QString &composition, Fun &undo, Fun &redo);
++    /** @brief Catavan: gives the mix at the start of cid the composition and parameters of another mix (a crossfade
++     *  rebuilt by a drag keeps the transition chosen by the user). Same position, cut and direction */
++    void setMixAsset(int cid, const QString &composition, const QVector<QPair<QString, QVariant>> &params, Fun &undo, Fun &redo);
++    /** @brief Catavan: gives the playlist entry of the clip at @p position (sub playlist @p subPlaylist) the in/out
++     *  @p in / @p out of its producer. A slip only changes the producer, and MLT puts the entry's old in/out back on the
++     *  producer when the clip leaves the track (a move) */
++    void syncClipEntry(int subPlaylist, int position, int in, int out);
+     /** @brief Ensure we don't have unsynced mixes in the playlist (mixes without owner clip) */
+     void syncronizeMixes(bool finalMove);
+     /** @brief Returns the number of same track transitions (mix) in this track */
+--- a/kdenlive-26.08.2/src/timeline2/model/trackmodel.cpp
++++ b/kdenlive-26.08.2/src/timeline2/model/trackmodel.cpp
+@@ -2852,6 +2852,65 @@
+     UPDATE_UNDO_REDO(local_redo, local_undo, undo, redo);
+ }
+ 
++void TrackModel::syncClipEntry(int subPlaylist, int position, int in, int out)
++{
++    QWriteLocker locker(&m_lock);
++    int index = m_playlists[subPlaylist].get_clip_index_at(position);
++    if (index > -1 && !m_playlists[subPlaylist].is_blank(index)) {
++        m_playlists[subPlaylist].resize_clip(index, in, out);
++    }
++}
++
++void TrackModel::setMixAsset(int cid, const QString &composition, const QVector<QPair<QString, QVariant>> &params, Fun &undo, Fun &redo)
++{
++    const QString currentAsset = m_sameCompositions[cid]->getAssetId();
++    QVector<QPair<QString, QVariant>> currentParams = m_sameCompositions[cid]->getAllParameters();
++    auto apply = [this, cid](const QString &assetId, const QVector<QPair<QString, QVariant>> &values) {
++        m_playlists[0].lock();
++        m_playlists[1].lock();
++        Mlt::Transition &transition = *static_cast<Mlt::Transition *>(m_sameCompositions[cid]->getAsset());
++        int in = transition.get_in();
++        int out = transition.get_out();
++        int mixCutPos = transition.get_int("kdenlive:mixcut");
++        int aTrack = transition.get_a_track();
++        int bTrack = transition.get_b_track();
++        QScopedPointer<Mlt::Field> field(m_track->field());
++        field->lock();
++        field->disconnect_service(transition);
++        field->unlock();
++        m_sameCompositions.erase(cid);
++        if (auto ptr = m_parent.lock()) {
++            std::unique_ptr<Mlt::Transition> t = TransitionsRepository::get()->getTransition(assetId);
++            t->set_in_and_out(in, out);
++            t->set_tracks(aTrack, bTrack);
++            m_track->plant_transition(*t.get(), aTrack, bTrack);
++            t->set("kdenlive:mixcut", mixCutPos);
++            QDomElement xml = TransitionsRepository::get()->getXml(assetId);
++            QDomNodeList xmlParams = xml.elementsByTagName(QStringLiteral("parameter"));
++            for (int i = 0; i < xmlParams.count(); ++i) {
++                QDomElement currentParameter = xmlParams.item(i).toElement();
++                QString paramName = currentParameter.attribute(QStringLiteral("name"));
++                for (const auto &p : values) {
++                    if (p.first == paramName) {
++                        currentParameter.setAttribute(QStringLiteral("value"), p.second.toString());
++                        break;
++                    }
++                }
++            }
++            std::shared_ptr<AssetParameterModel> asset(
++                new AssetParameterModel(std::move(t), xml, assetId, ObjectId(KdenliveObjectType::TimelineMix, cid, ptr->uuid()), QString()));
++            m_sameCompositions[cid] = asset;
++        }
++        m_playlists[0].unlock();
++        m_playlists[1].unlock();
++        return true;
++    };
++    Fun local_redo = [apply, composition, params]() { return apply(composition, params); };
++    Fun local_undo = [apply, currentAsset, currentParams]() { return apply(currentAsset, currentParams); };
++    local_redo();
++    UPDATE_UNDO_REDO(local_redo, local_undo, undo, redo);
++}
++
+ void TrackModel::reverseCompositionXml(const QString &composition, QDomElement xml)
+ {
+     if (composition == QLatin1String("luma") || composition == QLatin1String("dissolve") || composition == QLatin1String("mix")) {

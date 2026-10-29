@@ -1039,7 +1039,7 @@
          return true;
      }
      TRACE(clipId, speed);
-@@ -8494,3 +8667,622 @@
+@@ -8494,3 +8667,626 @@
      }
      return {};
  }
@@ -1125,6 +1125,10 @@
 +        }
 +        if (track->isLocked() || beforeLength + afterLength > end - pos) {
 +            // The two crossfades of the moved clip may not overlap
++            return false;
++        }
++        if ((before > -1 && beforeLength < 2) || (after > -1 && afterLength < 2)) {
++            // A crossfade is cut in the middle: one frame would leave one of its sides empty
 +            return false;
 +        }
 +        if (before > -1) {

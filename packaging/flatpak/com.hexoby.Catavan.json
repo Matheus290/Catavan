@@ -9,6 +9,7 @@
     ],
     "command": "catavan",
     "rename-icon": "catavan",
+    "separate-locales": false,
     "finish-args": [
         "--require-version=0.11.4",
         "--share=ipc",
@@ -20,6 +21,7 @@
         "--filesystem=host",
         "--filesystem=xdg-run/pipewire-0",
         "--system-talk-name=org.freedesktop.UDisks2",
+        "--own-name=com.hexoby.catavan.*",
         "--env=TMPDIR=/var/tmp",
         "--env=QT_ENABLE_HIGHDPI_SCALING=1",
         "--env=FREI0R_PATH=/app/lib/frei0r-1",

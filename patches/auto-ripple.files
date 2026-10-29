@@ -18,3 +18,8 @@ kdenlive-26.08.2/po/pt_BR/kdenlive.po
 # Regions (range markers) follow their content in a ripple: MarkerListModel::rippleMarkers
 kdenlive-26.08.2/src/bin/model/markerlistmodel.hpp
 kdenlive-26.08.2/src/bin/model/markerlistmodel.cpp
+# A slip (the left edge keeps the clip start) also updates the playlist entry, or a move gives the old in point back:
+# ClipModel::requestSlip, TrackModel::syncClipEntry
+kdenlive-26.08.2/src/timeline2/model/clipmodel.cpp
+kdenlive-26.08.2/src/timeline2/model/trackmodel.hpp
+kdenlive-26.08.2/src/timeline2/model/trackmodel.cpp

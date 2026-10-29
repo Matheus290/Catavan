@@ -871,7 +871,15 @@
              int kdenliveYear = kdenliveVersion.at(0).toInt(&ok);
 --- a/kdenlive-26.08.2/src/timeline2/model/timelinefunctions.hpp
 +++ b/kdenlive-26.08.2/src/timeline2/model/timelinefunctions.hpp
-@@ -44,7 +44,8 @@
+@@ -13,6 +13,7 @@
+ #include <memory>
+ #include <unordered_set>
+ #include <unordered_map>
++#include <vector>
+ 
+ #include <QDir>
+ 
+@@ -44,7 +45,8 @@
      static bool processClipCut(const std::shared_ptr<TimelineItemModel> &timeline, int clipId, int position, int &newId, Fun &undo, Fun &redo);
  
      /** @brief Cuts all clips at given position */
@@ -881,7 +889,7 @@
  
      /** @brief Makes a perfect clone of a given clip, but do not insert it */
      static bool cloneClip(const std::shared_ptr<TimelineItemModel> &timeline, int clipId, int &newId, PlaylistState::ClipState state, int audioStream,
-@@ -119,16 +120,20 @@
+@@ -119,16 +121,20 @@
          @param position
          @param ignoreMultiTrackGroups
          @param allowGroupBreaking Whether independent move of grouped items is allowed
@@ -904,7 +912,7 @@
      static bool extractZone(const std::shared_ptr<TimelineItemModel> &timeline, const QVector<int> &tracks, QPoint zone, bool liftOnly, int clipToUnGroup = -1,
                              std::unordered_set<int> clipsToRegroup = {});
      static bool extractZoneWithUndo(const std::shared_ptr<TimelineItemModel> &timeline, const QVector<int> &tracks, QPoint zone, bool liftOnly,
-@@ -142,6 +147,34 @@
+@@ -142,6 +148,52 @@
      */
      static bool requestInsertSpace(const std::shared_ptr<TimelineItemModel> &timeline, QPoint zone, Fun &undo, Fun &redo,
                                     const QVector<int> &allowedTracks = QVector<int>());
@@ -927,6 +935,24 @@
 +        starts before @p floor (if > -1). @returns false on failure */
 +    static bool rippleMoveItems(const std::shared_ptr<TimelineItemModel> &timeline, const std::unordered_set<int> &items, int delta, int floor,
 +                                Fun &undo, Fun &redo);
++    /** @brief Catavan (Auto Ripple): a crossfade (mix) taken out during a ripple, to put back between the same clips */
++    struct RippleMix
++    {
++        int firstId;
++        int secondId;
++        int afterCut;
++        int beforeCut;
++        std::pair<QString, QVector<QPair<QString, QVariant>>> params;
++    };
++    /** @brief Catavan (Auto Ripple): remove the mixes of @p items (the two clips of each are cut at the mix cut), so the ripple
++        moves and resizes plain clips; the mixes go to @p mixes. @returns false on failure */
++    static bool removeRippleMixes(const std::shared_ptr<TimelineItemModel> &timeline, const std::unordered_set<int> &items, std::vector<RippleMix> &mixes,
++                                  Fun &undo, Fun &redo);
++    /** @brief Catavan (Auto Ripple): put back each of @p mixes whose two clips still meet on the same track, with the same cut and
++        transition (a crossfade whose clips the ripple left apart is not rebuilt) */
++    static void restoreRippleMixes(const std::shared_ptr<TimelineItemModel> &timeline, const std::vector<RippleMix> &mixes, Fun &undo, Fun &redo);
++    /** @brief Catavan (Auto Ripple): shortest playtime of clip @p itemId in a ripple trim: its crossfades and one frame */
++    static int rippleMinPlaytime(const std::shared_ptr<TimelineItemModel> &timeline, int itemId);
 +    /** @brief Catavan (Auto Ripple): delete @p items (and their groups) and pull back what follows them on all tracks,
 +        each track as far as the free space allows, not before the deleted start. @returns the deleted duration (negative), or
 +        INT_MIN on failure */
@@ -1045,7 +1071,7 @@
          if (clips.size() > 1) {
              final = timeline->requestGroupMove(itemId, mainGroup, 0, endPosition - startPosition, true, true, undo, redo);
              for (auto i : clips) {
-@@ -1070,6 +1093,350 @@
+@@ -1070,6 +1093,461 @@
      return result;
  }
  
@@ -1123,6 +1149,11 @@
 +    if (delta == 0 || items.empty()) {
 +        return true;
 +    }
++    // Moving a clip alone breaks its mixes: they come out first and go back after the move
++    std::vector<RippleMix> mixes;
++    if (!removeRippleMixes(timeline, items, mixes, undo, redo)) {
++        return false;
++    }
 +    // Moved items of each track, by position
 +    std::map<int, std::vector<std::pair<int, int>>> perTrack;
 +    for (int id : items) {
@@ -1175,7 +1206,98 @@
 +            }
 +        }
 +    }
++    restoreRippleMixes(timeline, mixes, undo, redo);
 +    return true;
++}
++
++bool TimelineFunctions::removeRippleMixes(const std::shared_ptr<TimelineItemModel> &timeline, const std::unordered_set<int> &items,
++                                          std::vector<RippleMix> &mixes, Fun &undo, Fun &redo)
++{
++    std::unordered_set<int> seconds;
++    std::vector<RippleMix> found;
++    auto add = [&](int firstId, int secondId) {
++        if (firstId < 0 || secondId < 0 || seconds.count(secondId) > 0) {
++            return;
++        }
++        seconds.insert(secondId);
++        const std::shared_ptr<ClipModel> &second = timeline->m_allClips[secondId];
++        int afterCut = second->getMixCutPosition();
++        found.push_back({firstId, secondId, afterCut, second->getMixDuration() - afterCut,
++                         timeline->getTrackById(second->getCurrentTrackId())->getMixParams(secondId)});
++    };
++    for (int id : items) {
++        if (!timeline->isClip(id)) {
++            continue;
++        }
++        int tid = timeline->getClipTrackId(id);
++        if (tid < 0 || timeline->getTrackById_const(tid)->isLocked()) {
++            continue;
++        }
++        std::pair<MixInfo, MixInfo> mixData = timeline->getTrackById_const(tid)->getMixInfo(id);
++        add(mixData.first.firstClipId, mixData.first.secondClipId);
++        add(mixData.second.firstClipId, mixData.second.secondClipId);
++    }
++    for (const RippleMix &mix : found) {
++        if (!timeline->getTrackById(timeline->getClipTrackId(mix.secondId))->requestRemoveMix({mix.firstId, mix.secondId}, undo, redo)) {
++            return false;
++        }
++        mixes.push_back(mix);
++    }
++    return true;
++}
++
++void TimelineFunctions::restoreRippleMixes(const std::shared_ptr<TimelineItemModel> &timeline, const std::vector<RippleMix> &mixes, Fun &undo, Fun &redo)
++{
++    for (const RippleMix &mix : mixes) {
++        if (!timeline->isClip(mix.firstId) || !timeline->isClip(mix.secondId)) {
++            continue;
++        }
++        int tid = timeline->getClipTrackId(mix.secondId);
++        int cut = timeline->getClipPosition(mix.secondId);
++        if (tid < 0 || timeline->getClipTrackId(mix.firstId) != tid || timeline->getClipPosition(mix.firstId) + timeline->getClipPlaytime(mix.firstId) != cut) {
++            continue;
++        }
++        auto track = timeline->getTrackById(tid);
++        // Each side of the cut fits in what the ripple left of the other clip (up to its other mix), one frame kept
++        std::pair<MixInfo, MixInfo> firstMixes = track->getMixInfo(mix.firstId);
++        std::pair<MixInfo, MixInfo> secondMixes = track->getMixInfo(mix.secondId);
++        int firstFree = cut - (firstMixes.first.firstClipId > -1 ? firstMixes.first.firstClipInOut.second : timeline->getClipPosition(mix.firstId));
++        int secondEnd = secondMixes.second.secondClipId > -1 ? secondMixes.second.secondClipInOut.first : cut + timeline->getClipPlaytime(mix.secondId);
++        int afterCut = qMax(0, qMin(mix.afterCut, secondEnd - cut - 1));
++        int beforeCut = qMax(0, qMin(mix.beforeCut, firstFree - 1));
++        if (afterCut + beforeCut < 2) {
++            continue;
++        }
++        const QString mixId = track->isAudioTrack() ? QStringLiteral("mix") : QStringLiteral("luma");
++        Fun local_undo = []() { return true; };
++        Fun local_redo = []() { return true; };
++        // On failure (no material left to extend a clip over the cut) it reverts itself and the clips stay cut
++        if (!timeline->requestClipMix(mixId, {mix.firstId, mix.secondId}, {afterCut, beforeCut}, tid, cut, true, true, true, local_undo, local_redo,
++                                      false)) {
++            continue;
++        }
++        if (!track->isAudioTrack() && !mix.params.first.isEmpty()) {
++            track->setMixAsset(mix.secondId, mix.params.first, mix.params.second, local_undo, local_redo);
++        }
++        UPDATE_UNDO_REDO_NOLOCK(local_redo, local_undo, undo, redo);
++    }
++}
++
++int TimelineFunctions::rippleMinPlaytime(const std::shared_ptr<TimelineItemModel> &timeline, int itemId)
++{
++    int tid = timeline->getItemTrackId(itemId);
++    if (!timeline->isClip(itemId) || tid < 0) {
++        return 1;
++    }
++    int minimum = 1;
++    std::pair<MixInfo, MixInfo> mixData = timeline->getTrackById_const(tid)->getMixInfo(itemId);
++    if (mixData.first.firstClipId > -1) {
++        minimum += timeline->m_allClips[itemId]->getMixDuration();
++    }
++    if (mixData.second.secondClipId > -1) {
++        minimum += timeline->m_allClips[mixData.second.secondClipId]->getMixDuration();
++    }
++    return minimum;
 +}
 +
 +int TimelineFunctions::rippleDelete(const std::shared_ptr<TimelineItemModel> &timeline, const std::unordered_set<int> &items, bool moveGuides, Fun &undo,
@@ -1237,7 +1359,8 @@
 +        // Limits of the source media: after the out point on the right, before the in point on the left
 +        delta = qMin(delta, right ? maxDuration - in - playtime : in);
 +    }
-+    delta = qMax(delta, 1 - playtime);
++    // The crossfades stay whole (the one on the trimmed edge moves with it), with one frame of the clip between them
++    delta = qMax(delta, rippleMinPlaytime(timeline, itemId) - playtime);
 +    if (delta == 0) {
 +        return true;
 +    }
@@ -1267,7 +1390,7 @@
 +                    int partIn = timeline->getClipIn(id);
 +                    d = qMin(d, right ? partMax - partIn - (e - s) : partIn);
 +                }
-+                d = qMax(d, 1 - (e - s));
++                d = qMax(d, rippleMinPlaytime(timeline, id) - (e - s));
 +                if (d != 0 && (d > 0) == (delta > 0)) {
 +                    parts.push_back({id, d});
 +                }
@@ -1343,19 +1466,33 @@
 +        }
 +        return timeline->getGuideModel()->rippleMarkers(from, d, undo, redo);
 +    };
-+    if (delta > 0) {
-+        // Make room, then extend the clips (revealing earlier content for the left edge)
-+        return rippleMoveItems(timeline, following, delta, -1, undo, redo) && moveGuidesBy(right ? end : start, delta) && resizeParts() &&
-+            trimPushed();
++    // The crossfades of everything that changes come out first (resizing or moving one clip of a mix leaves the mix
++    // where it was) and go back at the end: a crossfade on the trimmed edge moves with it
++    std::unordered_set<int> changed = following;
++    changed.insert(partIds.begin(), partIds.end());
++    for (const Part &p : pushed) {
++        changed.insert(p.id);
 +    }
-+    if (!resizeParts() || !trimPushed()) {
++    std::vector<RippleMix> mixes;
++    if (!removeRippleMixes(timeline, changed, mixes, undo, redo)) {
 +        return false;
 +    }
-+    if (right) {
-+        return rippleMoveItems(timeline, following, delta, -1, undo, redo) && moveGuidesBy(end, delta);
++    bool ok;
++    if (delta > 0) {
++        // Make room, then extend the clips (revealing earlier content for the left edge)
++        ok = rippleMoveItems(timeline, following, delta, -1, undo, redo) && moveGuidesBy(right ? end : start, delta) && resizeParts() && trimPushed();
++    } else if (!resizeParts() || !trimPushed()) {
++        ok = false;
++    } else if (right) {
++        ok = rippleMoveItems(timeline, following, delta, -1, undo, redo) && moveGuidesBy(end, delta);
++    } else {
++        // Left edge: what starts after the clip start moves back, not before that start (clips reaching it align there)
++        ok = rippleMoveItems(timeline, following, delta, start, undo, redo) && moveGuidesBy(start - delta, delta);
 +    }
-+    // Left edge: what starts after the clip start moves back, not before that start (clips reaching it align there)
-+    return rippleMoveItems(timeline, following, delta, start, undo, redo) && moveGuidesBy(start - delta, delta);
++    if (ok) {
++        restoreRippleMixes(timeline, mixes, undo, redo);
++    }
++    return ok;
 +}
 +
 +bool TimelineFunctions::insertClipPushing(const std::shared_ptr<TimelineItemModel> &timeline, const QString &binId, int tid, int position, int duration,
@@ -1396,7 +1533,7 @@
  bool TimelineFunctions::requestItemCopy(const std::shared_ptr<TimelineItemModel> &timeline, int clipId, int trackId, int position)
  {
      Q_ASSERT(timeline->isClip(clipId) || timeline->isComposition(clipId));
-@@ -2660,7 +3027,7 @@
+@@ -2660,7 +3138,7 @@
  
          pos -= offset;
          double speed = prod.attribute(QStringLiteral("speed")).toDouble();

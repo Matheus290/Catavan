@@ -132,7 +132,7 @@
  int mlt_get_sws_flags(
      int srcwidth, int srcheight, int srcformat, int dstwidth, int dstheight, int dstformat)
  {
-@@ -687,3 +693,173 @@
+@@ -687,3 +693,195 @@
          }
      }
  }
@@ -158,12 +158,34 @@
 +static pthread_key_t sws_cache_key;
 +static pthread_once_t sws_cache_once = PTHREAD_ONCE_INIT;
 +
-+static void sws_cache_free(void *data)
++static void sws_cache_free_now(sws_cache *cache)
 +{
-+    sws_cache *cache = data;
 +    for (int i = 0; i < cache->count; i++)
 +        sws_freeContext(cache->entries[i].context);
 +    free(cache);
++}
++
++#ifdef _WIN32
++static void *sws_cache_free_thread(void *data)
++{
++    sws_cache_free_now(data);
++    return NULL;
++}
++#endif
++
++static void sws_cache_free(void *data)
++{
++#ifdef _WIN32
++    /* Windows runs the key destructors while the exiting thread holds the loader lock. Freeing a context with slice
++     * threads waits for them to exit, and their exit needs that lock: the thread pool never finished and Catavan
++     * hung when closing. A new thread only starts once the lock is released, so the contexts are freed there; if it
++     * cannot be created, they are leaked rather than deadlocked. */
++    pthread_t thread;
++    if (!pthread_create(&thread, NULL, sws_cache_free_thread, data))
++        pthread_detach(thread);
++#else
++    sws_cache_free_now(data);
++#endif
 +}
 +
 +static void sws_cache_init_key(void)

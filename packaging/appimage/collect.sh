@@ -22,6 +22,8 @@ cp -a /usr/lib/plugins/. "$USR/plugins/"
 rm -rf "$USR/plugins/"{designer,qmllint,qmlls,qmltooling,plasma,kcm_trash.so,kstyle_config}
 cp -a /usr/lib/qml/. "$USR/qml/"
 cp -a /usr/translations/qt*.qm "$USR/translations/"
+# Stylesheets of the Union widget style, the KF6 default outside Plasma (KStyleManager): without them it crashes at start
+cp -a /usr/share/union "$USR/share/"
 
 # KDE Frameworks translations (menus, dialogs), resolved from the locale extension of the SDK.
 for dir in /usr/share/locale/*/LC_MESSAGES; do

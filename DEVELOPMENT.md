@@ -35,7 +35,9 @@ How each feature works, the decisions behind it and how it was tested. For users
 - App ID: `CATAVAN_APP_ID` in `CMakeLists.txt`, also written in `data/kdenlive.notifyrc`,
   `data/org.kde.kdenlive.desktop` (X-DBUS) and `data/org.kde.kdenlive.appdata.xml` (own metainfo).
 - Translations: domain `catavan`. The sources stay `po/<lang>/kdenlive.po`; CMake copies them to
-  `build/po-catavan/<lang>/catavan.po` before `ki18n_install`. Interface strings naming the application say Catavan in
+  `build/po-catavan/<lang>/catavan.po` before `ki18n_install`. `kdenliveui.rc` declares `translationDomain="catavan"`
+  (version 252): with upstream's `kdenlive` the menus it defines (Edit, View, Sequence, Markers...) were translated only
+  where Kdenlive itself was installed. Interface strings naming the application say Catavan in
   all languages (`tools/rebrand/`). "Kdenlive" stays in format names (project, document, title, layout, JSON, effect
   definitions), the online docs, the funding / get involved texts and the update reminder.
 - Version: `CATAVAN_VERSION` (About, `--version`, splash, wizard). `KDENLIVE_VERSION` is still written in saved
@@ -163,6 +165,17 @@ How each feature works, the decisions behind it and how it was tested. For users
   (`groupTrimPush`). Then the ripple on all tracks, group members included, each item moved alone
   (`rippleMoveItems`, shift per track): left edge → what starts at the clip start or later, never before that start
   (it aligns there); right edge → what ends after the old end, by the same amount. Deleting uses `rippleMoveItems` too.
+- Crossfades in a ripple: resizing or moving one clip of a mix alone leaves the mix where it was (an inconsistent
+  track: "Mix not aligned"). `rippleResize` (for the parts, pushed and following items) and `rippleMoveItems` (for the
+  moved items) take the mixes out first (`removeRippleMixes`: the two clips are cut at the mix cut) and put them back at
+  the end (`restoreRippleMixes`) between the same clips, with the same cut and transition, when the two clips still
+  meet; each side is limited to what is left of the other clip (one frame kept). A crossfade on the trimmed edge so
+  moves with it. A ripple trim never makes a clip shorter than its crossfades plus one frame (`rippleMinPlaytime`).
+- Slips and moves: `ClipModel::requestSlip` (used by the left edge) changed only the producer in/out, not the copy
+  kept by the MLT playlist entry; `mlt_playlist_replace_with_blank` (every move) puts the entry's in/out back on the
+  producer, so a moved clip got its old in point back, on one track and not on another (the entry is refreshed by any
+  later change of that playlist): audio and video out of sync. The slip and its undo now also call
+  `TrackModel::syncClipEntry` (`resize_clip` with the same in/out, which refreshes the entry). Upstream Slip tool too.
 - Not live (default, `rippleTrimLive` off): shrinking and the left edge use the normal live trim (the group is pushed
   live); growing the right edge also uses the normal live trim while it fits, and only draws the clip longer once a
   clip is in the way (`requestItemResize` stops at its start: when the result falls short of the request beyond the
@@ -186,7 +199,10 @@ How each feature works, the decisions behind it and how it was tested. For users
   In the Auto Ripple drag the position is the start of the dragged clip (`rippleGuidesFrame` in `Timeline.qml`), not
   the spacer item (`requestSpacerStartOperation` may return a later clip on another track) nor the click frame (inside
   the clip): with either, a region starting between the clip start and that frame only had its end moved.
-- Tests: `tests/vegasrippletest.cpp`.
+- Tests: `tests/vegasrippletest.cpp` (includes crossfades in a ripple trim and slipped clips that move). A random test
+  of cuts, ripple trims (with the Track.qml preview), ripple drags with crossfades and ripple deletes on grouped
+  audio/video clips, checking sync and `checkConsistency` after each step, found these (600 sequences pass); it is not
+  kept in the repository. Cutting inside a crossfade (upstream `requestClipCut`) still leaves an inconsistent track.
 
 ### Grouped clips while trimming (patch `group-trim`)
 
@@ -285,6 +301,8 @@ How each feature works, the decisions behind it and how it was tested. For users
   its track; covering a clip, overlapping two mixes or entering an existing mix is invalid, and
   `suggestCrossfadeMove` stops at the last valid position on the way. Compositions and subtitles of the group just
   move along.
+- An overlap of one frame is invalid (the mix is cut in the middle, one side would be empty: wrong snaps and track
+  duration); the drag stops before it.
 - `requestCrossfadeMove` (on release): removes the mixes of the moved clips with clips that stay; computes the final
   edge of each affected clip from its full length (removing a mix cuts at the cut point; each overlap is cut in the
   middle); shrinks what needs it → moves with the native move (`requestGroupMove` / `requestClipMove`, which carry the
@@ -422,7 +440,11 @@ How each feature works, the decisions behind it and how it was tested. For users
   (`av_convert_image_threaded`, through `mlt_sws_scale_planes`); the old `sws_scale` path stays as fallback and for
   `yuv422p16`. The output is identical (compared bit by bit on project frames).
 - MLT avformat `common.c`: `mlt_sws_cached_context` keeps the initialized swscale contexts per thread (8 per thread,
-  most recently used first, freed with the thread). Creating a context and its slice threads for every frame, and for
+  most recently used first, freed with the thread). **Windows:** the pthread key destructor runs while the exiting
+  thread holds the loader lock, and freeing a context waits for its slice threads, whose exit needs that lock. The
+  first pooled thread to expire froze Catavan (closing waited for the pool forever; any later DLL load hung too).
+  There the destructor hands the cache to a detached thread, which starts once the lock is released; if it cannot
+  be created, the contexts leak. Creating a context and its slice threads for every frame, and for
   every slice of the sliced producer conversion, took a good part of the render time; render workers and
   `mlt_slices` threads live as long as the consumer. `mlt_sws_scale_planes` runs `sws_scale_frame` on AVFrames that
   wrap the caller's planes with a non owning `AVBufferRef`, so the input is not copied and the output is written in
@@ -513,7 +535,8 @@ upstream/           untouched copies, base of the diffs — never edit; not in G
 patches/            catavan.patch (everything, applied by setup.sh), <feature>.files (file list) and <feature>.diff
 packaging/
 ├── flatpak/        com.hexoby.Catavan.json + build.sh (bundle in ~/.cache/catavan-build/packages)
-└── appimage/       build.sh + collect.sh + AppRun (AppImage made from the Flatpak build)
+├── appimage/       build.sh + collect.sh + AppRun (AppImage made from the Flatpak build)
+└── windows/        build.sh + catavan.nsi (portable .zip and NSIS installer made from the MSYS2 build)
 tools/
 ├── make-patch.sh   writes patches/<feature>.diff and catavan.patch; without argument, finds orphan files
 ├── rebrand/        "Kdenlive" → "Catavan" in the interface strings (code and translations)
@@ -550,11 +573,60 @@ Build options of `build.sh`:
   `lib/debug`), the Qt plugins, QML modules and Qt/KF6 translations of the SDK, writes `qt.conf`, and linuxdeploy
   copies the libraries they need. `AppRun` sets the MLT, frei0r, LADSPA and Qt paths and `PACKAGE_TYPE=appimage`.
   Needs glibc 2.42 (the runtime's) or newer.
+- **D-Bus name:** `KDBusService` registers `com.hexoby.catavan.*` (from the organization domain), which differs from
+  the app ID `com.hexoby.Catavan` in case. Flatpak only lets an app own names under its app ID, so the manifest has
+  `--own-name=com.hexoby.catavan.*`; without it Catavan exited at start ("Failed to register name").
+- **Translations in the bundle:** `"separate-locales": false`. flatpak-builder moves `share/locale` into a
+  `com.hexoby.Catavan.Locale` extension by default, and `flatpak build-bundle` writes only the app: the installed
+  bundle had no Catavan translation at all (only the runtime's, e.g. File/New in pt-BR next to Edit/View in English).
+- **Union style (AppImage):** outside Plasma, `KStyleManager` picks the KF6 default widget style, Union, which reads its
+  stylesheets from `share/union`. `collect.sh` copies them from the SDK; without them Catavan crashed at start on
+  GNOME and other desktops (it worked on Plasma, whose platform theme picks Breeze).
 - In both packages, Kdenlive's sandbox detection sets the settings file to `catavan-appimagerc` / `catavan-flatpakrc`
   (upstream: `kdenlive-<package>rc`, shared with the Kdenlive AppImage).
+- Interface tests in the Qt `vnc` platform have no OpenGL: playback does not advance, and closing after pressing play
+  crashed or hung in the MLT consumer (also with the development build). On the real screen (play and close through
+  D-Bus: `org.kde.KMainWindow.activateAction monitor_play`, then `QWidget.close`) both packages closed in about 1 s.
+  Judge closing only on a real screen.
 - Tested headless: `catavan --version`, a `melt` render with timewarp 1.1 + WSOLA to `h264_nvenc` (duration 4.544 s
   from 5 s), NVDEC decoding, the optional modules in `melt -query`, and an offscreen start of the AppImage with no
   missing QML module or plugin.
+- **Windows .zip** (`packaging/windows/build.sh`, MSYS2 UCRT64 shell, after `./build.sh`): copies the install prefix
+  (`bin/`, `lib/mlt`, `lib/frei0r-1`, `share/mlt`; executables and MLT modules with `strip --strip-debug`, the
+  RelWithDebInfo `catavan.exe` is ~700 MB otherwise), FFmpeg, MediaInfo and `kioworker.exe`, the Qt plugins and QML
+  modules of MSYS2 into `lib/plugins` and `lib/qml` (found through `bin/qt.conf`), the KDE data of MSYS2 into
+  `bin/data` and `etc/fonts` for fontconfig. Then it walks the imports of every `.exe`/`.dll` (`objdump -p`) and
+  copies each DLL found in `$MINGW_PREFIX/bin` until nothing new appears. DLLs loaded at run time are invisible to
+  the walk: `libmediainfo-0.dll` is copied by name. `Catavan.cmd` at the top starts `bin\catavan.exe`. Output:
+  `packages/Catavan-<version>-windows-x86_64.zip` + `.sha256` (bsdtar).
+  - Icon colors (`main.cpp`, patch `branding`): `KIconTheme::initTheme()` runs before the `QApplication` and adds
+    `<plugin path>/kiconthemes6` (the KIconEngine, which recolors Breeze icons for the color scheme) only for the
+    plugin paths Qt knows at that moment. `bin/qt.conf` is read only once the application exists, so in the package
+    Qt's plain SVG engine drew the icons dark on the dark scheme (the development build worked through
+    `QT_PLUGIN_PATH` of `catavan.cmd`). On Windows, `main.cpp` adds `<exe dir>/../lib/plugins` (from
+    `GetModuleFileNameW`) before `initTheme()`. Checked on screen: `KIconEnginePlugin.dll` loads from the package.
+  - Executable icon: `ecm_add_app_icon` needs `icotool` (MSYS2 `icoutils`, in `setup.sh`); without it CMake only
+    warns and `catavan.exe` has no icon, so the shortcuts and Installed apps show a blank one.
+  - Qt's test QML modules are left out: their build leftovers had 166-character relative paths, and `Expand-Archive`
+    failed under the 260-character limit. The longest path is now ~143 characters, fine inside `Downloads`.
+  - Tested with `PATH=C:\Windows\system32;C:\Windows`: `melt -query` (opencv.tracker, rnnoise, glaxnimate, wsola,
+    frei0r), a timewarp 1.1 + WSOLA render to `h264_nvenc` (4.565 s from 5 s), NVDEC through `-hwaccel cuda`, and
+    an offscreen start: all 300 loaded modules come from the package or `C:\Windows`, and every QML import of
+    Catavan exists in `lib/qml`. Offscreen it stops at the welcome screen, so the timeline needs a test on screen.
+- **Windows installer** (`catavan.nsi`, NSIS 3 from MSYS2, built by the same script from the same folder):
+  `…-setup.exe`, LZMA solid (157 MB against 245 MB of the zip, ~720 MB installed). Program Files for all users
+  (admin), Start menu and desktop shortcuts, Installed apps entry (`HKLM\…\Uninstall\Catavan`, with
+  `QuietUninstallString`), English or Brazilian Portuguese chosen from the Windows language.
+  - `.kdenlive`: only `OpenWithProgids` → `Catavan.Project`; the default app (an installed Kdenlive) is kept.
+  - Install and uninstall remove `bin`, `lib`, `share`, `etc`, `translations` by name (no stale DLLs after an update,
+    nothing else in the folder touched). For that to be safe the directory page always appends `\Catavan` to the
+    chosen folder (`EnsureOwnFolder`); a silent install with `/D=` skips that page, so the folder given must be one of
+    its own.
+  - An open Catavan blocks the install (retry/cancel), checked by opening `catavan.exe` for writing.
+  - Uninstalling keeps `%LOCALAPPDATA%\catavanrc` and the user data.
+  - Tested: `/S /D=<folder>` install (files, registry, shortcuts, "Open with", modules from the installed folder) and
+    `uninstall.exe /S` (everything removed, settings kept). The interactive pages were not tried by me.
+  - Not signed: SmartScreen shows "unknown publisher" until it is signed (README tells how to proceed).
 
 ## Decisions
 
@@ -575,8 +647,8 @@ Build options of `build.sh`:
   - frei0r: on Windows MLT only looks for the plugins in `lib/frei0r-1` next to the executable (no `FREI0R_PATH`), so
     `build.sh mlt` copies the MSYS2 plugins there (7.7 MB; a junction would be followed by `--clean`).
   - Starting Catavan from a hidden console (`Start-Process -WindowStyle Hidden`) hides its first window too.
-- **MLT modules off:** rnnoise (no package; Kdenlive's denoise comes through LADSPA), xine, opencv (Kdenlive's motion
-  tracker is unavailable — turn it on with `libopencv-contrib-dev` if needed), ndi, glaxnimate.
+- **MLT modules off:** xine, ndi (proprietary SDK) and, on Windows, movit (no MSYS2 package). Glaxnimate, OpenCV and
+  RNNoise are on with `EXTRA_MODULES=1` (the default; see "Structure").
 
 ## Testing
 

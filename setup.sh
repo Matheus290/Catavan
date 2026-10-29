@@ -96,6 +96,8 @@ MSYS2_PKGS=(
   libvorbis gdk-pixbuf2 pango fontconfig libxml2 frei0r-plugins ladspa-sdk lilv libexif dlfcn rtaudio libsndfile
   mediainfo
   opencv rnnoise
+  # icotool: the icon embedded in catavan.exe (without it ECM builds the executable with no icon); the installer
+  icoutils nsis
 )
 
 install_msys2() {

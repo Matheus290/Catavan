@@ -146,6 +146,20 @@ Download a package from the [Releases](https://github.com/Matheus290/Catavan/rel
 Both carry the same build of Catavan, MLT and FFmpeg (with NVENC/NVDEC for NVIDIA drivers 550 or newer, VA-API and
 QSV) and keep their settings apart from an installed Kdenlive.
 
+## Installing on Windows
+
+Download from the [Releases](https://github.com/Matheus290/Catavan/releases) page (Windows 10 or 11, 64-bit):
+
+- **Installer** (`Catavan-*-windows-x86_64-setup.exe`): installs into `Program Files` with Start menu and desktop
+  shortcuts, and adds Catavan to the "Open with" list of `.kdenlive` projects without changing their default app.
+  Uninstall it from *Settings → Apps → Installed apps*.
+- **Portable** (`Catavan-*-windows-x86_64.zip`): extract it anywhere and run `Catavan.cmd`, or `bin\catavan.exe`
+  directly. Nothing is installed: deleting the folder removes Catavan.
+
+Both keep the settings in `%LOCALAPPDATA%\catavanrc` (uninstalling leaves them). They carry FFmpeg with NVENC/NVDEC,
+so the NVIDIA tips above work the same way. The installer is not signed yet, so Windows SmartScreen may warn about an
+unknown publisher: choose *More info → Run anyway*.
+
 ## Building
 
 Catavan is built from source on Linux or on Windows (see below).
@@ -183,10 +197,18 @@ src/            Kdenlive and MLT sources with the Catavan changes (not in the re
                 original tarballs and applies patches/catavan.patch)
 upstream/       untouched Kdenlive and MLT sources, used to produce the patches (not in the repository: setup.sh
                 downloads and extracts them)
-packaging/      Flatpak manifest and AppImage scripts (packaging/flatpak/build.sh, then packaging/appimage/build.sh)
+packaging/      Flatpak manifest and AppImage scripts (packaging/flatpak/build.sh, then packaging/appimage/build.sh);
+                the Windows installer and .zip (packaging/windows/build.sh, in the MSYS2 shell after ./build.sh)
 tools/          make-patch.sh, the WSOLA command line tool and the playback speed test tools
 DEVELOPMENT.md  how each feature works, decisions, tests
 ```
+
+## Known issues
+
+- **Auto Ripple near the start of the timeline:** dragging grouped clips (audio and video) to the left until they hit
+  the start of the timeline can move the parts out of line with each other. Leave some space before the first clip
+  when using Auto Ripple. Fix planned for the next version.
+- **Cutting inside a crossfade** (also in Kdenlive) can leave the track in a broken state. Cut outside the crossfade.
 
 ## Reporting bugs
 

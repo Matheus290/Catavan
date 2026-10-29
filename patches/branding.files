@@ -112,3 +112,4 @@ kdenlive-26.08.2/src/project/dialogs/temporarydata.cpp
 kdenlive-26.08.2/REUSE.toml
 kdenlive-26.08.2/LICENSES/CC-BY-4.0.txt
 kdenlive-26.08.2/src/dialogs/splash.cpp
+kdenlive-26.08.2/src/kdenliveui.rc
