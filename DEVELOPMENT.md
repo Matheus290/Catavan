@@ -28,7 +28,7 @@ How each feature works, the decisions behind it and how it was tested. For users
 
 ### Identity (patch `branding`)
 
-- Internal name `catavan`: `~/.config/catavanrc`, data in `share/catavan` and `~/.local/share/catavan`, kxmlgui
+- Internal name `catavan`: `~/.config/catavanrc` (`catavan-appimagerc` / `catavan-flatpakrc` in the packages), data in `share/catavan` and `~/.local/share/catavan`, kxmlgui
   `kxmlgui5/catavan/catavanui.rc` (an alias of `kdenliveui.rc` in the qrc), lock file `catavanlock`,
   `catavan.notifyrc`, `catavan_*.knsrc` (downloads in `catavan/...`), executables `catavan`/`catavan_render` (the
   CMake targets stay `kdenlive`/`kdenlive_render`, through OUTPUT_NAME), D-Bus `com.hexoby.catavan`.
@@ -511,6 +511,9 @@ versions.env        versions/URLs/sha256 of the tarballs
 src/                modified sources (kdenlive-26.08.2, mlt-7.42.0) — not in Git, created by setup.sh
 upstream/           untouched copies, base of the diffs — never edit; not in Git
 patches/            catavan.patch (everything, applied by setup.sh), <feature>.files (file list) and <feature>.diff
+packaging/
+├── flatpak/        com.hexoby.Catavan.json + build.sh (bundle in ~/.cache/catavan-build/packages)
+└── appimage/       build.sh + collect.sh + AppRun (AppImage made from the Flatpak build)
 tools/
 ├── make-patch.sh   writes patches/<feature>.diff and catavan.patch; without argument, finds orphan files
 ├── rebrand/        "Kdenlive" → "Catavan" in the interface strings (code and translations)
@@ -530,6 +533,28 @@ Build options of `build.sh`:
 - The cache path is resolved with `realpath`: with `~/.cache/catavan-build` as a symbolic link to another disk, the
   relative include paths that AUTOMOC writes from the link path did not resolve (Glaxnimate).
 `source ~/.cache/catavan-build/env.sh` puts the local `melt`, `wsola-cli` and `catavan` in the PATH.
+
+## Packages
+
+- **Flatpak** (`packaging/flatpak/build.sh`): the manifest is the Flathub manifest of Kdenlive 26.08.2 with
+  `com.hexoby.Catavan`, MLT and Catavan from `src/` (`dir` sources: run `setup.sh` first) and the optional MLT modules
+  (RNNoise added as a module). It writes a single-file bundle (`flatpak build-bundle`, runtime from Flathub). State
+  and cache in `~/.cache/catavan-build/flatpak`; the first build takes about an hour, later ones only rebuild what
+  changed.
+- **NVIDIA headers:** the KDE SDK 6.11 has nv-codec-headers 13.1, whose NVENC needs driver 610 or newer ("Driver does
+  not support the required nvenc API version. Required: 13.1"). The manifest builds nv-codec-headers 12.2 (driver 550
+  or newer) before FFmpeg, and FFmpeg gets `--extra-cflags=-I/app/include`: without it, the SDK headers in
+  `/usr/include` won.
+- **AppImage** (`packaging/appimage/build.sh`, after the Flatpak): `flatpak build` runs `collect.sh` inside the
+  Flatpak build sandbox (`/app` = the build, `/usr` = the KDE SDK). It copies `/app` (locale links resolved, no
+  `lib/debug`), the Qt plugins, QML modules and Qt/KF6 translations of the SDK, writes `qt.conf`, and linuxdeploy
+  copies the libraries they need. `AppRun` sets the MLT, frei0r, LADSPA and Qt paths and `PACKAGE_TYPE=appimage`.
+  Needs glibc 2.42 (the runtime's) or newer.
+- In both packages, Kdenlive's sandbox detection sets the settings file to `catavan-appimagerc` / `catavan-flatpakrc`
+  (upstream: `kdenlive-<package>rc`, shared with the Kdenlive AppImage).
+- Tested headless: `catavan --version`, a `melt` render with timewarp 1.1 + WSOLA to `h264_nvenc` (duration 4.544 s
+  from 5 s), NVDEC decoding, the optional modules in `melt -query`, and an offscreen start of the AppImage with no
+  missing QML module or plugin.
 
 ## Decisions
 

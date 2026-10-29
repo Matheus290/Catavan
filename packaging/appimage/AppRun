@@ -1,0 +1,24 @@
+#!/bin/sh
+# AppRun — environment for Catavan inside the AppImage (MLT modules and data, frei0r and LADSPA plugins, Qt paths).
+HERE="$(dirname "$(readlink -f "$0")")"
+USR="$HERE/usr"
+
+export PACKAGE_TYPE=appimage
+export PATH="$USR/bin:$PATH"
+export LD_LIBRARY_PATH="$USR/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export MLT_REPOSITORY="$USR/lib/mlt-7"
+export MLT_DATA="$USR/share/mlt-7"
+export MLT_PROFILES_PATH="$USR/share/mlt-7/profiles"
+export MLT_PRESETS_PATH="$USR/share/mlt-7/presets"
+export FREI0R_PATH="$USR/lib/frei0r-1"
+export LADSPA_PATH="$USR/lib/ladspa${LADSPA_PATH:+:$LADSPA_PATH}"
+export QT_PLUGIN_PATH="$USR/plugins"
+export QML_IMPORT_PATH="$USR/qml"
+export QML2_IMPORT_PATH="$USR/qml"
+export XDG_DATA_DIRS="$USR/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+
+case "$(basename "${ARGV0:-$0}")" in
+  melt*) exec "$USR/bin/melt" "$@" ;;
+  catavan_render*) exec "$USR/bin/catavan_render" "$@" ;;
+esac
+exec "$USR/bin/catavan" "$@"

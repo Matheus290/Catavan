@@ -101,8 +101,13 @@
              if (f2.exists() && f2.open(QIODevice::ReadOnly)) {
                  QDomDocument doc2;
                  doc2.setContent(&f2);
-@@ -279,47 +279,57 @@
-         KConfig::setMainConfigName(QStringLiteral("kdenlive-%1rc").arg(packageName));
+@@ -276,50 +276,61 @@
+         break;
+     }
+     if (!packageName.isEmpty()) {
+-        KConfig::setMainConfigName(QStringLiteral("kdenlive-%1rc").arg(packageName));
++        // Catavan: own name, apart from the Kdenlive AppImage/Flatpak (kdenlive-appimagerc)
++        KConfig::setMainConfigName(QStringLiteral("catavan-%1rc").arg(packageName));
      }
  
 -    KLocalizedString::setApplicationDomain("kdenlive");
@@ -185,7 +190,7 @@
  
      // Set application data
      KAboutData::setApplicationData(aboutData);
-@@ -347,7 +357,7 @@
+@@ -347,7 +358,7 @@
      QCommandLineOption renderOption(QStringLiteral("render"), i18n("Directly render the project and exit."));
      parser.addOption(renderOption);
  

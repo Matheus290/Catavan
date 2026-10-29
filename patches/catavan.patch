@@ -34844,7 +34844,7 @@ index e9a7e95..6ab22e8 100644
      <Action name="ripple_tool"/>
      <Separator/>
 diff --git a/kdenlive-26.08.2/src/main.cpp b/kdenlive-26.08.2/src/main.cpp
-index 83df480..1cef122 100644
+index 83df480..1066beb 100644
 --- a/kdenlive-26.08.2/src/main.cpp
 +++ b/kdenlive-26.08.2/src/main.cpp
 @@ -119,7 +119,7 @@ static void resetConfig()
@@ -34874,8 +34874,13 @@ index 83df480..1cef122 100644
              if (f2.exists() && f2.open(QIODevice::ReadOnly)) {
                  QDomDocument doc2;
                  doc2.setContent(&f2);
-@@ -279,47 +279,57 @@ int main(int argc, char *argv[])
-         KConfig::setMainConfigName(QStringLiteral("kdenlive-%1rc").arg(packageName));
+@@ -276,50 +276,61 @@ int main(int argc, char *argv[])
+         break;
+     }
+     if (!packageName.isEmpty()) {
+-        KConfig::setMainConfigName(QStringLiteral("kdenlive-%1rc").arg(packageName));
++        // Catavan: own name, apart from the Kdenlive AppImage/Flatpak (kdenlive-appimagerc)
++        KConfig::setMainConfigName(QStringLiteral("catavan-%1rc").arg(packageName));
      }
  
 -    KLocalizedString::setApplicationDomain("kdenlive");
@@ -34957,7 +34962,7 @@ index 83df480..1cef122 100644
  
      // Set application data
      KAboutData::setApplicationData(aboutData);
-@@ -347,7 +357,7 @@ int main(int argc, char *argv[])
+@@ -347,7 +358,7 @@ int main(int argc, char *argv[])
      QCommandLineOption renderOption(QStringLiteral("render"), i18n("Directly render the project and exit."));
      parser.addOption(renderOption);
  

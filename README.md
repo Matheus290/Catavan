@@ -133,10 +133,22 @@ Wizard…* → **Enable hardware decoding**. Two more settings in the render win
 Without an NVIDIA card, parallel processing still helps, and *Enable hardware decoding* in the configuration wizard
 can be tried with other cards (VA-API, D3D11).
 
+## Installing on Linux
+
+Download a package from the [Releases](https://github.com/Matheus290/Catavan/releases) page:
+
+- **AppImage:** one file, nothing to install. Make it executable (`chmod +x Catavan-*.AppImage`) and run it. It needs
+  a recent distribution (glibc 2.42 or newer: Ubuntu 25.10, Fedora 43, Arch and newer). On older ones, use the
+  Flatpak.
+- **Flatpak:** `flatpak install --user Catavan-*.flatpak`, then `flatpak run com.hexoby.Catavan` or the application
+  menu. It downloads the KDE runtime from Flathub the first time.
+
+Both carry the same build of Catavan, MLT and FFmpeg (with NVENC/NVDEC for NVIDIA drivers 550 or newer, VA-API and
+QSV) and keep their settings apart from an installed Kdenlive.
+
 ## Building
 
-There are no packages yet (AppImage/Flatpak are planned). Catavan is built from source on Linux or on Windows
-(see below).
+Catavan is built from source on Linux or on Windows (see below).
 
 ```bash
 ./setup.sh      # installs the build dependencies (asks for your sudo password)
@@ -171,6 +183,7 @@ src/            Kdenlive and MLT sources with the Catavan changes (not in the re
                 original tarballs and applies patches/catavan.patch)
 upstream/       untouched Kdenlive and MLT sources, used to produce the patches (not in the repository: setup.sh
                 downloads and extracts them)
+packaging/      Flatpak manifest and AppImage scripts (packaging/flatpak/build.sh, then packaging/appimage/build.sh)
 tools/          make-patch.sh, the WSOLA command line tool and the playback speed test tools
 DEVELOPMENT.md  how each feature works, decisions, tests
 ```
