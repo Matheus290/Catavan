@@ -1,0 +1,13 @@
+# Catavan: Ungroup takes only the clicked clips out of their group, the others stay grouped (option ungroupSelectedOnly).
+# Model: requestRemoveItemsFromGroups; the controller keeps the clicked items (setClickedItem, called from the QML).
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/timeline2/model/timelinemodel.hpp
+kdenlive-26.08.2/src/timeline2/model/timelinemodel.cpp
+kdenlive-26.08.2/src/timeline2/view/timelinecontroller.h
+kdenlive-26.08.2/src/timeline2/view/timelinecontroller.cpp
+kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml
+kdenlive-26.08.2/src/timeline2/view/qml/Clip.qml
+kdenlive-26.08.2/po/pt_BR/kdenlive.po
+kdenlive-26.08.2/tests/CMakeLists.txt
+kdenlive-26.08.2/tests/vegasgrouptest.cpp

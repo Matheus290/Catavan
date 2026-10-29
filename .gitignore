@@ -1,0 +1,51 @@
+# Pristine upstream sources, used only to generate the patches; setup.sh downloads and extracts them
+/upstream/
+
+# Kdenlive and MLT sources with the Catavan changes: setup.sh creates them from upstream + patches/catavan.patch
+/src/
+/src.part/
+
+# Build directories (build.sh builds in ~/.cache/catavan-build, outside the source tree)
+build/
+build-*/
+_build/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
+.cache/
+
+# Objects and binaries
+*.o
+*.obj
+*.so
+*.so.*
+*.a
+*.dll
+*.exe
+*.part
+
+# Packages
+*.AppImage
+*.flatpak
+*.zip
+*.tar.gz
+*.tar.xz
+
+# Patch leftovers
+*.orig
+*.rej
+
+# Python
+__pycache__/
+*.pyc
+
+# Editors and IDEs
+*~
+.*.swp
+.vscode/
+.idea/
+*.kdev4
+*.user
+
+# Syncthing conflict copies
+*.sync-conflict-*

@@ -1,0 +1,6 @@
+# Catavan: during playback, scrolling the timeline (wheel, zoom/scroll bar, middle button drag) or placing the
+# action cursor stops the view from following the playhead until the playback stops (option scrollReleasesPlayhead).
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml
+kdenlive-26.08.2/po/pt_BR/kdenlive.po

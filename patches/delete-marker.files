@@ -1,0 +1,9 @@
+# Catavan: ruler context menu: Add Marker (only away from a marker), Edit/Remove Marker (only on a marker).
+# Timeline.qml also carries action-cursor changes.
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/timeline2/view/timelinewidget.h
+kdenlive-26.08.2/src/timeline2/view/timelinewidget.cpp
+kdenlive-26.08.2/src/timeline2/view/qml/Ruler.qml
+kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml
+kdenlive-26.08.2/po/pt_BR/kdenlive.po

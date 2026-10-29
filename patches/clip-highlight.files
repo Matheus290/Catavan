@@ -1,0 +1,10 @@
+# Catavan: the clip under the mouse is lighter; the clicked clip keeps the bright selection border, the other selected
+# clips get a darker one (option clipHighlight). The Auto Ripple click also sets root.mainItemId.
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/timeline2/view/qml/Clip.qml
+kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml
+kdenlive-26.08.2/po/pt_BR/kdenlive.po
+kdenlive-26.08.2/src/timeline2/view/qml/ClipAudioThumbs.qml
+kdenlive-26.08.2/src/timeline2/view/qml/Composition.qml
+kdenlive-26.08.2/src/timeline2/view/qml/SubTitle.qml

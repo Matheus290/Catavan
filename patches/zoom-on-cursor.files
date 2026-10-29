@@ -1,0 +1,6 @@
+# Catavan: mouse zoom centers on the action cursor (or the playhead); original option timelinemousezoomonplayhead,
+# now on by default and shown in Configure → Timeline.
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml
+kdenlive-26.08.2/po/pt_BR/kdenlive.po

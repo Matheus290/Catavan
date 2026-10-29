@@ -1,0 +1,1755 @@
+--- a/kdenlive-26.08.2/src/kdenlivesettings.kcfg
++++ b/kdenlive-26.08.2/src/kdenlivesettings.kcfg
+@@ -326,7 +326,8 @@
+ 
+     <entry name="parallelrender" type="Bool">
+       <label>Enable parallel processing for rendering.</label>
+-      <default>false</default>
++      <!-- Catavan: on by default (the render took about twice as long with one thread) -->
++      <default>true</default>
+     </entry>
+ 
+     <entry name="renderInterp" type="String">
+@@ -427,6 +428,151 @@
+       <default>true</default>
+     </entry>
+ 
++    <entry name="pitchMethodPerClip" type="Bool">
++      <label>Choose the pitch compensation algorithm (Rubberband or WSOLA) of each clip in the speed dialog.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="actionCursor" type="Bool">
++      <label>Clicking the timeline during playback places an action cursor, used by edit actions, without moving the playback.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="splitShortcut" type="Bool">
++      <label>S splits the clips at the action cursor, X selects the selection tool and the razor tool has no shortcut (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="deleteMarkerMenu" type="Bool">
++      <label>Right clicking a timeline marker offers to edit or remove it; elsewhere in the ruler the menu only offers to add a marker.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="clickOnClipSeeks" type="Bool">
++      <label>Clicking a clip moves the playhead to the click position (the action cursor during playback).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="autoRippleTool" type="Bool">
++      <label>Replace the spacer tool by the Auto Ripple toggle (M) in the timeline toolbar (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="autoRipple" type="Bool">
++      <label>Auto Ripple is on: inserting, deleting or moving a clip also moves what follows it on all tracks.</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="autoRippleMarkers" type="Bool">
++      <label>Auto Ripple also moves the timeline markers.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="groupTrimPush" type="Bool">
++      <label>Trimming a grouped clip: grouped clips whose edge is reached are pushed along, and stop at the end of their material.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="wheelZoomsTimeline" type="Bool">
++      <label>Timeline mouse wheel: the plain wheel zooms and Ctrl+wheel scrolls.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="rippleTrimLive" type="Bool">
++      <label>Auto Ripple: the following clips move while dragging a clip edge (otherwise only when the mouse is released).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="dropPushesClips" type="Bool">
++      <label>Dropping a clip from the bin where there is no room pushes the following clips.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="scrollReleasesPlayhead" type="Bool">
++      <label>During playback, scrolling the timeline or placing the action cursor stops the view from following the playhead until the playback stops.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="ungroupSelectedOnly" type="Bool">
++      <label>Ungroup takes only the clicked clips out of their group; the other clips stay grouped.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="removeMixClips" type="Bool">
++      <label>Mix Clips is hidden and a double click on a clip edge creates no mix (overlapping clips makes the crossfades); U ungroups (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="vegasShortcuts" type="Bool">
++      <label>Vegas shortcuts: M adds a timeline marker, G groups, Ctrl+L toggles Auto Ripple (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="hwDecodingAutoChecked" type="Bool">
++      <label>Catavan: hardware decoding was already turned on once because an NVIDIA encoder was found (turning it off afterwards is kept).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="dragSetsZone" type="Bool">
++      <label>Dragging in an empty part of the timeline sets the zone (in point where the drag starts, out point where it ends), as in Vegas.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="vegasSelection" type="Bool">
++      <label>Ctrl+click adds or removes a clip from the selection and Shift+click selects the clips between the last clicked one and the clicked one, as in Vegas.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="shareSpeedProducers" type="Bool">
++      <label>Clips with the same speed on a track share one decoder instead of one each.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="groupTracksIndependent" type="Bool">
++      <label>Moving a grouped clip to another track moves the clips of the same kind (video or audio) only; the others keep their tracks.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="transformMirror" type="Bool">
++      <label>In the Transform effect, a negative width or height mirrors the image in place.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="clipHighlight" type="Bool">
++      <label>A clip under the mouse is lighter; among the selected clips, the clicked one keeps the bright selection border and the others get a darker one.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="overlapCrossfade" type="Bool">
++      <label>Dragging a clip over the edge of another clip on the same track creates a crossfade in the overlap.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="monitorSpeedSlider" type="Bool">
++      <label>Playback speed slider in the status bar, with audio at speeds up to 4x (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="monitorPlaybackSpeed" type="Double">
++      <label>Speed used when playing the monitors.</label>
++      <default>1.0</default>
++    </entry>
++
++    <entry name="monitorSpeedPreservePitch" type="Bool">
++      <label>Keep the pitch of the audio played at a speed other than 1 (WSOLA, more processing).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="markersKeepPlayhead" type="Bool">
++      <label>Right clicking the timeline ruler or a marker opens the menu without moving the playhead, and creating a marker does not move the playhead to it.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="trimEdgePreview" type="Bool">
++      <label>While trimming, the project monitor displays the frame at the dragged clip edge instead of the video (audio keeps playing).</label>
++      <default>true</default>
++    </entry>
++
+     <entry name="normalizechannels" type="Bool">
+       <label>Normalize audio channels in thumbnails.</label>
+       <default>true</default>
+@@ -451,7 +597,8 @@
+ 
+     <entry name="pauseonseek" type="Bool">
+       <label>Pause playback when seeking.</label>
+-      <default>true</default>
++      <!-- Catavan: the playback goes on when seeking (clicking the ruler) -->
++      <default>false</default>
+     </entry>
+ 
+     <entry name="rewindOnStop" type="Bool">
+@@ -672,7 +819,7 @@
+     </entry>
+ 
+     <entry name="kdenliverendererpath" type="Path">
+-      <label>Kdenlive renderer install path.</label>
++      <label>Catavan renderer install path.</label>
+       <default></default>
+     </entry>
+ 
+@@ -723,13 +870,14 @@
+     </entry>
+ 
+     <entry name="maxcachesize" type="Int">
+-      <label>Kdenlive will periodically check if the cached data exceeds this limit. Data is in Mb</label>
++      <label>Catavan will periodically check if the cached data exceeds this limit. Data is in Mb</label>
+       <default>1024</default>
+     </entry>
+ 
+     <entry name="checkForUpdate" type="Bool">
+       <label>Automatically check for updates</label>
+-      <default>true</default>
++      <!-- Catavan: off, the reminder compares the Kdenlive base version and sends to the Kdenlive download page -->
++      <default>false</default>
+     </entry>
+ 
+     <entry name="usePowerManagement" type="Bool">
+@@ -738,7 +886,7 @@
+     </entry>
+ 
+     <entry name="lastCacheCheck" type="DateTime">
+-      <label>Kdenlive will check every 2 weeks on startup if the cached data exceeds the defined maxcachesize. This is the last checked date</label>
++      <label>Catavan will check every 2 weeks on startup if the cached data exceeds the defined maxcachesize. This is the last checked date</label>
+       <default></default>
+     </entry>
+ 
+@@ -1109,7 +1257,8 @@
+ 
+     <entry name="timelinemousezoomonplayhead" type="Bool">
+       <label>Mouse zoom on timeline based on playhead position, not mouse position.</label>
+-      <default>false</default>
++      <!-- Catavan: on by default, shown in the timeline settings; centers on the action cursor when there is one -->
++      <default>true</default>
+     </entry>
+ 
+     <entry name="transitionfollowcursor" type="Bool">
+@@ -1480,15 +1629,15 @@
+       <default>true</default>
+     </entry>
+     <entry name="lastSeenVersionMajor" type="Int">
+-      <label>Last used version of Kdenlive - major.</label>
++      <label>Last used version of Catavan - major.</label>
+       <default>0</default>
+     </entry>
+     <entry name="lastSeenVersionMinor" type="Int">
+-      <label>Last used version of Kdenlive - minor.</label>
++      <label>Last used version of Catavan - minor.</label>
+       <default>0</default>
+     </entry>
+     <entry name="lastSeenVersionMicro" type="Int">
+-      <label>Last used version of Kdenlive - micro.</label>
++      <label>Last used version of Catavan - micro.</label>
+       <default>0</default>
+     </entry>
+ 
+--- a/kdenlive-26.08.2/src/ui/configtimeline_ui.ui
++++ b/kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+@@ -234,6 +234,263 @@
+     </widget>
+    </item>
+    <item row="22" column="0">
++    <widget class="QLabel" name="label_vegas">
++     <property name="text">
++      <string>Catavan:</string>
++     </property>
++    </widget>
++   </item>
++   <item row="22" column="1">
++    <widget class="QCheckBox" name="kcfg_pitchMethodPerClip">
++     <property name="toolTip">
++      <string>In the clip speed dialog, choose the pitch compensation algorithm of each clip: Rubberband shifts the pitch, WSOLA time stretches the audio as web browsers do</string>
++     </property>
++     <property name="text">
++      <string>Choose pitch compensation algorithm per clip</string>
++     </property>
++    </widget>
++   </item>
++   <item row="23" column="1">
++    <widget class="QCheckBox" name="kcfg_trimEdgePreview">
++     <property name="toolTip">
++      <string>While the edge of a clip is dragged, the project monitor displays the frame at that edge instead of the video; audio keeps playing</string>
++     </property>
++     <property name="text">
++      <string>Show the edge frame in the project monitor while trimming a clip</string>
++     </property>
++    </widget>
++   </item>
++   <item row="24" column="1">
++    <widget class="QCheckBox" name="kcfg_actionCursor">
++     <property name="toolTip">
++      <string>During playback, clicking the timeline places an action cursor without moving the playback; cuts, markers and other actions use it. Pausing or seeking removes it</string>
++     </property>
++     <property name="text">
++      <string>Separate action cursor during playback</string>
++     </property>
++    </widget>
++   </item>
++   <item row="25" column="1">
++    <widget class="QCheckBox" name="kcfg_splitShortcut">
++     <property name="toolTip">
++      <string>S splits the selected clips (or the active tracks) at the action cursor, X picks the selection tool and the razor tool has no shortcut. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Split shortcut (S) and selection tool on X</string>
++     </property>
++    </widget>
++   </item>
++   <item row="26" column="1">
++    <widget class="QCheckBox" name="kcfg_deleteMarkerMenu">
++     <property name="toolTip">
++      <string>Right clicking a marker in the timeline ruler shows entries to edit and remove it; elsewhere in the ruler only Add Marker is shown (it never removes a marker)</string>
++     </property>
++     <property name="text">
++      <string>Marker context menu: add elsewhere, edit and remove on a marker</string>
++     </property>
++    </widget>
++   </item>
++   <item row="27" column="1">
++    <widget class="QCheckBox" name="kcfg_clickOnClipSeeks">
++     <property name="toolTip">
++      <string>A click on a clip, without dragging it, moves the playhead to the clicked position; during playback it only moves the action cursor</string>
++     </property>
++     <property name="text">
++      <string>Clicking a clip moves the playhead there</string>
++     </property>
++    </widget>
++   </item>
++   <item row="28" column="1">
++    <widget class="QCheckBox" name="kcfg_markersKeepPlayhead">
++     <property name="toolTip">
++      <string>Right clicking the ruler or a marker opens the menu without moving the playhead or pausing the playback; creating a marker does not move the playhead to it</string>
++     </property>
++     <property name="text">
++      <string>Ruler menu and new markers keep the playhead</string>
++     </property>
++    </widget>
++   </item>
++   <item row="29" column="1">
++    <widget class="QCheckBox" name="kcfg_autoRippleTool">
++     <property name="toolTip">
++      <string>The spacer tool button and its M shortcut become the Auto Ripple toggle: with it on, inserting, deleting or moving a clip also moves what follows on all tracks. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Auto Ripple toggle instead of the spacer tool</string>
++     </property>
++    </widget>
++   </item>
++   <item row="30" column="1">
++    <widget class="QCheckBox" name="kcfg_dropPushesClips">
++     <property name="toolTip">
++      <string>Dropping a clip from the bin over other clips places it there and pushes the following clips forward by its duration (on all tracks with Auto Ripple)</string>
++     </property>
++     <property name="text">
++      <string>Dropping a clip pushes the following clips</string>
++     </property>
++    </widget>
++   </item>
++   <item row="31" column="1">
++    <widget class="QCheckBox" name="kcfg_monitorSpeedSlider">
++     <property name="toolTip">
++      <string>A slider in the status bar sets the speed of the monitors playback (0x to 4x), with audio; a Pitch box keeps the pitch with WSOLA. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Playback speed slider in the status bar</string>
++     </property>
++    </widget>
++   </item>
++   <item row="32" column="1">
++    <widget class="QCheckBox" name="kcfg_rippleTrimLive">
++     <property name="toolTip">
++      <string>With Auto Ripple, the following clips move while the edge of a clip is dragged; unchecked, only the clip changes while dragging and the timeline follows when the mouse is released</string>
++     </property>
++     <property name="text">
++      <string>Auto Ripple: move the following clips while trimming (live)</string>
++     </property>
++    </widget>
++   </item>
++   <item row="33" column="1">
++    <widget class="QCheckBox" name="kcfg_groupTrimPush">
++     <property name="toolTip">
++      <string>When the edge of a grouped clip reaches the edge of another clip of the group, that clip is trimmed along; growing again, it follows until the end of its own material while the dragged clip goes on</string>
++     </property>
++     <property name="text">
++      <string>Grouped clips: an edge pushes the edges it reaches</string>
++     </property>
++    </widget>
++   </item>
++   <item row="34" column="1">
++    <widget class="QCheckBox" name="kcfg_wheelZoomsTimeline">
++     <property name="toolTip">
++      <string>In the timeline, the mouse wheel zooms and Ctrl+wheel scrolls; unchecked, the wheel scrolls and Ctrl+wheel zooms</string>
++     </property>
++     <property name="text">
++      <string>Mouse wheel zooms, Ctrl+wheel scrolls</string>
++     </property>
++    </widget>
++   </item>
++   <item row="35" column="1">
++    <widget class="QCheckBox" name="kcfg_overlapCrossfade">
++     <property name="toolTip">
++      <string>Dragging a clip over the start or end of another clip on the same track overlaps them and creates a crossfade (mix) as long as the overlap; dragging it away removes the crossfade</string>
++     </property>
++     <property name="text">
++      <string>Overlapping clips creates a crossfade</string>
++     </property>
++    </widget>
++   </item>
++   <item row="36" column="1">
++    <widget class="QCheckBox" name="kcfg_timelinemousezoomonplayhead">
++     <property name="toolTip">
++      <string>Zooming the timeline with the mouse centers it on the action cursor (or on the playhead when there is none) instead of keeping the frame under the mouse</string>
++     </property>
++     <property name="text">
++      <string>Mouse zoom centers on the action cursor or playhead, not on the mouse</string>
++     </property>
++    </widget>
++   </item>
++   <item row="37" column="1">
++    <widget class="QCheckBox" name="kcfg_scrollReleasesPlayhead">
++     <property name="toolTip">
++      <string>During playback, scrolling the timeline or placing the action cursor stops the view from following the playhead; it follows again after the playback stops and restarts</string>
++     </property>
++     <property name="text">
++      <string>Scrolling during playback stops following the playhead</string>
++     </property>
++    </widget>
++   </item>
++   <item row="38" column="1">
++    <widget class="QCheckBox" name="kcfg_ungroupSelectedOnly">
++     <property name="toolTip">
++      <string>Ungroup takes only the clicked clip (with its audio or video) out of its group and the other clips stay grouped; Ctrl+click (Shift+click without the Vegas selection) picks more clips, Alt+click picks a single item. Unchecked, Ungroup dissolves the whole group</string>
++     </property>
++     <property name="text">
++      <string>Ungroup removes only the clicked clip from its group</string>
++     </property>
++    </widget>
++   </item>
++   <item row="39" column="1">
++    <widget class="QCheckBox" name="kcfg_removeMixClips">
++     <property name="toolTip">
++      <string>Overlapping clips already creates the crossfades: the Mix Clips action is hidden, a double click on a clip edge does nothing and the U key ungroups clips, as in Vegas. Dropping a transition on a cut still creates a mix. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Remove Mix Clips, U ungroups</string>
++     </property>
++    </widget>
++   </item>
++   <item row="40" column="1">
++    <widget class="QCheckBox" name="kcfg_vegasShortcuts">
++     <property name="toolTip">
++      <string>As in Vegas: M adds or removes a timeline marker, G groups the selected clips (Ctrl+G still works) and Ctrl+L toggles Auto Ripple. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Vegas shortcuts: M marker, G group, Ctrl+L Auto Ripple</string>
++     </property>
++    </widget>
++   </item>
++   <item row="41" column="1">
++    <widget class="QCheckBox" name="kcfg_clipHighlight">
++     <property name="toolTip">
++      <string>The clip under the mouse turns a bit lighter and paler, in its own color. When a group is selected, the clicked clip keeps the bright selection border and the other selected clips get a darker border, as the title of the clicked clip</string>
++     </property>
++     <property name="text">
++      <string>Highlight the clip under the mouse and the clicked clip</string>
++     </property>
++    </widget>
++   </item>
++   <item row="42" column="1">
++    <widget class="QCheckBox" name="kcfg_transformMirror">
++     <property name="toolTip">
++      <string>Size W and H of the Transform effect accept negative values: the image is mirrored horizontally (W) or vertically (H) and keeps its position and size. Takes effect when the effect is shown again</string>
++     </property>
++     <property name="text">
++      <string>Negative size in Transform mirrors the image</string>
++     </property>
++    </widget>
++   </item>
++   <item row="43" column="1">
++    <widget class="QCheckBox" name="kcfg_groupTracksIndependent">
++     <property name="toolTip">
++      <string>Dragging the video of a grouped clip to another video track leaves its audio on its track (and the other way round). Grouped clips of the same kind move together. Without this option, the audio moves in mirror</string>
++     </property>
++     <property name="text">
++      <string>Grouped audio and video change tracks independently</string>
++     </property>
++    </widget>
++   </item>
++   <item row="44" column="1">
++    <widget class="QCheckBox" name="kcfg_shareSpeedProducers">
++     <property name="toolTip">
++      <string>Kdenlive opens one decoder for each clip with a changed speed, which takes a lot of memory (and render time) when a clip is cut in many pieces. With this option the clips with the same speed, pitch setting and audio stream on a track share one. Takes effect for clips loaded or changed afterwards (reopen the project)</string>
++     </property>
++     <property name="text">
++      <string>Clips with the same speed share one decoder</string>
++     </property>
++    </widget>
++   </item>
++   <item row="45" column="1">
++    <widget class="QCheckBox" name="kcfg_vegasSelection">
++     <property name="toolTip">
++      <string>As in Vegas: Ctrl+click adds a clip to the selection or removes it, Shift+click selects the clips between the last clicked clip and the clicked one (on the tracks in between too), Ctrl+Shift+click adds them. Ctrl+drag still scrolls the timeline and Shift+drag still draws a selection rectangle. Unchecked, Shift+click adds or removes a clip, as in Kdenlive</string>
++     </property>
++     <property name="text">
++      <string>Ctrl+click selects more clips, Shift+click selects a range</string>
++     </property>
++    </widget>
++   </item>
++   <item row="46" column="1">
++    <widget class="QCheckBox" name="kcfg_dragSetsZone">
++     <property name="toolTip">
++      <string>As in Vegas: pressing in an empty part of the timeline (not on a clip) and dragging sets the zone, from where the drag starts to where it ends. A click without dragging still moves the playhead. Unchecked, the drag moves the playhead, as in Kdenlive</string>
++     </property>
++     <property name="text">
++      <string>Dragging in an empty area sets the zone</string>
++     </property>
++    </widget>
++   </item>
++   <item row="47" column="0">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Orientation::Vertical</enum>
+@@ -304,6 +561,31 @@
+   <tabstop>kcfg_multistream</tabstop>
+   <tabstop>kcfg_multistream_checktrack</tabstop>
+   <tabstop>kcfg_uiDebugMode</tabstop>
++  <tabstop>kcfg_pitchMethodPerClip</tabstop>
++  <tabstop>kcfg_trimEdgePreview</tabstop>
++  <tabstop>kcfg_actionCursor</tabstop>
++  <tabstop>kcfg_splitShortcut</tabstop>
++  <tabstop>kcfg_deleteMarkerMenu</tabstop>
++  <tabstop>kcfg_clickOnClipSeeks</tabstop>
++  <tabstop>kcfg_markersKeepPlayhead</tabstop>
++  <tabstop>kcfg_autoRippleTool</tabstop>
++  <tabstop>kcfg_dropPushesClips</tabstop>
++  <tabstop>kcfg_monitorSpeedSlider</tabstop>
++  <tabstop>kcfg_rippleTrimLive</tabstop>
++  <tabstop>kcfg_groupTrimPush</tabstop>
++  <tabstop>kcfg_wheelZoomsTimeline</tabstop>
++  <tabstop>kcfg_overlapCrossfade</tabstop>
++  <tabstop>kcfg_timelinemousezoomonplayhead</tabstop>
++  <tabstop>kcfg_scrollReleasesPlayhead</tabstop>
++  <tabstop>kcfg_ungroupSelectedOnly</tabstop>
++  <tabstop>kcfg_removeMixClips</tabstop>
++  <tabstop>kcfg_vegasShortcuts</tabstop>
++  <tabstop>kcfg_clipHighlight</tabstop>
++  <tabstop>kcfg_transformMirror</tabstop>
++  <tabstop>kcfg_groupTracksIndependent</tabstop>
++  <tabstop>kcfg_shareSpeedProducers</tabstop>
++  <tabstop>kcfg_vegasSelection</tabstop>
++  <tabstop>kcfg_dragSetsZone</tabstop>
+  </tabstops>
+  <resources/>
+  <connections>
+--- a/kdenlive-26.08.2/src/mainwindow.cpp
++++ b/kdenlive-26.08.2/src/mainwindow.cpp
+@@ -54,6 +54,7 @@
+ #include "mltcontroller/clipcontroller.h"
+ #include "monitor/monitor.h"
+ #include "monitor/monitormanager.h"
++#include "monitor/monitorproxy.h"
+ #include "monitor/scopes/audiographspectrum.h"
+ #include "onlineresources/resourcewidget.hpp"
+ #include "profiles/profilemodel.hpp"
+@@ -112,6 +113,9 @@
+ #include <QDesktopServices>
+ #include <QDialogButtonBox>
+ #include <QFileDialog>
++#include <QCheckBox>
++#include <QHBoxLayout>
++#include <QLabel>
+ #include <QMenu>
+ #include <QMenuBar>
+ #include <QProxyStyle>
+@@ -237,6 +241,8 @@
+     connect(m_clipMonitor, &Monitor::passKeyPress, this, &MainWindow::triggerKey);
+ 
+     m_projectMonitor = new Monitor(Kdenlive::ProjectMonitor, pCore->monitorManager(), this);
++    connectSpeedSlider(m_clipMonitor);
++    connectSpeedSlider(m_projectMonitor);
+     connect(m_projectMonitor, &Monitor::passKeyPress, this, &MainWindow::triggerKey);
+     connect(m_projectMonitor, &Monitor::addMarker, this, &MainWindow::slotAddMarkerGuideQuickly);
+     connect(m_projectMonitor, &Monitor::addMarker, this, &MainWindow::slotAddMarkerWithCategory);
+@@ -1006,6 +1012,17 @@
+         QAction *whatsThis = actionCollection()->action(KStandardAction::name(KStandardAction::WhatsThis));
+         helpMenu->insertAction(whatsThis, officialHelp);
+     }
++    // Catavan: the KDE donate action opens kde.org/donate?app=catavan, which does not exist. Donate to Kdenlive instead.
++    if (QAction *donate = actionCollection()->action(KStandardAction::name(KStandardAction::Donate))) {
++        donate->setText(i18n("Donate to Kdenlive…"));
++        disconnect(donate, &QAction::triggered, nullptr, nullptr);
++        connect(donate, &QAction::triggered, this, [] { QDesktopServices::openUrl(QUrl(QStringLiteral("https://kdenlive.org/fund/"))); });
++    }
++    // Catavan: Report Bug opens the Catavan issues instead of the KDE bug report dialog
++    if (QAction *reportBug = actionCollection()->action(KStandardAction::name(KStandardAction::ReportBug))) {
++        disconnect(reportBug, &QAction::triggered, nullptr, nullptr);
++        connect(reportBug, &QAction::triggered, this, [] { QDesktopServices::openUrl(QUrl(QStringLiteral(CATAVAN_REPOSITORY "/issues"))); });
++    }
+ 
+     // rebuild timeline clip menu
+     m_timelineTabs->buildClipMenu();
+@@ -1415,7 +1432,10 @@
+     QAction *sameTrack = new QAction(QIcon::fromTheme(QStringLiteral("composite-track-preview")), i18n("Mix Clips"), this);
+     sameTrack->setWhatsThis(
+         xi18nc("@info:whatsthis", "Creates a same-track transition between the selected clip and the adjacent one closest to the playhead."));
+-    addAction(QStringLiteral("mix_clip"), sameTrack, Qt::Key_U);
++    // Catavan: overlapping clips makes the crossfades (overlapCrossfade); Mix Clips is hidden and U ungroups
++    const bool noMixClips = KdenliveSettings::removeMixClips();
++    addAction(QStringLiteral("mix_clip"), sameTrack, noMixClips ? QKeySequence() : QKeySequence(Qt::Key_U));
++    sameTrack->setVisible(!noMixClips);
+     connect(sameTrack, &QAction::triggered, this, [this]() { getCurrentTimeline()->controller()->mixClip(); });
+ 
+     // toolbar->setToolButtonStyle(Qt::ToolButtonIconOnly);
+@@ -1615,6 +1635,68 @@
+ 
+     int small = style()->pixelMetric(QStyle::PM_SmallIconSize);
+     statusBar()->setMaximumHeight(2 * small);
++    if (KdenliveSettings::monitorSpeedSlider()) {
++        // Catavan: monitors playback speed, 0x to 4x in 0.01 steps, at the left of the messages
++        auto *speedWidget = new QWidget(this);
++        auto *speedLayout = new QHBoxLayout(speedWidget);
++        speedLayout->setContentsMargins(0, 0, 0, 0);
++        speedLayout->setSpacing(2);
++        m_speedSlider = new QSlider(Qt::Horizontal, speedWidget);
++        m_speedSlider->setRange(0, 400);
++        m_speedSlider->setSingleStep(1);
++        m_speedSlider->setPageStep(25);
++        m_speedSlider->setMaximumWidth(150);
++        m_speedSlider->setMinimumWidth(100);
++        m_speedSlider->setToolTip(i18nc("@info:tooltip Catavan", "Playback speed of the monitors (double click: 1x)"));
++        m_speedLabel = new QLabel(speedWidget);
++        m_speedLabel->setMinimumWidth(QFontMetrics(m_speedLabel->font()).horizontalAdvance(QStringLiteral("-10.00x ")));
++        auto *pitchBox = new QCheckBox(i18nc("@option:check Catavan: keep the audio pitch at other speeds", "Pitch"), speedWidget);
++        pitchBox->setToolTip(
++            i18nc("@info:tooltip Catavan", "Keep the audio pitch when playing at another speed (WSOLA, uses more processing)"));
++        pitchBox->setChecked(KdenliveSettings::monitorSpeedPreservePitch());
++        speedLayout->addWidget(m_speedSlider);
++        speedLayout->addWidget(m_speedLabel);
++        speedLayout->addWidget(pitchBox);
++        auto showSpeed = [this](int value) { m_speedLabel->setText(QStringLiteral("%1x").arg(value / 100., 0, 'f', 2)); };
++        // Negative speeds (J) only show in the label, the slider stays at 0
++        m_speedSlider->setValue(qRound(qBound(0., KdenliveSettings::monitorPlaybackSpeed(), 4.) * 100));
++        m_speedLabel->setText(QStringLiteral("%1x").arg(KdenliveSettings::monitorPlaybackSpeed(), 0, 'f', 2));
++        // Every speed change restarts the audio processing: while the slider moves only the label follows, the playback
++        // gets the speed once the slider stops (or is released)
++        m_speedApplyTimer = new QTimer(this);
++        m_speedApplyTimer->setSingleShot(true);
++        m_speedApplyTimer->setInterval(120);
++        auto applySpeed = [this]() {
++            AbstractMonitor *monitor = pCore->monitorManager()->activeMonitor();
++            if (monitor && monitor->isActive()) {
++                if (auto *m = qobject_cast<Monitor *>(monitor)) {
++                    m->setPlaybackSpeed(m_speedSlider->value() / 100.);
++                }
++            }
++        };
++        connect(m_speedApplyTimer, &QTimer::timeout, this, applySpeed);
++        connect(m_speedSlider, &QSlider::valueChanged, this, [this, showSpeed](int value) {
++            showSpeed(value);
++            KdenliveSettings::setMonitorPlaybackSpeed(value / 100.);
++            m_speedApplyTimer->start();
++        });
++        connect(m_speedSlider, &QSlider::sliderReleased, this, [this, applySpeed]() {
++            if (m_speedApplyTimer->isActive()) {
++                m_speedApplyTimer->stop();
++                applySpeed();
++            }
++        });
++        m_speedSlider->installEventFilter(this);
++        connect(pitchBox, &QCheckBox::toggled, this, [this](bool checked) {
++            KdenliveSettings::setMonitorSpeedPreservePitch(checked);
++            for (Monitor *m : {m_clipMonitor, m_projectMonitor}) {
++                if (m) {
++                    m->setSpeedPreservePitch(checked);
++                }
++            }
++        });
++        statusBar()->addWidget(speedWidget);
++    }
+     m_messageLabel = new StatusBarMessageLabel(this);
+     m_messageLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+     connect(this, &MainWindow::displayMessage, m_messageLabel, &StatusBarMessageLabel::setMessage);
+@@ -1631,9 +1713,48 @@
+     addAction(QStringLiteral("insert_mode"), m_insertEditTool);
+ 
+     KActionCategory *toolsActionCategory = new KActionCategory(i18n("Tools"), actionCollection());
+-    addAction(QStringLiteral("select_tool"), m_buttonSelectTool, Qt::Key_S, toolsActionCategory);
+-    addAction(QStringLiteral("razor_tool"), m_buttonRazorTool, Qt::Key_X, toolsActionCategory);
+-    addAction(QStringLiteral("spacer_tool"), m_buttonSpacerTool, Qt::Key_M, toolsActionCategory);
++    // Catavan: S splits at the cursor (split_timeline_clips), X selects, razor tool has no shortcut
++    const bool vegasSplit = KdenliveSettings::splitShortcut();
++    addAction(QStringLiteral("select_tool"), m_buttonSelectTool, vegasSplit ? Qt::Key_X : Qt::Key_S, toolsActionCategory);
++    addAction(QStringLiteral("razor_tool"), m_buttonRazorTool, vegasSplit ? QKeySequence() : QKeySequence(Qt::Key_X), toolsActionCategory);
++    // Catavan: Auto Ripple toggle (M, Ctrl+L with vegasShortcuts) with its mode menu replaces the spacer tool button
++    const bool vegasRipple = KdenliveSettings::autoRippleTool();
++    addAction(QStringLiteral("spacer_tool"), m_buttonSpacerTool,
++              vegasRipple || KdenliveSettings::vegasShortcuts() ? QKeySequence() : QKeySequence(Qt::Key_M), toolsActionCategory);
++    m_buttonSpacerTool->setVisible(!vegasRipple);
++    auto *autoRipple = new QAction(QIcon::fromTheme(QStringLiteral("distribute-horizontal-x")),
++                                   i18nc("@action Catavan: move the following clips with each edit", "Auto Ripple"), this);
++    autoRipple->setToolTip(i18nc("@info:tooltip Catavan", "Auto Ripple: inserting, deleting or moving a clip also moves what follows it"));
++    autoRipple->setCheckable(true);
++    autoRipple->setChecked(KdenliveSettings::autoRipple());
++    autoRipple->setVisible(vegasRipple);
++    connect(autoRipple, &QAction::toggled, this, [](bool checked) { KdenliveSettings::setAutoRipple(checked); });
++    // Catavan (vegasShortcuts): Ctrl+L toggles Auto Ripple, M adds a marker
++    const QKeySequence autoRippleKey = KdenliveSettings::vegasShortcuts() ? QKeySequence(Qt::CTRL | Qt::Key_L) : QKeySequence(Qt::Key_M);
++    addAction(QStringLiteral("auto_ripple"), autoRipple, vegasRipple ? autoRippleKey : QKeySequence(), toolsActionCategory);
++    auto *rippleModeMenu = new QMenu(this);
++    auto *rippleModes = new QActionGroup(this);
++    QAction *rippleClips = rippleModeMenu->addAction(i18nc("@option Catavan auto ripple mode", "Clips Only"));
++    QAction *rippleMarkers = rippleModeMenu->addAction(i18nc("@option Catavan auto ripple mode", "Clips and Markers"));
++    for (QAction *a : {rippleClips, rippleMarkers}) {
++        a->setCheckable(true);
++        rippleModes->addAction(a);
++    }
++    (KdenliveSettings::autoRippleMarkers() ? rippleMarkers : rippleClips)->setChecked(true);
++    connect(rippleMarkers, &QAction::toggled, this, [](bool checked) { KdenliveSettings::setAutoRippleMarkers(checked); });
++    auto *autoRippleButton = new QToolButton(this);
++    autoRippleButton->setDefaultAction(autoRipple);
++    autoRippleButton->setPopupMode(QToolButton::MenuButtonPopup);
++    autoRippleButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
++    autoRippleButton->setAutoRaise(true);
++    autoRippleButton->setMenu(rippleModeMenu);
++    auto *autoRippleButtonAction = new QWidgetAction(this);
++    autoRippleButtonAction->setDefaultWidget(autoRippleButton);
++    autoRippleButtonAction->setText(autoRipple->text());
++    autoRippleButtonAction->setIcon(autoRipple->icon());
++    autoRippleButtonAction->setVisible(vegasRipple);
++    actionCollection()->addAction(QStringLiteral("auto_ripple_button"), autoRippleButtonAction);
++    actionCollection()->setShortcutsConfigurable(autoRippleButtonAction, false);
+     addAction(QStringLiteral("ripple_tool"), m_buttonRippleTool, {}, toolsActionCategory);
+     // addAction(QStringLiteral("roll_tool"), m_buttonRollTool, QKeySequence(), toolsActionCategory);
+     addAction(QStringLiteral("slip_tool"), m_buttonSlipTool, {}, toolsActionCategory);
+@@ -2038,6 +2159,10 @@
+     addAction(QStringLiteral("cut_timeline_all_clips"), i18n("Cut All Clips"), this, SLOT(slotCutTimelineAllClips()),
+               QIcon::fromTheme(QStringLiteral("edit-cut")), Qt::CTRL | Qt::SHIFT | Qt::Key_R);
+ 
++    // Catavan: cut the selected clips at the action cursor (or playhead); without selection, the active tracks
++    addAction(QStringLiteral("split_timeline_clips"), i18nc("@action Catavan: split clips at the cursor", "Split"), this, SLOT(slotSplitTimelineClips()),
++              QIcon::fromTheme(QStringLiteral("edit-cut")), KdenliveSettings::splitShortcut() ? QKeySequence(Qt::Key_S) : QKeySequence());
++
+     addAction(QStringLiteral("delete_timeline_clip"), i18n("Delete Selected Item"), this, SLOT(slotDeleteItem()),
+               QIcon::fromTheme(QStringLiteral("edit-delete")), Qt::Key_Delete);
+ 
+@@ -2066,12 +2191,20 @@
+                                    QIcon::fromTheme(QStringLiteral("object-group")), Qt::CTRL | Qt::Key_G, clipActionCategory);
+     // "G" as data means this action should only be available for multiple items selection
+     groupClip->setData('G');
++    if (KdenliveSettings::vegasShortcuts()) {
++        // Catavan: G groups, as in Vegas
++        actionCollection()->setDefaultShortcuts(groupClip, {QKeySequence(Qt::Key_G), QKeySequence(Qt::CTRL | Qt::Key_G)});
++    }
+     groupClip->setEnabled(false);
+ 
+     QAction *ungroupClip = addAction(QStringLiteral("ungroup_clip"), i18n("Ungroup Clips"), this, SLOT(slotUnGroupClips()),
+                                      QIcon::fromTheme(QStringLiteral("object-ungroup")), QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_G), clipActionCategory);
+     // "U" as data means this action should only be available if selection is a group
+     ungroupClip->setData('U');
++    if (KdenliveSettings::removeMixClips()) {
++        // Catavan: U ungroups, as in Vegas (Mix Clips is hidden)
++        actionCollection()->setDefaultShortcuts(ungroupClip, {QKeySequence(Qt::Key_U), QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_G)});
++    }
+     ungroupClip->setEnabled(false);
+ 
+     QAction *sentToSequence = addAction(QStringLiteral("send_sequence"), i18n("Create Sequence from Selection"), this, SLOT(slotCreateSequenceFromSelection()),
+@@ -2180,8 +2313,9 @@
+     disablePreview->setCheckable(true);
+     addAction(QStringLiteral("disable_preview"), disablePreview);
+ 
++    // Catavan (vegasShortcuts): M adds a marker, as in Vegas
+     addAction(QStringLiteral("add_sequence_marker"), i18n("Add/Remove Timeline Marker"), this, SLOT(slotAddGuide()),
+-              QIcon::fromTheme(QStringLiteral("bookmarks")), Qt::Key_G);
++              QIcon::fromTheme(QStringLiteral("bookmarks")), KdenliveSettings::vegasShortcuts() ? Qt::Key_M : Qt::Key_G);
+     addAction(QStringLiteral("delete_sequence_marker"), i18n("Delete Timeline Marker"), this, SLOT(slotDeleteGuide()),
+               QIcon::fromTheme(QStringLiteral("bookmark-remove")));
+     addAction(QStringLiteral("delete_all_sequence_markers"), i18n("Delete All Timeline Markers"), this, SLOT(slotDeleteAllSequenceMarkers()),
+@@ -2837,7 +2971,7 @@
+     KShortcutsDialog *dialog = new KShortcutsDialog(KShortcutsEditor::AllActions, KShortcutsEditor::LetterShortcutsAllowed, this);
+ 
+     KNSWidgets::Action *downloadKeybordSchemes =
+-        new KNSWidgets::Action(i18n("Download New Keyboard Schemes…"), QStringLiteral(":data/kdenlive_keyboardschemes.knsrc"), this);
++        new KNSWidgets::Action(i18n("Download New Keyboard Schemes…"), QStringLiteral(":data/catavan_keyboardschemes.knsrc"), this);
+     connect(downloadKeybordSchemes, &KNSWidgets::Action::dialogFinished, this, [&, dialog](const QList<KNSCore::Entry> &changedEntries) {
+         if (changedEntries.count() > 0) {
+             for (auto &entry : changedEntries) {
+@@ -2954,7 +3088,7 @@
+ {
+     if (clean) {
+         if (KMessageBox::warningContinueCancel(this,
+-                                               i18n("This will delete Kdenlive's configuration file and restart the application. Do you want to proceed?"),
++                                               i18n("This will delete Catavan's configuration file and restart the application. Do you want to proceed?"),
+                                                i18nc("@title:window", "Reset Configuration")) != KMessageBox::Continue) {
+             return;
+         }
+@@ -3417,6 +3551,11 @@
+     getCurrentTimeline()->controller()->replaceClip();
+ }
+ 
++void MainWindow::slotSplitTimelineClips()
++{
++    getCurrentTimeline()->controller()->splitClipsAtCursor();
++}
++
+ void MainWindow::slotCutTimelineAllClips()
+ {
+     getCurrentTimeline()->controller()->cutAllClipsUnderCursor();
+@@ -5286,8 +5425,37 @@
+     clipboard->setText(debuginfo);
+ }
+ 
++void MainWindow::connectSpeedSlider(Monitor *monitor)
++{
++    if (!m_speedSlider || !monitor) {
++        return;
++    }
++    // Catavan: the slider follows the speed set by play, J/K/L or the slider itself; below 0x or beyond 4x
++    // (J/L only) it stays at its end and the label shows the real speed
++    auto showSpeed = [this](double speed) {
++        QSignalBlocker blocker(m_speedSlider);
++        m_speedSlider->setValue(qRound(qBound(0., speed, 4.) * 100));
++        m_speedLabel->setText(QStringLiteral("%1x").arg(speed, 0, 'f', 2));
++    };
++    MonitorProxy *proxy = monitor->getControllerProxy();
++    connect(proxy, &MonitorProxy::speedChanged, this, [proxy, showSpeed]() {
++        double speed = proxy->property("speed").toDouble();
++        // A pause (0) keeps the speed of the next play
++        if (!qFuzzyIsNull(speed)) {
++            showSpeed(speed);
++            KdenliveSettings::setMonitorPlaybackSpeed(speed);
++        }
++    });
++    connect(monitor, &Monitor::playbackSpeedChanged, this, showSpeed);
++}
++
+ bool MainWindow::eventFilter(QObject *object, QEvent *event)
+ {
++    if (object == m_speedSlider && event->type() == QEvent::MouseButtonDblClick) {
++        // Catavan: back to normal speed
++        m_speedSlider->setValue(100);
++        return true;
++    }
+     switch (event->type()) {
+     case QEvent::ShortcutOverride:
+         if (static_cast<QKeyEvent *>(event)->key() == Qt::Key_Escape) {
+@@ -5548,8 +5716,8 @@
+         return;
+     }
+     if (KdenliveSettings::checkForUpdate()) {
+-        // Check if the Kdenlive version is very old
+-        const QStringList kdenliveVersion = KAboutData::applicationData().version().split(QLatin1Char('.'));
++        // Check if the Kdenlive version is very old (Catavan: the Kdenlive base version, not the application one)
++        const QStringList kdenliveVersion = QStringLiteral(KDENLIVE_VERSION).split(QLatin1Char('.'));
+         if (kdenliveVersion.size() > 2) {
+             bool ok;
+             int kdenliveYear = kdenliveVersion.at(0).toInt(&ok);
+--- a/kdenlive-26.08.2/po/pt_BR/kdenlive.po
++++ b/kdenlive-26.08.2/po/pt_BR/kdenlive.po
+@@ -21660,10 +21660,10 @@
+ #: src/bin/bin.cpp:2196 src/bin/bin.cpp:2899 src/doc/kdenlivedoc.cpp:755
+ #, kde-format
+ msgid ""
+-"Your project file was modified by Kdenlive.\n"
++"Your project file was modified by Catavan.\n"
+ "To make sure you do not lose data, a backup copy called %1 was created."
+ msgstr ""
+-"Seu arquivo de projeto foi modificado pelo Kdenlive.\n"
++"Seu arquivo de projeto foi modificado pelo Catavan.\n"
+ "Para garantir que não haverá perdas de dados, uma cópia de segurança chamada "
+ "%1 foi criada."
+ 
+@@ -22626,10 +22626,10 @@
+ #, kde-kuit-format
+ msgctxt "@info:whatsthis"
+ msgid ""
+-"When enabled, Kdenlive will import all clips contained in the folder and its "
++"When enabled, Catavan will import all clips contained in the folder and its "
+ "subfolders without creating the subfolders in Project Bin."
+ msgstr ""
+-"Quando habilitado, o Kdenlive importará todos os clipes dentro da pasta e "
++"Quando habilitado, o Catavan importará todos os clipes dentro da pasta e "
+ "suas subpastas sem criar as subpastas na biblioteca multimídia do projeto."
+ 
+ #: src/bin/mediabrowser.cpp:221 src/dialogs/clipcreationdialog.cpp:446
+@@ -22646,10 +22646,10 @@
+ #, kde-kuit-format
+ msgctxt "@info:whatsthis"
+ msgid ""
+-"When enabled, Kdenlive will look for other images with the same name pattern "
++"When enabled, Catavan will look for other images with the same name pattern "
+ "and import them as an image sequence."
+ msgstr ""
+-"Quando habilitado, o Kdenlive procurará por outras imagens com o mesmo "
++"Quando habilitado, o Catavan procurará por outras imagens com o mesmo "
+ "padrão de nome e irá importá-las como uma sequência de imagens."
+ 
+ #: src/bin/model/markerlistmodel.cpp:82
+@@ -23106,10 +23106,10 @@
+ #: src/core.cpp:167
+ #, kde-format
+ msgid ""
+-"Kdenlive crashed on last startup.\n"
++"Catavan crashed on last startup.\n"
+ "Do you want to disable experimental GPU processing (Movit) ?"
+ msgstr ""
+-"Kdenlive travou durante a última inicialização.\n"
++"Catavan travou durante a última inicialização.\n"
+ "Gostaria de desabilitar o processamento experimental via GPU (Movit)?"
+ 
+ #: src/core.cpp:168
+@@ -23126,10 +23126,10 @@
+ #: src/core.cpp:443
+ #, kde-format
+ msgid ""
+-"The default profile of Kdenlive is not set or invalid, press OK to set it to "
++"The default profile of Catavan is not set or invalid, press OK to set it to "
+ "a correct value."
+ msgstr ""
+-"O perfil padrão do Kdenlive não está definido ou é inválido, pressione OK "
++"O perfil padrão do Catavan não está definido ou é inválido, pressione OK "
+ "para defini-lo como um valor correto."
+ 
+ #: src/core.cpp:455
+@@ -23148,10 +23148,10 @@
+ #, kde-format
+ msgid ""
+ "The given profile is invalid. We default to the profile \"dv_pal\", but you "
+-"can change this from Kdenlive's settings panel"
++"can change this from Catavan's settings panel"
+ msgstr ""
+ "O perfil fornecido é inválido. O padrão é o perfil \"dv_pal\", mas vocêpode "
+-"alterar isto no painel de configurações do Kdenlive"
++"alterar isto no painel de configurações do Catavan"
+ 
+ #: src/core.cpp:723
+ #, kde-format
+@@ -24479,10 +24479,10 @@
+ #: src/dialogs/renderwidget.cpp:527 src/timeline2/view/previewmanager.cpp:46
+ #, kde-format
+ msgid ""
+-"Could not find the kdenlive_render application, something is wrong with your "
++"Could not find the catavan_render application, something is wrong with your "
+ "installation. Rendering will not work"
+ msgstr ""
+-"Não foi possível encontrar a aplicação kdenlive_render, algo está errado com "
++"Não foi possível encontrar a aplicação catavan_render, algo está errado com "
+ "sua instalação. A renderização não funcionará"
+ 
+ #: src/dialogs/renderwidget.cpp:574
+@@ -25020,8 +25020,8 @@
+ 
+ #: src/dialogs/settings/kdenlivesettingsdialog.cpp:1499
+ #, kde-format
+-msgid "Kdenlive must be restarted to change this setting"
+-msgstr "O Kdenlive deve ser reiniciado para alterar esta definição"
++msgid "Catavan must be restarted to change this setting"
++msgstr "O Catavan deve ser reiniciado para alterar esta definição"
+ 
+ #: src/dialogs/settings/kdenlivesettingsdialog.cpp:1627
+ #: src/effects/effectstack/view/collapsibleeffectview.cpp:696
+@@ -25276,8 +25276,8 @@
+ 
+ #: src/dialogs/Simplesplash.qml:196
+ #, kde-format
+-msgid "Kdenlive crashed on last start."
+-msgstr "O Kdenlive travou na última inicialização."
++msgid "Catavan crashed on last start."
++msgstr "O Catavan travou na última inicialização."
+ 
+ #: src/dialogs/Simplesplash.qml:205
+ #, kde-format
+@@ -26095,9 +26095,9 @@
+ 
+ #: src/dialogs/Splash.qml:655 src/dialogs/Splash.qml:1044
+ #, kde-format
+-msgid "Kdenlive crashed on last start. Reset config and restart?"
++msgid "Catavan crashed on last start. Reset config and restart?"
+ msgstr ""
+-"Kdenlive travou durante a última inicialização. Redefinir configuração e "
++"Catavan travou durante a última inicialização. Redefinir configuração e "
+ "reiniciar?"
+ 
+ #: src/dialogs/Splash.qml:736
+@@ -26117,8 +26117,8 @@
+ 
+ #: src/dialogs/Splash.qml:800
+ #, kde-format
+-msgid "<h3>Welcome to Kdenlive Quick Setup</h3>"
+-msgstr "<h3>Bem-vindo à configuração rápida do Kdenlive</h3>"
++msgid "<h3>Welcome to Catavan Quick Setup</h3>"
++msgstr "<h3>Bem-vindo à configuração rápida do Catavan</h3>"
+ 
+ #: src/dialogs/Splash.qml:806
+ #, kde-format
+@@ -26222,11 +26222,11 @@
+ msgctxt "@info:whatsthis"
+ msgid ""
+ "Creates a new subtitle with the default length (set in <interface>Settings-"
+-">Configure Kdenlive…->Misc</interface>) at the current playhead position/"
++">Configure Catavan…->Misc</interface>) at the current playhead position/"
+ "frame."
+ msgstr ""
+ "Cria uma nova legenda com o comprimento padrão (definido em "
+-"<interface>Configurações->Configurar o Kdenlive…->Diversos</interface>) na "
++"<interface>Configurações->Configurar o Catavan…->Diversos</interface>) na "
+ "posição/quadro atual do indicador de reprodução."
+ 
+ #: src/dialogs/subtitleedit.cpp:287
+@@ -26748,13 +26748,13 @@
+ #: src/dialogs/wizard.cpp:62
+ #, kde-format
+ msgctxt "@title:window"
+-msgid "Welcome to Kdenlive"
+-msgstr "Bem-vindo ao Kdenlive"
++msgid "Welcome to Catavan"
++msgstr "Bem-vindo ao Catavan"
+ 
+ #: src/dialogs/wizard.cpp:68
+ #, kde-format
+-msgid "Welcome to Kdenlive %1"
+-msgstr "Bem-vindo ao Kdenlive %1"
++msgid "Welcome to Catavan %1"
++msgstr "Bem-vindo ao Catavan %1"
+ 
+ #: src/dialogs/wizard.cpp:69
+ #, kde-format
+@@ -26890,10 +26890,10 @@
+ #, kde-format
+ msgid ""
+ "<li>Missing package: <b>Breeze</b> icons (breeze-icon-theme)<br/>provides "
+-"many icons used in Kdenlive. Install recommended</li>"
++"many icons used in Catavan. Install recommended</li>"
+ msgstr ""
+ "<li>Pacote faltante: Ícones <b>Breeze</b> (breeze-icon-theme)<br/>fornece "
+-"muitos ícones usados no Kdenlive. Sua instalação é recomendada</li>"
++"muitos ícones usados no Catavan. Sua instalação é recomendada</li>"
+ 
+ #: src/dialogs/wizard.cpp:381
+ #, kde-format
+@@ -26948,9 +26948,9 @@
+ 
+ #: src/dialogs/wizard.cpp:463
+ #, kde-format
+-msgid "<li>Missing app: <b>kdenlive_render</b><br/>needed for rendering.</li>"
++msgid "<li>Missing app: <b>catavan_render</b><br/>needed for rendering.</li>"
+ msgstr ""
+-"<li>Aplicativo faltante: <b>kdenlive_render</b><br/>necessário para "
++"<li>Aplicativo faltante: <b>catavan_render</b><br/>necessário para "
+ "renderizar.</li>"
+ 
+ #: src/dialogs/wizard.cpp:488
+@@ -26981,10 +26981,10 @@
+ #: src/dialogs/wizard.cpp:681
+ #, kde-format
+ msgid ""
+-"Your MLT installation cannot be found. Install MLT and restart Kdenlive.\n"
++"Your MLT installation cannot be found. Install MLT and restart Catavan.\n"
+ msgstr ""
+ "A Instalação do MLT não pode ser encontrada. Instale o MLT e reinicie o "
+-"Kdenlive.\n"
++"Catavan.\n"
+ 
+ #: src/dialogs/wizard.cpp:685
+ #, kde-format
+@@ -27249,11 +27249,11 @@
+ #, kde-format
+ msgid ""
+ "The document was created in \"%1\" locale, which is not installed on your "
+-"system. Please install that language pack. Until then, Kdenlive might not be "
++"system. Please install that language pack. Until then, Catavan might not be "
+ "able to correctly open the document."
+ msgstr ""
+ "O documento foi criado no idioma \"%1\", que não está instalado no seu "
+-"sistema. O Kdenlive pode não conseguir abrir corretamente o documento até "
++"sistema. O Catavan pode não conseguir abrir corretamente o documento até "
+ "que o pacote do idioma esteja instalado."
+ 
+ #: src/doc/documentvalidator.cpp:124
+@@ -27279,12 +27279,12 @@
+ #, kde-format
+ msgid ""
+ "This project is unsupported because its document version (%1) is new than "
+-"what this Kdenlive release supports (version %2 and older).\n"
+-"Please consider upgrading your Kdenlive version."
++"what this Catavan release supports (version %2 and older).\n"
++"Please consider upgrading your Catavan version."
+ msgstr ""
+ "Este projeto não é suportado porque a versão do documento (%1) é mais "
+-"recente do que a versão suportada por esta versão do Kdenlive (versão %2 e "
+-"anteriores). Considere atualizar sua versão do Kdenlive."
++"recente do que a versão suportada por esta versão do Catavan (versão %2 e "
++"anteriores). Considere atualizar sua versão do Catavan."
+ 
+ #: src/doc/documentvalidator.cpp:223 src/doc/documentvalidator.cpp:232
+ #, kde-format
+@@ -27400,10 +27400,10 @@
+ #: src/doc/kdenlivedoc.cpp:249
+ #, kde-format
+ msgid ""
+-"GPU acceleration is turned off in Kdenlive settings, but is required for "
++"GPU acceleration is turned off in Catavan settings, but is required for "
+ "this project's Movit filters."
+ msgstr ""
+-"A aceleração da GPU está desativada nas configurações do Kdenlive, mas é "
++"A aceleração da GPU está desativada nas configurações do Catavan, mas é "
+ "necessária para os filtros Movit deste projeto."
+ 
+ #: src/doc/kdenlivedoc.cpp:295
+@@ -28390,10 +28390,10 @@
+ #: src/jobs/proxytask.cpp:248 src/jobs/transcodetask.cpp:181
+ #: src/project/cliptranscode.cpp:122
+ #, kde-format
+-msgid "FFmpeg not found, please set path in Kdenlive's settings Environment"
++msgid "FFmpeg not found, please set path in Catavan's settings Environment"
+ msgstr ""
+ "FFmpeg não encontrado, defina o caminho nas configurações de Ambiente do "
+-"Kdenlive"
++"Catavan"
+ 
+ #: src/jobs/proxytask.cpp:433 src/jobs/proxytask.cpp:447
+ #, kde-format
+@@ -28418,10 +28418,10 @@
+ 
+ #: src/jobs/scenesplittask.cpp:125
+ #, kde-format
+-msgid "FFmpeg not found, please set path in Kdenlive's settings Environment."
++msgid "FFmpeg not found, please set path in Catavan's settings Environment."
+ msgstr ""
+ "FFmpeg não encontrado, defina o caminho nas configurações de Ambiente do "
+-"Kdenlive."
++"Catavan."
+ 
+ #: src/jobs/scenesplittask.cpp:184 src/jobs/scenesplittask.cpp:198
+ #: src/jobs/scenesplittask.cpp:219 src/jobs/scenesplittask.cpp:228
+@@ -29326,9 +29326,9 @@
+ 
+ #: src/main.cpp:350
+ #, kde-format
+-msgid "Kdenlive render preset name (MP4-H264/AAC will be used if none given)."
++msgid "Catavan render preset name (MP4-H264/AAC will be used if none given)."
+ msgstr ""
+-"Nome da predefinição de renderização do Kdenlive (MP4-H264/AAC será usado se "
++"Nome da predefinição de renderização do Catavan (MP4-H264/AAC será usado se "
+ "nenhum for inserido)."
+ 
+ #: src/main.cpp:355
+@@ -31027,10 +31027,10 @@
+ #: src/mainwindow.cpp:2957
+ #, kde-format
+ msgid ""
+-"This will delete Kdenlive's configuration file and restart the application. "
++"This will delete Catavan's configuration file and restart the application. "
+ "Do you want to proceed?"
+ msgstr ""
+-"Isso excluirá o arquivo de configuração do Kdenlive e reiniciará o "
++"Isso excluirá o arquivo de configuração do Catavan e reiniciará o "
+ "aplicativo. Você quer prosseguir?"
+ 
+ #: src/mainwindow.cpp:2958
+@@ -32055,10 +32055,10 @@
+ #, kde-format
+ msgid ""
+ "The alphagrad filter is required for that feature, please install frei0r and "
+-"restart Kdenlive"
++"restart Catavan"
+ msgstr ""
+ "O filtro alphagrad é necessário para esse recurso, instale o frei0r e "
+-"reinicie o Kdenlive"
++"reinicie o Catavan"
+ 
+ #: src/monitor/monitor.cpp:2731
+ #, kde-format
+@@ -32075,10 +32075,10 @@
+ #, kde-format
+ msgid ""
+ "The cairoblend transition is required for that feature, please install "
+-"frei0r and restart Kdenlive"
++"frei0r and restart Catavan"
+ msgstr ""
+ "A transição 'cairoblend' é necessária para este recurso; instale o 'frei0r' "
+-"e reinicie o Kdenlive"
++"e reinicie o Catavan"
+ 
+ #: src/monitor/monitor.cpp:2855
+ #, kde-format
+@@ -32339,11 +32339,11 @@
+ #, kde-format
+ msgid ""
+ "Could not create the video preview window.\n"
+-"There is something wrong with your Kdenlive install or your driver settings, "
++"There is something wrong with your Catavan install or your driver settings, "
+ "please fix it."
+ msgstr ""
+ "Não foi possível criar janela de prévia de vídeo.\n"
+-"Alguma coisa está errada com a sua instalação do Kdenlive ou com a "
++"Alguma coisa está errada com a sua instalação do Catavan ou com a "
+ "configuração do driver de vídeo. Tente corrigir isto."
+ 
+ #: src/monitor/view/AudioView.qml:344
+@@ -38811,10 +38811,10 @@
+ #: src/ui/configenv_ui.ui:69
+ #, kde-format
+ msgid ""
+-"Kdenlive will check this limit every 2 weeks. Set to zero to disable "
++"Catavan will check this limit every 2 weeks. Set to zero to disable "
+ "checking."
+ msgstr ""
+-"O Kdenlive verificará esse limite a cada 2 semanas. Defina como zero para "
++"O Catavan verificará esse limite a cada 2 semanas. Defina como zero para "
+ "desativar a verificação."
+ 
+ #. i18n: ectx: property (suffix), widget (QSpinBox, kcfg_maxcachesize)
+@@ -39475,10 +39475,10 @@
+ #: src/ui/configsdl_ui.ui:52
+ #, kde-format
+ msgid ""
+-"Warning: changes to the drivers and devices can make Kdenlive unstable. "
++"Warning: changes to the drivers and devices can make Catavan unstable. "
+ "Change only if you know what you do."
+ msgstr ""
+-"Aviso: mudanças nos drivers e dispositivos podem tornar o Kdenlive instável. "
++"Aviso: mudanças nos drivers e dispositivos podem tornar o Catavan instável. "
+ "Mude apenas se você souber o que está fazendo."
+ 
+ #. i18n: ectx: property (text), widget (QLabel, label_gpu)
+@@ -39490,8 +39490,8 @@
+ #. i18n: ectx: property (text), widget (QCheckBox, kcfg_gpu_accel)
+ #: src/ui/configsdl_ui.ui:72
+ #, kde-format
+-msgid "Enable - restart Kdenlive to apply"
+-msgstr "Habilitar - reinicie o Kdenlive para aplicar"
++msgid "Enable - restart Catavan to apply"
++msgstr "Habilitar - reinicie o Catavan para aplicar"
+ 
+ #. i18n: ectx: property (text), widget (QLabel, label_audio_backend)
+ #: src/ui/configsdl_ui.ui:86
+@@ -39663,11 +39663,11 @@
+ #: src/ui/configspeech_ui.ui:659
+ #, kde-format
+ msgid ""
+-"When enabled, Kdenlive will use the speech to text packages installed on "
++"When enabled, Catavan will use the speech to text packages installed on "
+ "your system. For advanced users only, as you will have to properly setup "
+ "everything by yourself."
+ msgstr ""
+-"Quando ativado, o Kdenlive usará os pacotes de conversão de voz para texto "
++"Quando ativado, o Catavan usará os pacotes de conversão de voz para texto "
+ "instalados no seu sistema. Somente para usuários avançados, pois você terá "
+ "que configurar tudo corretamente por conta própria."
+ 
+@@ -39725,11 +39725,11 @@
+ #: src/ui/configspeech_ui.ui:1074
+ #, kde-format
+ msgid ""
+-"When enabled, Kdenlive will use the SAM2 version installed on your system. "
++"When enabled, Catavan will use the SAM2 version installed on your system. "
+ "For advanced users only, as you will have to properly setup everything by "
+ "yourself."
+ msgstr ""
+-"Quando ativado, o Kdenlive usará a versão SAM2 instalada no seu sistema. "
++"Quando ativado, o Catavan usará a versão SAM2 instalada no seu sistema. "
+ "Apenas para usuários avançados, pois você terá que configurar tudo "
+ "corretamente por conta própria."
+ 
+@@ -47932,3 +47932,508 @@
+ #~ msgctxt "@action:button"
+ #~ msgid "Confirm"
+ #~ msgstr "Confirmar"
++
++#. Catavan
++#: src/mainwindow.cpp
++msgctxt "@action Catavan: split clips at the cursor"
++msgid "Split"
++msgstr "Cortar"
++
++#. Catavan
++#: src/mainwindow.cpp
++msgctxt "@action Catavan: move the following clips with each edit"
++msgid "Auto Ripple"
++msgstr "Auto Ripple"
++
++#. Catavan
++#: src/mainwindow.cpp
++msgctxt "@info:tooltip Catavan"
++msgid "Auto Ripple: inserting, deleting or moving a clip also moves what follows it"
++msgstr "Auto Ripple: inserir, apagar, mover ou aparar um clipe também move o que vem depois dele"
++
++#. Catavan
++#: src/mainwindow.cpp
++msgctxt "@option Catavan auto ripple mode"
++msgid "Clips Only"
++msgstr "Apenas clipes"
++
++#. Catavan
++#: src/mainwindow.cpp
++msgctxt "@option Catavan auto ripple mode"
++msgid "Clips and Markers"
++msgstr "Clipes e marcadores"
++
++#. Catavan
++#: src/mainwindow.cpp
++msgctxt "@info:tooltip Catavan"
++msgid "Playback speed of the monitors (double click: 1x)"
++msgstr "Velocidade de reprodução dos monitores (duplo clique: 1x)"
++
++#. Catavan
++#: src/mainwindow.cpp
++msgctxt "@option:check Catavan: keep the audio pitch at other speeds"
++msgid "Pitch"
++msgstr "Pitch"
++
++#. Catavan
++#: src/mainwindow.cpp
++msgctxt "@info:tooltip Catavan"
++msgid "Keep the audio pitch when playing at another speed (WSOLA, uses more processing)"
++msgstr "Preservar o pitch do áudio ao tocar em outra velocidade (WSOLA, exige mais processamento)"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Mouse wheel zooms, Ctrl+wheel scrolls"
++msgstr "Roda do mouse aplica zoom, Ctrl+roda move a linha do tempo"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"In the timeline, the mouse wheel zooms and Ctrl+wheel scrolls; unchecked, "
++"the wheel scrolls and Ctrl+wheel zooms"
++msgstr ""
++"Na linha do tempo, a roda do mouse aplica zoom e Ctrl+roda move a linha do "
++"tempo; desmarcado, a roda move e Ctrl+roda aplica zoom"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Overlapping clips creates a crossfade"
++msgstr "Sobrepor clipes cria uma transição (crossfade)"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"Dragging a clip over the start or end of another clip on the same track "
++"overlaps them and creates a crossfade (mix) as long as the overlap; dragging "
++"it away removes the crossfade"
++msgstr ""
++"Arrastar um clipe sobre o início ou o fim de outro clipe na mesma trilha "
++"sobrepõe os dois e cria uma transição (mix) do tamanho da sobreposição; "
++"afastá-lo remove a transição"
++
++#. Catavan
++#: src/kdenlivesettings.kcfg
++msgid ""
++"Dragging a clip over the edge of another clip on the same track creates a "
++"crossfade in the overlap."
++msgstr ""
++"Arrastar um clipe sobre a beirada de outro clipe na mesma trilha cria uma "
++"transição na sobreposição."
++
++#. Catavan
++#: src/main.cpp
++#, kde-format
++msgid ""
++"Catavan %1 is an unofficial fork of Kdenlive %2 and is not affiliated with "
++"KDE. Please do not report Catavan bugs to KDE."
++msgstr ""
++"Catavan %1 é um fork não oficial do Kdenlive %2 e não é afiliado à KDE. Não "
++"reporte bugs do Catavan à KDE."
++
++#. Catavan
++#: src/main.cpp
++#, kde-format
++msgid "Catavan"
++msgstr "Catavan"
++
++#. Catavan
++#: src/main.cpp
++#, kde-format
++msgid "An open source video editor based on Kdenlive."
++msgstr "Um editor de vídeo de código aberto baseado no Kdenlive."
++
++#. Catavan
++#: src/main.cpp
++#, kde-format
++msgid ""
++"Copyright © 2007–2026 Kdenlive authors\n"
++"Catavan changes © 2026 Matheus Salvalagio"
++msgstr ""
++"Copyright © 2007–2026 Os autores do Kdenlive\n"
++"Alterações do Catavan © 2026 Matheus Salvalagio"
++
++#. Catavan
++#: src/main.cpp
++#, kde-format
++msgid "Unofficial fork of Kdenlive."
++msgstr "Fork não oficial do Kdenlive."
++
++#. Catavan
++#: src/main.cpp
++#, kde-format
++msgid "The video editor Catavan is based on, by the Kdenlive authors and KDE."
++msgstr "O editor de vídeo em que o Catavan se baseia, dos autores do Kdenlive e da KDE."
++
++#. Catavan
++#: src/timeline2/view/timelinewidget.cpp
++#, kde-format
++msgid "Remove Marker"
++msgstr "Remover marcador"
++
++#. Catavan
++#: src/timeline2/view/timelinewidget.cpp
++#, kde-format
++msgid "There is already a marker at this position"
++msgstr "Já existe um marcador nesta posição"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Marker context menu: add elsewhere, edit and remove on a marker"
++msgstr "Menu do marcador: adicionar fora dele, editar e remover sobre ele"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"Right clicking a marker in the timeline ruler shows entries to edit and "
++"remove it; elsewhere in the ruler only Add Marker is shown (it never removes "
++"a marker)"
++msgstr ""
++"Clicar com o botão direito num marcador da régua da linha do tempo mostra "
++"opções para editá-lo e removê-lo; no resto da régua só aparece Adicionar "
++"marcador (que nunca remove um marcador)"
++
++#. Catavan
++#: src/kdenlivesettings.kcfg
++msgid ""
++"Right clicking a timeline marker offers to edit or remove it; elsewhere in "
++"the ruler the menu only offers to add a marker."
++msgstr ""
++"Clicar com o botão direito num marcador da linha do tempo oferece editá-lo ou "
++"removê-lo; no resto da régua o menu só oferece adicionar um marcador."
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Mouse zoom centers on the action cursor or playhead, not on the mouse"
++msgstr ""
++"Zoom com o mouse centraliza no ponteiro de ação ou de reprodução, não no mouse"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"Zooming the timeline with the mouse centers it on the action cursor (or on "
++"the playhead when there is none) instead of keeping the frame under the mouse"
++msgstr ""
++"O zoom da linha do tempo com o mouse centraliza no ponteiro de ação (ou no de "
++"reprodução, quando não houver) em vez de manter o quadro sob o mouse"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Scrolling during playback stops following the playhead"
++msgstr "Rolar durante a reprodução para de seguir o ponteiro de reprodução"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"During playback, scrolling the timeline or placing the action cursor stops "
++"the view from following the playhead; it follows again after the playback "
++"stops and restarts"
++msgstr ""
++"Durante a reprodução, rolar a linha do tempo ou criar o ponteiro de ação faz a "
++"visualização parar de seguir o ponteiro de reprodução; ela volta a segui-lo "
++"depois que a reprodução para e recomeça"
++
++#. Catavan
++#: src/kdenlivesettings.kcfg
++msgid ""
++"During playback, scrolling the timeline or placing the action cursor stops "
++"the view from following the playhead until the playback stops."
++msgstr ""
++"Durante a reprodução, rolar a linha do tempo ou criar o ponteiro de ação faz a "
++"visualização parar de seguir o ponteiro de reprodução até a reprodução parar."
++
++#. Catavan
++#: src/main.cpp
++#, kde-format
++msgid "Matheus Salvalagio"
++msgstr "Matheus Salvalagio"
++
++#. Catavan
++#: src/main.cpp
++#, kde-format
++msgid "Catavan: creator and developer"
++msgstr "Catavan: criador e desenvolvedor"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Ungroup removes only the clicked clip from its group"
++msgstr "Desagrupar remove do grupo só o clipe clicado"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"Ungroup takes only the clicked clip (with its audio or video) out of its "
++"group and the other clips stay grouped; Ctrl+click (Shift+click without the "
++"Vegas selection) picks more clips, Alt+click picks a single item. Unchecked, "
++"Ungroup dissolves the whole group"
++msgstr ""
++"Desagrupar tira do grupo só o clipe clicado (com o seu áudio ou vídeo) e os "
++"outros clipes continuam agrupados; Ctrl+clique (Shift+clique sem a seleção "
++"do Vegas) escolhe mais clipes, Alt+clique escolhe um item só. Desmarcado, "
++"Desagrupar desfaz o grupo inteiro"
++
++#. Catavan
++#: src/kdenlivesettings.kcfg
++msgid ""
++"Ungroup takes only the clicked clips out of their group; the other clips stay "
++"grouped."
++msgstr ""
++"Desagrupar tira do grupo só os clipes clicados; os outros clipes continuam "
++"agrupados."
++
++#. Catavan
++#: src/timeline2/model/timelinemodel.cpp
++#, kde-format
++msgid "Remove from group"
++msgstr "Remover do grupo"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Remove Mix Clips, U ungroups"
++msgstr "Remover Misturar clipes, U desagrupa"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"Overlapping clips already creates the crossfades: the Mix Clips action is "
++"hidden, a double click on a clip edge does nothing and the U key ungroups "
++"clips, as in Vegas. Dropping a transition on a cut still creates a mix. "
++"Takes effect after a restart"
++msgstr ""
++"Sobrepor clipes já cria as transições (crossfade): a ação Misturar clipes fica "
++"oculta, um duplo clique na beirada de um clipe não faz nada e a tecla U "
++"desagrupa clipes, como no Vegas. Soltar uma transição num corte ainda cria "
++"uma mixagem. Vale depois de reiniciar"
++
++#. Catavan
++#: src/kdenlivesettings.kcfg
++msgid ""
++"Mix Clips is hidden and a double click on a clip edge creates no mix "
++"(overlapping clips makes the crossfades); U ungroups (needs restart)."
++msgstr ""
++"Misturar clipes fica oculto e um duplo clique na beirada de um clipe não cria "
++"mixagem (sobrepor clipes cria as transições); U desagrupa (requer reiniciar)."
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Vegas shortcuts: M marker, G group, Ctrl+L Auto Ripple"
++msgstr "Atalhos do Vegas: M marcador, G agrupar, Ctrl+L Auto Ripple"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"As in Vegas: M adds or removes a timeline marker, G groups the selected clips "
++"(Ctrl+G still works) and Ctrl+L toggles Auto Ripple. Takes effect after a "
++"restart"
++msgstr ""
++"Como no Vegas: M adiciona ou remove um marcador da linha do tempo, G agrupa os "
++"clipes selecionados (Ctrl+G continua funcionando) e Ctrl+L liga/desliga o "
++"Auto Ripple. Vale depois de reiniciar"
++
++#. Catavan
++#: src/kdenlivesettings.kcfg
++msgid ""
++"Vegas shortcuts: M adds a timeline marker, G groups, Ctrl+L toggles Auto "
++"Ripple (needs restart)."
++msgstr ""
++"Atalhos do Vegas: M adiciona um marcador na linha do tempo, G agrupa, Ctrl+L "
++"liga/desliga o Auto Ripple (requer reiniciar)."
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Highlight the clip under the mouse and the clicked clip"
++msgstr "Destacar o clipe sob o mouse e o clipe clicado"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"The clip under the mouse turns a bit lighter and paler, in its own color. "
++"When a group is selected, the clicked clip keeps the bright selection border "
++"and the other selected clips get a darker border, as the title of the "
++"clicked clip"
++msgstr ""
++"O clipe sob o mouse fica um pouco mais claro e desbotado, na sua própria cor. "
++"Com um grupo selecionado, o clipe clicado mantém o contorno de seleção vivo e "
++"os outros clipes selecionados ficam com um contorno mais escuro, como o título "
++"do clipe clicado"
++
++#. Catavan
++#: src/kdenlivesettings.kcfg
++msgid ""
++"A clip under the mouse is lighter; among the selected clips, the clicked one "
++"keeps the bright selection border and the others get a darker one."
++msgstr ""
++"Um clipe sob o mouse fica mais claro; entre os clipes selecionados, o clicado "
++"mantém o contorno de seleção vivo e os outros ficam com um mais escuro."
++
++#. Catavan
++#: src/dialogs/wizard.cpp
++#, kde-format
++msgid "Based on Kdenlive %1, using MLT %2"
++msgstr "Baseado no Kdenlive %1, usando MLT %2"
++
++#. Catavan
++#: src/mainwindow.cpp
++#, kde-format
++msgid "Donate to Kdenlive…"
++msgstr "Doar para o Kdenlive…"
++
++#. Catavan
++#: src/main.cpp
++#, kde-format
++msgid "Source code: <a href=\"%1\">%1</a>"
++msgstr "Código-fonte: <a href=\"%1\">%1</a>"
++
++#. Catavan: role of a Kdenlive author in the About dialog
++#: src/main.cpp
++#, kde-format
++msgid "Kdenlive: %1"
++msgstr "Kdenlive: %1"
++
++#. Catavan
++#: src/dialogs/Splash.qml
++#, kde-format
++msgid ""
++"Catavan was upgraded. It is based on Kdenlive: if you like it, consider <a "
++"href=\"%1\">getting involved</a> in Kdenlive or help <a href=\"%2\">funding</a> "
++"it."
++msgstr ""
++"O Catavan foi atualizado. Ele é baseado no Kdenlive: se você gosta dele, "
++"considere <a href=\"%1\">participar</a> do Kdenlive ou ajudar a <a "
++"href=\"%2\">financiá-lo</a>."
++
++#. Catavan
++#: src/dialogs/Splash.qml
++#, kde-format
++msgid "Catavan is based on Kdenlive. Help make Kdenlive even better"
++msgstr "O Catavan é baseado no Kdenlive. Ajude a tornar o Kdenlive ainda melhor"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"Size W and H of the Transform effect accept negative values: the image is "
++"mirrored horizontally (W) or vertically (H) and keeps its position and size. "
++"Takes effect when the effect is shown again"
++msgstr ""
++"Os tamanhos L e A do efeito Transformar aceitam valores negativos: a imagem "
++"é espelhada na horizontal (L) ou na vertical (A) e mantém a posição e o "
++"tamanho. Vale quando o efeito for exibido de novo"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Negative size in Transform mirrors the image"
++msgstr "Tamanho negativo no Transformar espelha a imagem"
++
++#. Catavan
++#: src/kdenlivesettings.kcfg
++msgid "In the Transform effect, a negative width or height mirrors the image in place."
++msgstr ""
++"No efeito Transformar, largura ou altura negativa espelha a imagem no lugar."
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"Dragging the video of a grouped clip to another video track leaves its audio "
++"on its track (and the other way round). Grouped clips of the same kind move "
++"together. Without this option, the audio moves in mirror"
++msgstr ""
++"Arrastar o vídeo de um clipe agrupado para outra trilha de vídeo deixa o "
++"áudio na trilha dele (e vice-versa). Clipes agrupados do mesmo tipo se movem "
++"juntos. Sem esta opção, o áudio se move espelhado"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Grouped audio and video change tracks independently"
++msgstr "Áudio e vídeo agrupados mudam de trilha de forma independente"
++
++#. Catavan
++#: src/kdenlivesettings.kcfg
++msgid ""
++"Moving a grouped clip to another track moves the clips of the same kind "
++"(video or audio) only; the others keep their tracks."
++msgstr ""
++"Mover um clipe agrupado para outra trilha move só os clipes do mesmo tipo "
++"(vídeo ou áudio); os outros ficam nas suas trilhas."
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"Kdenlive opens one decoder for each clip with a changed speed, which takes a "
++"lot of memory (and render time) when a clip is cut in many pieces. With this "
++"option the clips with the same speed, pitch setting and audio stream on a "
++"track share one. Takes effect for clips loaded or changed afterwards (reopen "
++"the project)"
++msgstr ""
++"O Kdenlive abre um decodificador para cada clipe com velocidade alterada, o "
++"que ocupa muita memória (e tempo de renderização) quando um clipe é cortado em "
++"muitos pedaços. Com esta opção, os clipes com a mesma velocidade, ajuste de "
++"tom e trilha de áudio numa trilha compartilham um só. Vale para clipes "
++"carregados ou alterados depois (reabra o projeto)"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Clips with the same speed share one decoder"
++msgstr "Clipes com a mesma velocidade compartilham um decodificador"
++
++#. Catavan
++#: src/kdenlivesettings.kcfg
++msgid "Clips with the same speed on a track share one decoder instead of one each."
++msgstr ""
++"Clipes com a mesma velocidade numa trilha compartilham um decodificador em vez "
++"de um cada."
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Ctrl+click selects more clips, Shift+click selects a range"
++msgstr "Ctrl+clique seleciona mais clipes, Shift+clique seleciona um intervalo"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"As in Vegas: Ctrl+click adds a clip to the selection or removes it, Shift"
++"+click selects the clips between the last clicked clip and the clicked one "
++"(on the tracks in between too), Ctrl+Shift+click adds them. Ctrl+drag still "
++"scrolls the timeline and Shift+drag still draws a selection rectangle. "
++"Unchecked, Shift+click adds or removes a clip, as in Kdenlive"
++msgstr ""
++"Como no Vegas: Ctrl+clique adiciona um clipe à seleção ou o remove, Shift"
++"+clique seleciona os clipes entre o último clipe clicado e o clicado agora "
++"(também nas trilhas entre eles), Ctrl+Shift+clique os adiciona. Ctrl+arrastar "
++"continua rolando a timeline e Shift+arrastar continua desenhando um retângulo "
++"de seleção. Desmarcado, Shift+clique adiciona ou remove um clipe, como no "
++"Kdenlive"
++
++#. Catavan
++#: src/kdenlivesettings.kcfg
++msgid ""
++"Ctrl+click adds or removes a clip from the selection and Shift+click selects "
++"the clips between the last clicked one and the clicked one, as in Vegas."
++msgstr ""
++"Ctrl+clique adiciona ou remove um clipe da seleção e Shift+clique seleciona "
++"os clipes entre o último clicado e o clicado agora, como no Vegas."
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Dragging in an empty area sets the zone"
++msgstr "Arrastar numa área vazia define a zona"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"As in Vegas: pressing in an empty part of the timeline (not on a clip) and "
++"dragging sets the zone, from where the drag starts to where it ends. A click "
++"without dragging still moves the playhead. Unchecked, the drag moves the "
++"playhead, as in Kdenlive"
++msgstr ""
++"Como no Vegas: pressionar numa parte vazia da timeline (fora de um clipe) e "
++"arrastar define a zona, de onde o arraste começa até onde termina. Um clique "
++"sem arrastar continua movendo o ponteiro de reprodução. Desmarcado, o arraste "
++"move o ponteiro de reprodução, como no Kdenlive"
++
++#. Catavan
++#: src/kdenlivesettings.kcfg
++msgid ""
++"Dragging in an empty part of the timeline sets the zone (in point where the "
++"drag starts, out point where it ends), as in Vegas."
++msgstr ""
++"Arrastar numa parte vazia da timeline define a zona (entrada onde o arraste "
++"começa, saída onde termina), como no Vegas."

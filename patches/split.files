@@ -1,0 +1,11 @@
+# Catavan: Split (S) cuts the selected clips, or the active tracks, at the action cursor; X selects the Selection tool
+# and the Razor tool has no shortcut. timelinecontroller.* also carry other features.
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/mainwindow.h
+kdenlive-26.08.2/src/mainwindow.cpp
+kdenlive-26.08.2/src/timeline2/model/timelinefunctions.hpp
+kdenlive-26.08.2/src/timeline2/model/timelinefunctions.cpp
+kdenlive-26.08.2/src/timeline2/view/timelinecontroller.h
+kdenlive-26.08.2/src/timeline2/view/timelinecontroller.cpp
+kdenlive-26.08.2/po/pt_BR/kdenlive.po

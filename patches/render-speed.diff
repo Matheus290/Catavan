@@ -1,0 +1,1286 @@
+--- a/mlt-7.42.0/src/modules/avformat/filter_avcolour_space.c
++++ b/mlt-7.42.0/src/modules/avformat/filter_avcolour_space.c
+@@ -24,10 +24,12 @@
+ #include <framework/mlt_log.h>
+ #include <framework/mlt_producer.h>
+ #include <framework/mlt_profile.h>
++#include <framework/mlt_slices.h>
+ 
+ // ffmpeg Header files
+ #include <libavformat/avformat.h>
+ #include <libavutil/imgutils.h>
++#include <libavutil/opt.h>
+ #include <libswscale/swscale.h>
+ 
+ #include <stdio.h>
+@@ -44,6 +46,8 @@
+ #endif
+ 
+ #define IMAGE_ALIGN (1)
++// Catavan: threads of one conversion (as filter_swscale)
++#define MAX_THREADS (8)
+ 
+ static int convert_mlt_to_av_cs(mlt_image_format format)
+ {
+@@ -84,6 +88,55 @@
+     return value;
+ }
+ 
++#if LIBSWSCALE_VERSION_MAJOR >= 6
++/* Catavan: the conversion with the slice threads of libswscale (a 3840x1080 yuv420p -> rgba conversion in one thread
++ * took most of the render time). Returns 1 when done, with the set_luma_transfer result in *error. */
++static int av_convert_image_threaded(int out_fmt,
++                                     int in_fmt,
++                                     int out_width,
++                                     int out_height,
++                                     int in_width,
++                                     int in_height,
++                                     uint8_t **in_data,
++                                     int *in_stride,
++                                     uint8_t **out_data,
++                                     int *out_stride,
++                                     int flags,
++                                     mlt_colorspace src_colorspace,
++                                     mlt_colorspace dst_colorspace,
++                                     int src_full_range,
++                                     int dst_full_range,
++                                     int *error)
++{
++    int done = 0;
++    // libswscale wants the RGB colorspace to be SWS_CS_DEFAULT, which is = SWS_CS_ITU601.
++    if (out_fmt == AV_PIX_FMT_RGB24 || out_fmt == AV_PIX_FMT_RGBA)
++        dst_colorspace = mlt_colorspace_bt601;
++    mlt_sws_params params;
++    mlt_sws_params_init(&params, in_width, in_height, in_fmt, out_width, out_height, out_fmt, flags);
++    params.threads = MIN(mlt_slices_count_normal(), MAX_THREADS);
++    params.set_luma_transfer = 1;
++    params.src_colorspace = src_colorspace;
++    params.dst_colorspace = dst_colorspace;
++    params.src_full_range = src_full_range;
++    params.dst_full_range = dst_full_range;
++    struct SwsContext *context = mlt_sws_cached_context(&params, error);
++    if (context)
++        done = !mlt_sws_scale_planes(context,
++                                     in_data,
++                                     in_stride,
++                                     in_fmt,
++                                     in_width,
++                                     in_height,
++                                     out_data,
++                                     out_stride,
++                                     out_fmt,
++                                     out_width,
++                                     out_height);
++    return done;
++}
++#endif
++
+ // returns set_lumage_transfer result
+ static int av_convert_image(uint8_t *out,
+                             uint8_t *in,
+@@ -113,6 +166,27 @@
+         mlt_image_format_planes(out_fmt, out_width, out_height, out, out_data, out_stride);
+     else
+         av_image_fill_arrays(out_data, out_stride, out, out_fmt, out_width, out_height, IMAGE_ALIGN);
++#if LIBSWSCALE_VERSION_MAJOR >= 6
++    if (in_fmt != AV_PIX_FMT_YUV422P16LE && out_fmt != AV_PIX_FMT_YUV422P16LE
++        && av_convert_image_threaded(out_fmt,
++                                     in_fmt,
++                                     out_width,
++                                     out_height,
++                                     in_width,
++                                     in_height,
++                                     in_data,
++                                     in_stride,
++                                     out_data,
++                                     out_stride,
++                                     flags,
++                                     src_colorspace,
++                                     dst_colorspace,
++                                     src_full_range,
++                                     dst_full_range,
++                                     &error)) {
++        return error;
++    }
++#endif
+     struct SwsContext *context = sws_getContext(
+         in_width, in_height, in_fmt, out_width, out_height, out_fmt, flags, NULL, NULL, NULL);
+     if (context) {
+--- a/mlt-7.42.0/src/modules/avformat/common.c
++++ b/mlt-7.42.0/src/modules/avformat/common.c
+@@ -1,6 +1,6 @@
+ /*
+  * common.h
+- * Copyright (C) 2018-2025 Meltytech, LLC
++ * Copyright (C) 2018-2026 Meltytech, LLC
+  *
+  * This library is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU Lesser General Public
+@@ -20,9 +20,15 @@
+ #include "common.h"
+ 
+ #include <libavutil/channel_layout.h>
++#include <libavutil/imgutils.h>
++#include <libavutil/opt.h>
+ #include <libavutil/pixdesc.h>
+ #include <libavutil/samplefmt.h>
+ 
++#include <pthread.h>
++#include <stdlib.h>
++#include <string.h>
++
+ int mlt_get_sws_flags(
+     int srcwidth, int srcheight, int srcformat, int dstwidth, int dstheight, int dstformat)
+ {
+@@ -687,3 +693,173 @@
+         }
+     }
+ }
++
++/* Catavan: a small per thread cache of initialized swscale contexts. Creating a context with its slice threads for
++ * every frame (and every slice of the sliced conversions) took a good part of the render time; the render workers
++ * and the mlt_slices threads live as long as the consumer, so the contexts are reused frame after frame. */
++#define SWS_CACHE_SIZE (8)
++
++typedef struct
++{
++    mlt_sws_params params;
++    struct SwsContext *context;
++    int luma_result;
++} sws_cache_entry;
++
++typedef struct
++{
++    sws_cache_entry entries[SWS_CACHE_SIZE]; // most recently used first
++    int count;
++} sws_cache;
++
++static pthread_key_t sws_cache_key;
++static pthread_once_t sws_cache_once = PTHREAD_ONCE_INIT;
++
++static void sws_cache_free(void *data)
++{
++    sws_cache *cache = data;
++    for (int i = 0; i < cache->count; i++)
++        sws_freeContext(cache->entries[i].context);
++    free(cache);
++}
++
++static void sws_cache_init_key(void)
++{
++    pthread_key_create(&sws_cache_key, sws_cache_free);
++}
++
++void mlt_sws_params_init(mlt_sws_params *params,
++                         int src_width,
++                         int src_height,
++                         int src_format,
++                         int dst_width,
++                         int dst_height,
++                         int dst_format,
++                         int flags)
++{
++    memset(params, 0, sizeof(*params));
++    params->src_width = src_width;
++    params->src_height = src_height;
++    params->src_format = src_format;
++    params->dst_width = dst_width;
++    params->dst_height = dst_height;
++    params->dst_format = dst_format;
++    params->flags = flags;
++    params->src_h_chr_pos = params->src_v_chr_pos = -513;
++    params->dst_h_chr_pos = params->dst_v_chr_pos = -513;
++}
++
++struct SwsContext *mlt_sws_cached_context(const mlt_sws_params *params, int *luma_result)
++{
++    pthread_once(&sws_cache_once, sws_cache_init_key);
++    sws_cache *cache = pthread_getspecific(sws_cache_key);
++    if (!cache) {
++        cache = calloc(1, sizeof(*cache));
++        if (!cache || pthread_setspecific(sws_cache_key, cache)) {
++            free(cache);
++            return NULL;
++        }
++    }
++
++    int found = -1;
++    for (int i = 0; i < cache->count; i++) {
++        if (!memcmp(&cache->entries[i].params, params, sizeof(*params))) {
++            found = i;
++            break;
++        }
++    }
++    sws_cache_entry entry;
++    if (found >= 0) {
++        entry = cache->entries[found];
++        memmove(&cache->entries[1], &cache->entries[0], found * sizeof(entry));
++    } else {
++        struct SwsContext *context = sws_alloc_context();
++        if (!context)
++            return NULL;
++        av_opt_set_int(context, "srcw", params->src_width, 0);
++        av_opt_set_int(context, "srch", params->src_height, 0);
++        av_opt_set_int(context, "src_format", params->src_format, 0);
++        av_opt_set_int(context, "dstw", params->dst_width, 0);
++        av_opt_set_int(context, "dsth", params->dst_height, 0);
++        av_opt_set_int(context, "dst_format", params->dst_format, 0);
++        av_opt_set_int(context, "sws_flags", params->flags, 0);
++        av_opt_set_int(context, "src_h_chr_pos", params->src_h_chr_pos, 0);
++        av_opt_set_int(context, "src_v_chr_pos", params->src_v_chr_pos, 0);
++        av_opt_set_int(context, "dst_h_chr_pos", params->dst_h_chr_pos, 0);
++        av_opt_set_int(context, "dst_v_chr_pos", params->dst_v_chr_pos, 0);
++#if LIBSWSCALE_VERSION_MAJOR >= 6
++        if (params->threads > 0)
++            av_opt_set_int(context, "threads", params->threads, 0);
++#endif
++        if (sws_init_context(context, NULL, NULL) < 0) {
++            sws_freeContext(context);
++            return NULL;
++        }
++        entry.params = *params;
++        entry.context = context;
++        entry.luma_result = params->set_luma_transfer ? mlt_set_luma_transfer(context,
++                                                                               params->src_colorspace,
++                                                                               params->dst_colorspace,
++                                                                               params->src_full_range,
++                                                                               params->dst_full_range)
++                                                      : 0;
++        if (cache->count == SWS_CACHE_SIZE)
++            sws_freeContext(cache->entries[--cache->count].context);
++        memmove(&cache->entries[1], &cache->entries[0], cache->count * sizeof(entry));
++        cache->count++;
++    }
++    cache->entries[0] = entry;
++    if (luma_result)
++        *luma_result = entry.luma_result;
++    return entry.context;
++}
++
++#if LIBSWSCALE_VERSION_MAJOR >= 6
++static void buffer_not_owned(void *opaque, uint8_t *data)
++{
++    (void) opaque;
++    (void) data;
++}
++
++/* Catavan: an AVFrame over planes it does not own, reference counted so that sws_scale_frame neither copies the
++ * input nor allocates the output. */
++static int wrap_planes(AVFrame *frame, uint8_t **data, int *stride, int format, int width, int height)
++{
++    frame->width = width;
++    frame->height = height;
++    frame->format = format;
++    for (int i = 0; i < 4; i++) {
++        frame->data[i] = data[i];
++        frame->linesize[i] = stride[i];
++    }
++    int size = av_image_get_buffer_size(format, width, height, 1);
++    frame->buf[0] = av_buffer_create(data[0], size > 0 ? size : 1, buffer_not_owned, NULL, 0);
++    return frame->buf[0] ? 0 : -1;
++}
++
++int mlt_sws_scale_planes(struct SwsContext *context,
++                         uint8_t **src_data,
++                         int *src_stride,
++                         int src_format,
++                         int src_width,
++                         int src_height,
++                         uint8_t **dst_data,
++                         int *dst_stride,
++                         int dst_format,
++                         int dst_width,
++                         int dst_height)
++{
++    int result = -1;
++    AVFrame *src = av_frame_alloc();
++    AVFrame *dst = av_frame_alloc();
++    if (src && dst && !wrap_planes(src, src_data, src_stride, src_format, src_width, src_height)
++        && !wrap_planes(dst, dst_data, dst_stride, dst_format, dst_width, dst_height)) {
++        result = sws_scale_frame(context, dst, src);
++        if (result >= 0 && dst->data[0] != dst_data[0])
++            result = -1;
++    }
++    av_frame_free(&src);
++    av_frame_free(&dst);
++    return result < 0 ? result : 0;
++}
++#endif
+--- a/mlt-7.42.0/src/modules/avformat/common.h
++++ b/mlt-7.42.0/src/modules/avformat/common.h
+@@ -1,6 +1,6 @@
+ /*
+  * common.h
+- * Copyright (C) 2018-2025 Meltytech, LLC
++ * Copyright (C) 2018-2026 Meltytech, LLC
+  *
+  * This library is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU Lesser General Public
+@@ -56,4 +56,41 @@
+ void mlt_image_to_avframe(mlt_image image, mlt_frame mltframe, AVFrame *avframe);
+ void avframe_to_mlt_image(AVFrame *avframe, mlt_image image);
+ 
++// Catavan: parameters of a cached swscale context (compared byte by byte: initialize with mlt_sws_params_init)
++typedef struct
++{
++    int src_width, src_height, src_format;
++    int dst_width, dst_height, dst_format;
++    int flags, threads;
++    int src_h_chr_pos, src_v_chr_pos, dst_h_chr_pos, dst_v_chr_pos;
++    int set_luma_transfer; // apply mlt_set_luma_transfer with the values below
++    int src_colorspace, dst_colorspace, src_full_range, dst_full_range;
++} mlt_sws_params;
++void mlt_sws_params_init(mlt_sws_params *params,
++                         int src_width,
++                         int src_height,
++                         int src_format,
++                         int dst_width,
++                         int dst_height,
++                         int dst_format,
++                         int flags);
++/* Catavan: an initialized context from a per thread cache; owned by the cache, valid until the next call on the same
++ * thread. luma_result receives the mlt_set_luma_transfer result. NULL on failure. */
++struct SwsContext *mlt_sws_cached_context(const mlt_sws_params *params, int *luma_result);
++#if LIBSWSCALE_VERSION_MAJOR >= 6
++/* Catavan: sws_scale_frame from and into planes the caller owns (with the slice threads of the context), without
++ * copies. Returns 0 on success. */
++int mlt_sws_scale_planes(struct SwsContext *context,
++                         uint8_t **src_data,
++                         int *src_stride,
++                         int src_format,
++                         int src_width,
++                         int src_height,
++                         uint8_t **dst_data,
++                         int *dst_stride,
++                         int dst_format,
++                         int dst_width,
++                         int dst_height);
++#endif
++
+ #endif // COMMON_H
+--- a/mlt-7.42.0/src/modules/avformat/filter_swscale.c
++++ b/mlt-7.42.0/src/modules/avformat/filter_swscale.c
+@@ -1,6 +1,6 @@
+ /*
+  * filter_swscale.c -- image scaling filter
+- * Copyright (C) 2008-2025 Meltytech, LLC
++ * Copyright (C) 2008-2026 Meltytech, LLC
+  *
+  * This library is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU Lesser General Public
+@@ -120,32 +120,12 @@
+     int out_size = mlt_image_format_size(*format, owidth, oheight, NULL);
+     uint8_t *outbuf = mlt_pool_alloc(out_size);
+ 
+-    // Create the context
+-    struct SwsContext *context = sws_alloc_context();
+-    if (outbuf && context) {
++    // Catavan: the context comes from a per thread cache (see mlt_sws_cached_context) and is not freed here
++    struct SwsContext *context = NULL;
++    if (outbuf) {
+         AVFrame *avinframe = av_frame_alloc();
+         AVFrame *avoutframe = av_frame_alloc();
+ 
+-        av_opt_set_int(context, "srcw", iwidth, 0);
+-        av_opt_set_int(context, "srch", iheight, 0);
+-        av_opt_set_int(context, "src_format", avformat, 0);
+-        av_opt_set_int(context, "dstw", owidth, 0);
+-        av_opt_set_int(context, "dsth", oheight, 0);
+-        av_opt_set_int(context, "dst_format", avformat, 0);
+-        av_opt_set_int(context, "sws_flags", interp, 0);
+-#if LIBSWSCALE_VERSION_MAJOR >= 6
+-        av_opt_set_int(context, "threads", MIN(mlt_slices_count_normal(), MAX_THREADS), 0);
+-#endif
+-        result = sws_init_context(context, NULL, NULL);
+-        if (result < 0) {
+-            mlt_log_error(NULL,
+-                          "[filter swscale] Initializing swscale failed with %d (%s)\n",
+-                          result,
+-                          av_err2str(result));
+-            result = 1;
+-            goto exit;
+-        }
+-
+         mlt_profile profile = mlt_service_profile(
+             MLT_PRODUCER_SERVICE(mlt_frame_get_original_producer(frame)));
+         mlt_colorspace dst_colorspace = profile ? profile->colorspace : mlt_colorspace_bt601;
+@@ -155,11 +135,22 @@
+         const char *dst_color_range = mlt_properties_get(properties, "consumer.color_range");
+         int dst_full_range = mlt_image_full_range(dst_color_range);
+ 
+-        result = mlt_set_luma_transfer(context,
+-                                       src_colorspace,
+-                                       dst_colorspace,
+-                                       src_full_range,
+-                                       dst_full_range);
++        mlt_sws_params params;
++        mlt_sws_params_init(&params, iwidth, iheight, avformat, owidth, oheight, avformat, interp);
++#if LIBSWSCALE_VERSION_MAJOR >= 6
++        params.threads = MIN(mlt_slices_count_normal(), MAX_THREADS);
++#endif
++        params.set_luma_transfer = 1;
++        params.src_colorspace = src_colorspace;
++        params.dst_colorspace = dst_colorspace;
++        params.src_full_range = src_full_range;
++        params.dst_full_range = dst_full_range;
++        context = mlt_sws_cached_context(&params, &result);
++        if (!context) {
++            mlt_log_error(NULL, "[filter swscale] Initializing swscale failed\n");
++            result = 1;
++            goto exit;
++        }
+         if (result < 0) {
+             mlt_log_error(NULL,
+                           "[filter swscale] Setting swscale color options failed with %d (%s)\n",
+@@ -169,6 +160,34 @@
+             goto exit;
+         }
+ 
++#if LIBSWSCALE_VERSION_MAJOR >= 6
++        // Catavan: a progressive image in a packed format is scaled from the MLT image straight into the output
++        // buffer, without the copies of the path below (sws_scale_frame copies an input that is not reference
++        // counted, and the output lines are copied once more)
++        if (mlt_properties_get_int(properties, "progressive")
++            && (*format == mlt_image_rgba || *format == mlt_image_rgb || *format == mlt_image_yuv422
++                || *format == mlt_image_rgba64)) {
++            uint8_t *in_planes[4];
++            int in_strides[4];
++            uint8_t *out_planes[4];
++            int out_strides[4];
++            av_image_fill_arrays(in_planes, in_strides, *image, avformat, iwidth, iheight, 1);
++            av_image_fill_arrays(out_planes, out_strides, outbuf, avformat, owidth, oheight, 1);
++            if (!mlt_sws_scale_planes(context,
++                                      in_planes,
++                                      in_strides,
++                                      avformat,
++                                      iwidth,
++                                      iheight,
++                                      out_planes,
++                                      out_strides,
++                                      avformat,
++                                      owidth,
++                                      oheight))
++                goto scaled;
++        }
++#endif
++
+         // Setup the input image
+         avinframe->width = iwidth;
+         avinframe->height = iheight;
+@@ -224,8 +243,6 @@
+             result = 1;
+             goto exit;
+         }
+-        sws_freeContext(context);
+-        context = NULL;
+ 
+         // Sanity check the output frame
+         if (owidth != avoutframe->width || oheight != avoutframe->height) {
+@@ -267,6 +284,9 @@
+             }
+         }
+ 
++#if LIBSWSCALE_VERSION_MAJOR >= 6
++    scaled:
++#endif
+         // Now update the MLT frame
+         mlt_frame_set_image(frame, outbuf, out_size, mlt_pool_release);
+         mlt_properties_set_int(properties, "full_range", dst_full_range);
+@@ -280,30 +300,19 @@
+         if (alpha && alpha_size > 0 && alpha_size != (owidth * oheight)) {
+             // Create the context and output image
+             outbuf = mlt_pool_alloc(owidth * oheight);
+-            context = sws_alloc_context();
+ 
+-            if (outbuf && context) {
++            if (outbuf) {
+                 av_frame_unref(avinframe);
+                 av_frame_unref(avoutframe);
+ 
+                 avformat = AV_PIX_FMT_GRAY8;
+-                av_opt_set_int(context, "srcw", iwidth, 0);
+-                av_opt_set_int(context, "srch", iheight, 0);
+-                av_opt_set_int(context, "src_format", avformat, 0);
+-                av_opt_set_int(context, "dstw", owidth, 0);
+-                av_opt_set_int(context, "dsth", oheight, 0);
+-                av_opt_set_int(context, "dst_format", avformat, 0);
+-                av_opt_set_int(context, "sws_flags", interp, 0);
++                mlt_sws_params_init(&params, iwidth, iheight, avformat, owidth, oheight, avformat, interp);
+ #if LIBSWSCALE_VERSION_MAJOR >= 6
+-                av_opt_set_int(context, "threads", MIN(mlt_slices_count_normal(), MAX_THREADS), 0);
++                params.threads = MIN(mlt_slices_count_normal(), MAX_THREADS);
+ #endif
+-                result = sws_init_context(context, NULL, NULL);
+-                if (result < 0) {
+-                    mlt_log_error(
+-                        NULL,
+-                        "[filter swscale] Initializing swscale alpha failed with %d (%s)\n",
+-                        result,
+-                        av_err2str(result));
++                context = mlt_sws_cached_context(&params, NULL);
++                if (!context) {
++                    mlt_log_error(NULL, "[filter swscale] Initializing swscale alpha failed\n");
+                     result = 1;
+                     goto exit;
+                 }
+@@ -350,8 +359,6 @@
+                     result = 1;
+                     goto exit;
+                 }
+-                sws_freeContext(context);
+-                context = NULL;
+ 
+                 // Sanity check the output frame
+                 if (owidth != avoutframe->width || oheight != avoutframe->height) {
+@@ -377,7 +384,6 @@
+     exit:
+         av_frame_free(&avinframe);
+         av_frame_free(&avoutframe);
+-        sws_freeContext(context);
+     }
+     return result;
+ }
+--- a/mlt-7.42.0/src/modules/avformat/filter_avdeinterlace.c
++++ b/mlt-7.42.0/src/modules/avformat/filter_avdeinterlace.c
+@@ -1,6 +1,6 @@
+ /*
+  * filter_avdeinterlace.c -- deinterlace filter
+- * Copyright (C) 2003-2017 Meltytech, LLC
++ * Copyright (C) 2003-2026 Meltytech, LLC
+  *
+  * This library is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU Lesser General Public
+@@ -20,6 +20,7 @@
+ #include <framework/mlt_filter.h>
+ #include <framework/mlt_frame.h>
+ #include <framework/mlt_log.h>
++#include <framework/mlt_producer.h>
+ 
+ #include <stdlib.h>
+ #include <string.h>
+@@ -317,6 +318,16 @@
+     if (deinterlace && !writable)
+         writable = !mlt_properties_get_int(MLT_FRAME_PROPERTIES(frame), "progressive");
+ 
++    // Catavan: a progressive source is not deinterlaced, so it keeps the requested format. Asking for yuv422 made
++    // every frame go yuv420p -> yuv422 -> rgba on the way to qtblend (two full conversions instead of one).
++    mlt_producer original = mlt_frame_get_original_producer(frame);
++    mlt_properties original_properties = original ? MLT_PRODUCER_PROPERTIES(original) : NULL;
++    if (deinterlace && original_properties
++        && (mlt_properties_get_int(original_properties, "meta.media.progressive")
++            || mlt_properties_get_int(original_properties, "progressive"))) {
++        return mlt_frame_get_image(frame, image, format, width, height, writable);
++    }
++
+     // Get the input image
+     *format = mlt_image_yuv422;
+     error = mlt_frame_get_image(frame, image, format, width, height, 1);
+--- a/mlt-7.42.0/src/modules/avformat/producer_avformat.c
++++ b/mlt-7.42.0/src/modules/avformat/producer_avformat.c
+@@ -129,7 +129,7 @@
+     int packets_thread_stop; // non-zero when packets_thread is to stop
+     int is_thread_init;
+     AVRational video_time_base;
+-    mlt_frame last_good_frame; // for video error concealment
++    AVFrame *last_good_picture; // for video error concealment (Catavan: the decoded picture, not a copy of the image)
+     int last_good_position;    // for video error concealment
+     AVFilterGraph *vfilter_graph;
+     AVFilterContext *vfilter_in;
+@@ -2125,7 +2125,7 @@
+     uint8_t *out[4];
+     const uint8_t *in[4];
+     int in_stride[4], out_stride[4];
+-    int src_v_chr_pos = -513, dst_v_chr_pos = -513, ret, i, slice_x, slice_w, h, mul, field, slices,
++    int src_v_chr_pos = -513, dst_v_chr_pos = -513, i, slice_x, slice_w, h, mul, field, slices,
+         interlaced = 0;
+ 
+     struct SwsContext *sws;
+@@ -2175,33 +2175,22 @@
+     if (slice_w <= 0)
+         return 0;
+ 
+-    sws = sws_alloc_context();
+-
+-    av_opt_set_int(sws, "srcw", slice_w, 0);
+-    av_opt_set_int(sws, "srch", h, 0);
+-    av_opt_set_int(sws, "src_format", ctx->src_format, 0);
+-    av_opt_set_int(sws, "dstw", slice_w, 0);
+-    av_opt_set_int(sws, "dsth", h, 0);
+-    av_opt_set_int(sws, "dst_format", ctx->dst_format, 0);
+-    av_opt_set_int(sws, "sws_flags", ctx->flags, 0);
+-
+-    av_opt_set_int(sws, "src_h_chr_pos", -513, 0);
+-    av_opt_set_int(sws, "src_v_chr_pos", src_v_chr_pos, 0);
+-    av_opt_set_int(sws, "dst_h_chr_pos", -513, 0);
+-    av_opt_set_int(sws, "dst_v_chr_pos", dst_v_chr_pos, 0);
+-
+-    if ((ret = sws_init_context(sws, NULL, NULL)) < 0) {
+-        mlt_log_error(NULL, "%s:%d: sws_init_context failed, ret=%d\n", __FUNCTION__, __LINE__, ret);
+-        sws_freeContext(sws);
++    // Catavan: the context of the slice comes from a per thread cache (see mlt_sws_cached_context)
++    mlt_sws_params params;
++    mlt_sws_params_init(&params, slice_w, h, ctx->src_format, slice_w, h, ctx->dst_format, ctx->flags);
++    params.src_v_chr_pos = src_v_chr_pos;
++    params.dst_v_chr_pos = dst_v_chr_pos;
++    params.set_luma_transfer = 1;
++    params.src_colorspace = ctx->src_colorspace;
++    params.dst_colorspace = ctx->dst_colorspace;
++    params.src_full_range = ctx->src_full_range;
++    params.dst_full_range = ctx->dst_full_range;
++    sws = mlt_sws_cached_context(&params, NULL);
++    if (!sws) {
++        mlt_log_error(NULL, "%s:%d: sws_init_context failed\n", __FUNCTION__, __LINE__);
+         return 0;
+     }
+ 
+-    mlt_set_luma_transfer(sws,
+-                          ctx->src_colorspace,
+-                          ctx->dst_colorspace,
+-                          ctx->src_full_range,
+-                          ctx->dst_full_range);
+-
+ #define PIX_DESC_BPP(DESC) (DESC.step)
+ 
+     for (i = 0; i < 4; i++) {
+@@ -2227,8 +2216,6 @@
+ 
+     sws_scale(sws, in, in_stride, 0, h, out, out_stride);
+ 
+-    sws_freeContext(sws);
+-
+     return 0;
+ }
+ 
+@@ -2423,9 +2410,35 @@
+         sws_scale(context, in_data, in_stride, 0, field_height, out_data, out_stride);
+         sws_freeContext(context);
+     } else {
++        av_image_fill_arrays(out_data, out_stride, buffer, dst_pix_fmt, width, height, IMAGE_ALIGN);
++#if LIBSWSCALE_VERSION_MAJOR >= 6
++        // Catavan: with a cached context and its slice threads (a progressive source now arrives here directly,
++        // see filter_avdeinterlace)
++        mlt_sws_params params;
++        mlt_sws_params_init(&params, width, height, src_pix_fmt, width, height, dst_pix_fmt, flags);
++        params.threads = FFMIN(mlt_slices_count_normal(), 8);
++        params.set_luma_transfer = 1;
++        params.src_colorspace = self->yuv_colorspace;
++        params.dst_colorspace = mlt_colorspace_bt601;
++        params.src_full_range = self->full_range;
++        params.dst_full_range = 1;
++        struct SwsContext *cached = mlt_sws_cached_context(&params, NULL);
++        if (cached
++            && !mlt_sws_scale_planes(cached,
++                                     frame->data,
++                                     frame->linesize,
++                                     src_pix_fmt,
++                                     width,
++                                     height,
++                                     out_data,
++                                     out_stride,
++                                     dst_pix_fmt,
++                                     width,
++                                     height))
++            return;
++#endif
+         struct SwsContext *context = sws_getContext(
+             width, height, src_pix_fmt, width, height, dst_pix_fmt, flags, NULL, NULL, NULL);
+-        av_image_fill_arrays(out_data, out_stride, buffer, dst_pix_fmt, width, height, IMAGE_ALIGN);
+         // libswscale wants the RGB colorspace to be SWS_CS_DEFAULT, which is = SWS_CS_ITU601.
+         mlt_set_luma_transfer(context,
+                               self->yuv_colorspace,
+@@ -2748,6 +2761,37 @@
+         mlt_cache_set_size(*cache, cache_size);
+ }
+ 
++/* Catavan: puts a converted image in the image cache and keeps its decoded picture for error concealment (a
++ * reference: a copy of each 3840x1080 rgba image took a good part of the render time). The video_mutex must be
++ * locked. picture is a reference to the decoded picture, taken over here, or NULL to reference self->video_frame. */
++static void cache_image(producer_avformat self,
++                        mlt_frame frame,
++                        mlt_position decoded_position,
++                        AVFrame *picture)
++{
++    mlt_properties frame_properties = MLT_FRAME_PROPERTIES(frame);
++
++    // Cache the image for rapid repeated access.
++    if (self->image_cache) {
++        if (is_album_art(self)) {
++            mlt_position original_pos = mlt_frame_original_position(frame);
++            mlt_properties_set_position(frame_properties, "original_position", 0);
++            mlt_cache_put_frame_image(self->image_cache, frame);
++            mlt_properties_set_position(frame_properties, "original_position", original_pos);
++        } else {
++            mlt_cache_put_frame_image(self->image_cache, frame);
++        }
++    }
++    // Keep the picture for error concealment.
++    if (decoded_position >= self->last_good_position) {
++        self->last_good_position = decoded_position;
++        av_frame_free(&self->last_good_picture);
++        self->last_good_picture = picture ? picture : av_frame_clone(self->video_frame);
++    } else {
++        av_frame_free(&picture);
++    }
++}
++
+ /** Get an image from a frame.
+ */
+ 
+@@ -2775,6 +2819,8 @@
+     uint8_t *alpha = NULL;
+     int got_picture = 0;
+     int image_size = 0;
++    // Catavan: the decoded picture, converted after the producer locks are released (see cache_image)
++    AVFrame *convert_frame = NULL;
+     mlt_profile profile = mlt_service_profile(MLT_PRODUCER_SERVICE(self->parent));
+     int dst_colorspace = (*format == mlt_image_none) ? self->yuv_colorspace : profile->colorspace;
+     const char *dst_color_range = mlt_properties_get(frame_properties, "consumer.color_range");
+@@ -2883,17 +2929,19 @@
+         // Duplicate it
+         set_image_size(self, width, height);
+         if ((image_size = allocate_buffer(frame, codec_params, buffer, *format, *width, *height))) {
+-            convert_image(self,
+-                          frame_properties,
+-                          self->video_frame,
+-                          *buffer,
+-                          self->video_frame->format,
+-                          format,
+-                          *width,
+-                          *height,
+-                          &alpha,
+-                          dst_colorspace,
+-                          dst_full_range);
++            convert_frame = av_frame_clone(self->video_frame);
++            if (!convert_frame)
++                convert_image(self,
++                              frame_properties,
++                              self->video_frame,
++                              *buffer,
++                              self->video_frame->format,
++                              format,
++                              *width,
++                              *height,
++                              &alpha,
++                              dst_colorspace,
++                              dst_full_range);
+             got_picture = 1;
+         }
+     } else {
+@@ -3203,17 +3251,19 @@
+                 set_image_size(self, width, height);
+                 if ((image_size
+                      = allocate_buffer(frame, codec_params, buffer, *format, *width, *height))) {
+-                    convert_image(self,
+-                                  frame_properties,
+-                                  self->video_frame,
+-                                  *buffer,
+-                                  self->video_frame->format,
+-                                  format,
+-                                  *width,
+-                                  *height,
+-                                  &alpha,
+-                                  dst_colorspace,
+-                                  dst_full_range);
++                    convert_frame = av_frame_clone(self->video_frame);
++                    if (!convert_frame)
++                        convert_image(self,
++                                      frame_properties,
++                                      self->video_frame,
++                                      *buffer,
++                                      self->video_frame->format,
++                                      format,
++                                      *width,
++                                      *height,
++                                      &alpha,
++                                      dst_colorspace,
++                                      dst_full_range);
+                     self->current_position = int_position;
+                 } else {
+                     got_picture = 0;
+@@ -3227,50 +3277,37 @@
+         }
+     }
+ 
++    // Catavan: with a pending conversion the image is converted and cached after the locks are released
++    mlt_position decoded_position = self->current_position;
++
+     // set alpha
+     if (alpha)
+         mlt_frame_set_alpha(frame, alpha, (*width) * (*height), mlt_pool_release);
+ 
+     if (image_size > 0) {
+         mlt_properties_set_int(frame_properties, "format", *format);
+-        // Cache the image for rapid repeated access.
+-        if (self->image_cache) {
+-            if (is_album_art(self)) {
+-                mlt_position original_pos = mlt_frame_original_position(frame);
+-                mlt_properties_set_position(frame_properties, "original_position", 0);
+-                mlt_cache_put_frame_image(self->image_cache, frame);
+-                mlt_properties_set_position(frame_properties, "original_position", original_pos);
+-            } else {
+-                mlt_cache_put_frame_image(self->image_cache, frame);
+-            }
+-        }
+-        // Clone frame for error concealment.
+-        if (self->current_position >= self->last_good_position) {
+-            self->last_good_position = self->current_position;
+-            if (self->last_good_frame)
+-                mlt_frame_close(self->last_good_frame);
+-            self->last_good_frame = mlt_frame_clone(frame, 1);
+-        }
+-    } else if (self->last_good_frame) {
+-        // Use last known good frame if there was a decoding failure.
+-        mlt_frame original = mlt_frame_clone(self->last_good_frame, 1);
+-        mlt_properties orig_props = MLT_FRAME_PROPERTIES(original);
+-        int size = 0;
+-
+-        *buffer = mlt_frame_get_alpha_size(original, &size);
+-        if (*buffer)
+-            mlt_frame_set_alpha(frame, *buffer, size, NULL);
+-        *buffer = mlt_properties_get_data(orig_props, "image", &size);
+-        mlt_frame_set_image(frame, *buffer, size, NULL);
+-        mlt_properties_set_data(frame_properties,
+-                                "avformat.conceal_error",
+-                                original,
+-                                0,
+-                                (mlt_destructor) mlt_frame_close,
+-                                NULL);
+-        *format = mlt_properties_get_int(orig_props, "format");
++        if (!convert_frame)
++            cache_image(self, frame, decoded_position, NULL);
++    } else if (self->last_good_picture && codec_params) {
++        // Use last known good picture if there was a decoding failure.
+         set_image_size(self, width, height);
+-        got_picture = 1;
++        if (allocate_buffer(frame, codec_params, buffer, *format, *width, *height)) {
++            convert_image(self,
++                          frame_properties,
++                          self->last_good_picture,
++                          *buffer,
++                          self->last_good_picture->format,
++                          format,
++                          *width,
++                          *height,
++                          &alpha,
++                          dst_colorspace,
++                          dst_full_range);
++            if (alpha)
++                mlt_frame_set_alpha(frame, alpha, (*width) * (*height), mlt_pool_release);
++            mlt_properties_set_int(frame_properties, "format", *format);
++            got_picture = 1;
++        }
+     }
+ 
+     // Regardless of speed, we expect to get the next frame (cos we ain't too bright)
+@@ -3288,6 +3325,25 @@
+     mlt_properties_set_int(properties, "_probe_complete", 1);
+     mlt_service_unlock(MLT_PRODUCER_SERVICE(producer));
+ 
++    if (convert_frame) {
++        convert_image(self,
++                      frame_properties,
++                      convert_frame,
++                      *buffer,
++                      convert_frame->format,
++                      format,
++                      *width,
++                      *height,
++                      &alpha,
++                      dst_colorspace,
++                      dst_full_range);
++        if (alpha)
++            mlt_frame_set_alpha(frame, alpha, (*width) * (*height), mlt_pool_release);
++        pthread_mutex_lock(&self->video_mutex);
++        cache_image(self, frame, decoded_position, convert_frame);
++        pthread_mutex_unlock(&self->video_mutex);
++    }
++
+     mlt_log_timings_end(NULL, __FUNCTION__);
+ 
+     return !got_picture;
+@@ -3961,7 +4017,11 @@
+     int ignore[MAX_AUDIO_STREAMS] = {0};
+ 
+     // Flag for paused (silence)
+-    double timecode = self->audio_expected > 0 ? real_timecode : FFMAX(real_timecode - 0.25, 0.0);
++    // Catavan: the monitor speed filter (producer_consumer_fps) seeks back for every frame when playing
++    // backwards. A plain seek lands up to tens of milliseconds off in MP3/AAC and the decoder starts with garbage:
++    // seek earlier and decode up to the frame, as for the first seek
++    int monitor_speed = mlt_properties_get(MLT_FRAME_PROPERTIES(frame), "producer_consumer_fps") != NULL;
++    double timecode = self->audio_expected > 0 && !monitor_speed ? real_timecode : FFMAX(real_timecode - 0.25, 0.0);
+     paused = seek_audio(self, position, timecode);
+ 
+     // Initialize ignore for all streams from the seek return value
+@@ -4620,8 +4680,7 @@
+     // Cleanup caches.
+     mlt_cache_close(self->image_cache);
+     mlt_cache_close(self->audio_cache);
+-    if (self->last_good_frame)
+-        mlt_frame_close(self->last_good_frame);
++    av_frame_free(&self->last_good_picture);
+ 
+     // Cleanup the mutexes
+     if (self->is_mutex_init) {
+--- a/kdenlive-26.08.2/src/dialogs/wizard.h
++++ b/kdenlive-26.08.2/src/dialogs/wizard.h
+@@ -36,6 +36,10 @@
+     static void slotCheckPrograms(QString &infos, QString &warnings, QString &errors);
+     static QStringList codecs();
+     static const QString getHWCodecFriendlyName();
++    /** @brief Catavan: hardware decoding is on by default with an NVIDIA card. The first time the hardware check has
++     *  found an NVENC encoder and hardware decoding is off, it is set to nvdec, once: turning it off afterwards in the
++     *  wizard is kept. Returns true when it was turned on. */
++    static bool autoEnableHwDecoding();
+ 
+ private:
+     QVBoxLayout *m_startLayout;
+--- a/kdenlive-26.08.2/src/dialogs/wizard.cpp
++++ b/kdenlive-26.08.2/src/dialogs/wizard.cpp
+@@ -59,14 +59,15 @@
+     , m_systemCheckIsOk(false)
+     , m_brokenModule(false)
+ {
+-    setWindowTitle(i18nc("@title:window", "Welcome to Kdenlive"));
++    setWindowTitle(i18nc("@title:window", "Welcome to Catavan"));
+     int logoHeight = int(fontMetrics().height() * 2.5);
+     setWizardStyle(QWizard::ModernStyle);
+     setOption(QWizard::NoBackButtonOnLastPage, true);
+     // setOption(QWizard::ExtendedWatermarkPixmap, false);
+     m_page = new MyWizardPage(this);
+-    m_page->setTitle(i18n("Welcome to Kdenlive %1", QString(KDENLIVE_VERSION)));
+-    m_page->setSubTitle(i18n("Using MLT %1", mlt_version_get_string()));
++    m_page->setTitle(i18n("Welcome to Catavan %1", QString(CATAVAN_VERSION)));
++    // Catavan: built on Kdenlive, not directly on MLT
++    m_page->setSubTitle(i18n("Based on Kdenlive %1, using MLT %2", QStringLiteral(KDENLIVE_VERSION), mlt_version_get_string()));
+     setPixmap(QWizard::LogoPixmap, QIcon::fromTheme(QStringLiteral(":/pics/kdenlive.png")).pixmap(logoHeight, logoHeight));
+     m_startLayout = new QVBoxLayout;
+     m_errorWidget = new KMessageWidget(this);
+@@ -349,7 +350,7 @@
+             // Breeze icons not found
+             qDebug() << "Missing Breeze icons";
+             m_warnings.append(
+-                i18n("<li>Missing package: <b>Breeze</b> icons (breeze-icon-theme)<br/>provides many icons used in Kdenlive. Install recommended</li>"));
++                i18n("<li>Missing package: <b>Breeze</b> icons (breeze-icon-theme)<br/>provides many icons used in Catavan. Install recommended</li>"));
+         }
+ #endif
+ 
+@@ -449,18 +450,18 @@
+     QString errorMessage;
+     // Find path for Kdenlive renderer
+ #ifdef Q_OS_WIN
+-    kdenliverenderpath = QCoreApplication::applicationDirPath() + QStringLiteral("/kdenlive_render.exe");
++    kdenliverenderpath = QCoreApplication::applicationDirPath() + QStringLiteral("/catavan_render.exe");
+ #else
+-    kdenliverenderpath = QCoreApplication::applicationDirPath() + QStringLiteral("/kdenlive_render");
++    kdenliverenderpath = QCoreApplication::applicationDirPath() + QStringLiteral("/catavan_render");
+ #endif
+     if (!QFile::exists(kdenliverenderpath)) {
+         const QStringList mltpath({QFileInfo(KdenliveSettings::meltpath()).canonicalPath(), qApp->applicationDirPath()});
+-        kdenliverenderpath = QStandardPaths::findExecutable(QStringLiteral("kdenlive_render"), mltpath);
++        kdenliverenderpath = QStandardPaths::findExecutable(QStringLiteral("catavan_render"), mltpath);
+         if (kdenliverenderpath.isEmpty()) {
+-            kdenliverenderpath = QStandardPaths::findExecutable(QStringLiteral("kdenlive_render"));
++            kdenliverenderpath = QStandardPaths::findExecutable(QStringLiteral("catavan_render"));
+         }
+         if (kdenliverenderpath.isEmpty()) {
+-            errorMessage = i18n("<li>Missing app: <b>kdenlive_render</b><br/>needed for rendering.</li>");
++            errorMessage = i18n("<li>Missing app: <b>catavan_render</b><br/>needed for rendering.</li>");
+         }
+     }
+ 
+@@ -678,7 +679,7 @@
+ {
+     QString errorMessage;
+     if (KdenliveSettings::meltpath().isEmpty()) {
+-        errorMessage.append(i18n("Your MLT installation cannot be found. Install MLT and restart Kdenlive.\n"));
++        errorMessage.append(i18n("Your MLT installation cannot be found. Install MLT and restart Catavan.\n"));
+     }
+ 
+     if (!errorMessage.isEmpty()) {
+@@ -818,6 +819,9 @@
+     }
+     KdenliveSettings::setSupportedHWCodecs(workingCodecs);
+     qDebug() << "==========\nFOUND SUPPORTED CODECS: " << KdenliveSettings::supportedHWCodecs();
++    if (autoEnableHwDecoding()) {
++        Q_EMIT pCore->updateHwDecoding();
++    }
+ 
+     // Testing NVIDIA SCALER
+     QStringList args3{"-hide_banner", "-filters"};
+@@ -837,6 +841,19 @@
+     KdenliveSettings::setNvScalingEnabled(nvScalingSupported);
+ }
+ 
++bool Wizard::autoEnableHwDecoding()
++{
++    if (KdenliveSettings::hwDecodingAutoChecked() || !KdenliveSettings::supportedHWCodecs().join(QLatin1Char(' ')).contains(QLatin1String("_nvenc"))) {
++        return false;
++    }
++    KdenliveSettings::setHwDecodingAutoChecked(true);
++    if (!KdenliveSettings::hwDecoding().isEmpty()) {
++        return false;
++    }
++    KdenliveSettings::setHwDecoding(QStringLiteral("nvdec"));
++    return true;
++}
++
+ const QString Wizard::getHWCodecFriendlyName()
+ {
+     const QString hwCodecs = KdenliveSettings::supportedHWCodecs().join(QLatin1Char(' '));
+--- a/kdenlive-26.08.2/src/mltconnection.cpp
++++ b/kdenlive-26.08.2/src/mltconnection.cpp
+@@ -6,6 +6,7 @@
+ 
+ #include "mltconnection.h"
+ #include "core.h"
++#include "dialogs/wizard.h"
+ #include "kdenlivesettings.h"
+ #include "mainwindow.h"
+ #include "mlt_config.h"
+@@ -74,6 +75,8 @@
+     // Disable VDPAU that crashes in multithread environment.
+     // TODO: make configurable
+     qputenv("MLT_NO_VDPAU", "1");
++    // Catavan: hardware decoding on by default with an NVIDIA card already detected
++    Wizard::autoEnableHwDecoding();
+     if (!KdenliveSettings::hwDecoding().isEmpty()) {
+         qputenv("MLT_AVFORMAT_HWACCEL", KdenliveSettings::hwDecoding().toUtf8());
+     }
+--- a/kdenlive-26.08.2/src/kdenlivesettings.kcfg
++++ b/kdenlive-26.08.2/src/kdenlivesettings.kcfg
+@@ -326,7 +326,8 @@
+ 
+     <entry name="parallelrender" type="Bool">
+       <label>Enable parallel processing for rendering.</label>
+-      <default>false</default>
++      <!-- Catavan: on by default (the render took about twice as long with one thread) -->
++      <default>true</default>
+     </entry>
+ 
+     <entry name="renderInterp" type="String">
+@@ -427,6 +428,151 @@
+       <default>true</default>
+     </entry>
+ 
++    <entry name="pitchMethodPerClip" type="Bool">
++      <label>Choose the pitch compensation algorithm (Rubberband or WSOLA) of each clip in the speed dialog.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="actionCursor" type="Bool">
++      <label>Clicking the timeline during playback places an action cursor, used by edit actions, without moving the playback.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="splitShortcut" type="Bool">
++      <label>S splits the clips at the action cursor, X selects the selection tool and the razor tool has no shortcut (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="deleteMarkerMenu" type="Bool">
++      <label>Right clicking a timeline marker offers to edit or remove it; elsewhere in the ruler the menu only offers to add a marker.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="clickOnClipSeeks" type="Bool">
++      <label>Clicking a clip moves the playhead to the click position (the action cursor during playback).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="autoRippleTool" type="Bool">
++      <label>Replace the spacer tool by the Auto Ripple toggle (M) in the timeline toolbar (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="autoRipple" type="Bool">
++      <label>Auto Ripple is on: inserting, deleting or moving a clip also moves what follows it on all tracks.</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="autoRippleMarkers" type="Bool">
++      <label>Auto Ripple also moves the timeline markers.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="groupTrimPush" type="Bool">
++      <label>Trimming a grouped clip: grouped clips whose edge is reached are pushed along, and stop at the end of their material.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="wheelZoomsTimeline" type="Bool">
++      <label>Timeline mouse wheel: the plain wheel zooms and Ctrl+wheel scrolls.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="rippleTrimLive" type="Bool">
++      <label>Auto Ripple: the following clips move while dragging a clip edge (otherwise only when the mouse is released).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="dropPushesClips" type="Bool">
++      <label>Dropping a clip from the bin where there is no room pushes the following clips.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="scrollReleasesPlayhead" type="Bool">
++      <label>During playback, scrolling the timeline or placing the action cursor stops the view from following the playhead until the playback stops.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="ungroupSelectedOnly" type="Bool">
++      <label>Ungroup takes only the clicked clips out of their group; the other clips stay grouped.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="removeMixClips" type="Bool">
++      <label>Mix Clips is hidden and a double click on a clip edge creates no mix (overlapping clips makes the crossfades); U ungroups (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="vegasShortcuts" type="Bool">
++      <label>Vegas shortcuts: M adds a timeline marker, G groups, Ctrl+L toggles Auto Ripple (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="hwDecodingAutoChecked" type="Bool">
++      <label>Catavan: hardware decoding was already turned on once because an NVIDIA encoder was found (turning it off afterwards is kept).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="dragSetsZone" type="Bool">
++      <label>Dragging in an empty part of the timeline sets the zone (in point where the drag starts, out point where it ends), as in Vegas.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="vegasSelection" type="Bool">
++      <label>Ctrl+click adds or removes a clip from the selection and Shift+click selects the clips between the last clicked one and the clicked one, as in Vegas.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="shareSpeedProducers" type="Bool">
++      <label>Clips with the same speed on a track share one decoder instead of one each.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="groupTracksIndependent" type="Bool">
++      <label>Moving a grouped clip to another track moves the clips of the same kind (video or audio) only; the others keep their tracks.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="transformMirror" type="Bool">
++      <label>In the Transform effect, a negative width or height mirrors the image in place.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="clipHighlight" type="Bool">
++      <label>A clip under the mouse is lighter; among the selected clips, the clicked one keeps the bright selection border and the others get a darker one.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="overlapCrossfade" type="Bool">
++      <label>Dragging a clip over the edge of another clip on the same track creates a crossfade in the overlap.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="monitorSpeedSlider" type="Bool">
++      <label>Playback speed slider in the status bar, with audio at speeds up to 4x (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="monitorPlaybackSpeed" type="Double">
++      <label>Speed used when playing the monitors.</label>
++      <default>1.0</default>
++    </entry>
++
++    <entry name="monitorSpeedPreservePitch" type="Bool">
++      <label>Keep the pitch of the audio played at a speed other than 1 (WSOLA, more processing).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="markersKeepPlayhead" type="Bool">
++      <label>Right clicking the timeline ruler or a marker opens the menu without moving the playhead, and creating a marker does not move the playhead to it.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="trimEdgePreview" type="Bool">
++      <label>While trimming, the project monitor displays the frame at the dragged clip edge instead of the video (audio keeps playing).</label>
++      <default>true</default>
++    </entry>
++
+     <entry name="normalizechannels" type="Bool">
+       <label>Normalize audio channels in thumbnails.</label>
+       <default>true</default>
+@@ -451,7 +597,8 @@
+ 
+     <entry name="pauseonseek" type="Bool">
+       <label>Pause playback when seeking.</label>
+-      <default>true</default>
++      <!-- Catavan: the playback goes on when seeking (clicking the ruler) -->
++      <default>false</default>
+     </entry>
+ 
+     <entry name="rewindOnStop" type="Bool">
+@@ -672,7 +819,7 @@
+     </entry>
+ 
+     <entry name="kdenliverendererpath" type="Path">
+-      <label>Kdenlive renderer install path.</label>
++      <label>Catavan renderer install path.</label>
+       <default></default>
+     </entry>
+ 
+@@ -723,13 +870,14 @@
+     </entry>
+ 
+     <entry name="maxcachesize" type="Int">
+-      <label>Kdenlive will periodically check if the cached data exceeds this limit. Data is in Mb</label>
++      <label>Catavan will periodically check if the cached data exceeds this limit. Data is in Mb</label>
+       <default>1024</default>
+     </entry>
+ 
+     <entry name="checkForUpdate" type="Bool">
+       <label>Automatically check for updates</label>
+-      <default>true</default>
++      <!-- Catavan: off, the reminder compares the Kdenlive base version and sends to the Kdenlive download page -->
++      <default>false</default>
+     </entry>
+ 
+     <entry name="usePowerManagement" type="Bool">
+@@ -738,7 +886,7 @@
+     </entry>
+ 
+     <entry name="lastCacheCheck" type="DateTime">
+-      <label>Kdenlive will check every 2 weeks on startup if the cached data exceeds the defined maxcachesize. This is the last checked date</label>
++      <label>Catavan will check every 2 weeks on startup if the cached data exceeds the defined maxcachesize. This is the last checked date</label>
+       <default></default>
+     </entry>
+ 
+@@ -1109,7 +1257,8 @@
+ 
+     <entry name="timelinemousezoomonplayhead" type="Bool">
+       <label>Mouse zoom on timeline based on playhead position, not mouse position.</label>
+-      <default>false</default>
++      <!-- Catavan: on by default, shown in the timeline settings; centers on the action cursor when there is one -->
++      <default>true</default>
+     </entry>
+ 
+     <entry name="transitionfollowcursor" type="Bool">
+@@ -1480,15 +1629,15 @@
+       <default>true</default>
+     </entry>
+     <entry name="lastSeenVersionMajor" type="Int">
+-      <label>Last used version of Kdenlive - major.</label>
++      <label>Last used version of Catavan - major.</label>
+       <default>0</default>
+     </entry>
+     <entry name="lastSeenVersionMinor" type="Int">
+-      <label>Last used version of Kdenlive - minor.</label>
++      <label>Last used version of Catavan - minor.</label>
+       <default>0</default>
+     </entry>
+     <entry name="lastSeenVersionMicro" type="Int">
+-      <label>Last used version of Kdenlive - micro.</label>
++      <label>Last used version of Catavan - micro.</label>
+       <default>0</default>
+     </entry>
+ 

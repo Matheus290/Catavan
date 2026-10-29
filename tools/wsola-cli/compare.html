@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WSOLA A/B</title>
+<style>
+  :root { color-scheme: light dark; --bg: #fafafa; --fg: #1d1d1f; --muted: #6e6e73; --line: #d2d2d7; --accent: #0a66c2; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #161618; --fg: #f2f2f4; --muted: #a1a1a6; --line: #3a3a3c; --accent: #5aa9ff; } }
+  body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p { color: var(--muted); margin: 0 0 20px; }
+  label { display: block; font-weight: 600; margin: 16px 0 6px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
+  button { font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; }
+  button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  #status { margin-top: 16px; color: var(--muted); min-height: 1.5em; }
+  input[type=file] { max-width: 100%; }
+</style>
+</head>
+<body>
+<main>
+  <h1>WSOLA: Chrome × wsola-cli</h1>
+  <p>A = the original WAV played by Chrome with <code>playbackRate</code> (pitch preserved, Chromium's WSOLA).
+     B = the wsola-cli output played at 1.0x. Both play together, muted; switching only changes which one you hear.</p>
+
+  <label for="orig">Original WAV</label>
+  <input id="orig" type="file" accept="audio/*">
+  <label for="cli">CLI output (e.g. voice.1.1x.wav)</label>
+  <input id="cli" type="file" accept="audio/*">
+
+  <div class="row" id="rates">
+    Speed of A:
+    <button data-rate="1.1" aria-pressed="true">1.1x</button>
+    <button data-rate="2">2x</button>
+  </div>
+  <div class="row">
+    <button id="play">▶ Play</button>
+    <button id="a" aria-pressed="true">Hear A (Chrome)</button>
+    <button id="b" aria-pressed="false">Hear B (CLI)</button>
+  </div>
+  <div id="status"></div>
+</main>
+<script>
+  const A = new Audio(), B = new Audio();
+  A.preservesPitch = true;
+  let rate = 1.1, which = 'a';
+  const $ = (id) => document.getElementById(id);
+  const load = (input, audio) => input.addEventListener('change', () => {
+    if (input.files[0]) audio.src = URL.createObjectURL(input.files[0]);
+  });
+  load($('orig'), A);
+  load($('cli'), B);
+
+  document.querySelectorAll('#rates button').forEach((btn) => btn.addEventListener('click', () => {
+    rate = parseFloat(btn.dataset.rate);
+    document.querySelectorAll('#rates button').forEach((b) => b.setAttribute('aria-pressed', b === btn));
+    A.playbackRate = rate;
+  }));
+
+  const select = (w) => {
+    which = w;
+    A.muted = w !== 'a';
+    B.muted = w !== 'b';
+    $('a').setAttribute('aria-pressed', w === 'a');
+    $('b').setAttribute('aria-pressed', w === 'b');
+  };
+  $('a').addEventListener('click', () => select('a'));
+  $('b').addEventListener('click', () => select('b'));
+
+  $('play').addEventListener('click', async () => {
+    if (!A.src || !B.src) { $('status').textContent = 'Choose both files.'; return; }
+    A.pause(); B.pause();
+    A.currentTime = 0; B.currentTime = 0;
+    A.playbackRate = rate; B.playbackRate = 1;
+    select(which);
+    await Promise.all([A.play(), B.play()]);
+    $('status').textContent = `Playing: A at ${rate}x, B at 1.0x`;
+  });
+  B.addEventListener('ended', () => { $('status').textContent = 'End.'; });
+</script>
+</body>
+</html>

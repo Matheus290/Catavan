@@ -1,0 +1,24 @@
+# Catavan: WSOLA as pitch compensation of Change Speed, chosen per clip
+# MLT: wsola module (Chromium port + filter)
+mlt-7.42.0/CMakeLists.txt
+mlt-7.42.0/src/modules/CMakeLists.txt
+mlt-7.42.0/src/modules/wsola/CMakeLists.txt
+mlt-7.42.0/src/modules/wsola/factory.c
+mlt-7.42.0/src/modules/wsola/filter_wsola.cpp
+mlt-7.42.0/src/modules/wsola/filter_wsola.yml
+mlt-7.42.0/src/modules/wsola/wsola_algorithm.h
+mlt-7.42.0/src/modules/wsola/wsola_algorithm.cpp
+# MLT: timewarp picks rubberband or wsola (warp_pitch_method property)
+mlt-7.42.0/src/modules/core/producer_timewarp.c
+mlt-7.42.0/src/modules/core/producer_timewarp.yml
+# Kdenlive: option + None/Rubberband/WSOLA choice in the speed dialog
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/timeline2/view/dialogs/speeddialog.h
+kdenlive-26.08.2/src/timeline2/view/dialogs/speeddialog.cpp
+kdenlive-26.08.2/src/timeline2/view/timelinecontroller.cpp
+kdenlive-26.08.2/src/timeline2/model/clipmodel.hpp
+kdenlive-26.08.2/src/timeline2/model/clipmodel.cpp
+kdenlive-26.08.2/src/timeline2/model/timelinemodel.hpp
+kdenlive-26.08.2/src/timeline2/model/timelinemodel.cpp
+kdenlive-26.08.2/src/timeline2/model/timelinefunctions.cpp

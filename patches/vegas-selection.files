@@ -1,0 +1,14 @@
+# Catavan: selection as in Vegas (option vegasSelection): Ctrl+click adds or removes an item, Shift+click selects the
+# items between the last clicked one and the clicked one (TimelineModel::getItemsBetween), Ctrl+Shift+click adds them.
+# The shared files also carry other features.
+kdenlive-26.08.2/src/timeline2/model/timelinemodel.hpp
+kdenlive-26.08.2/src/timeline2/model/timelinemodel.cpp
+kdenlive-26.08.2/src/timeline2/view/timelinecontroller.h
+kdenlive-26.08.2/src/timeline2/view/timelinecontroller.cpp
+kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml
+kdenlive-26.08.2/src/timeline2/view/qml/SubTitle.qml
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/po/pt_BR/kdenlive.po
+kdenlive-26.08.2/tests/CMakeLists.txt
+kdenlive-26.08.2/tests/vegasselectiontest.cpp

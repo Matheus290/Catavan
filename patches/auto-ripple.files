@@ -1,0 +1,20 @@
+# Catavan: Auto Ripple (toggle + mode menu in place of the Spacer tool, M) and a drop from the bin that pushes the
+# following clips. Options autoRippleTool, autoRipple, autoRippleMarkers, dropPushesClips. Several files also carry
+# other features.
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/kdenliveui.rc
+kdenlive-26.08.2/src/mainwindow.cpp
+kdenlive-26.08.2/src/timeline2/model/timelinefunctions.hpp
+kdenlive-26.08.2/src/timeline2/model/timelinefunctions.cpp
+kdenlive-26.08.2/src/timeline2/view/timelinecontroller.h
+kdenlive-26.08.2/src/timeline2/view/timelinecontroller.cpp
+kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml
+kdenlive-26.08.2/src/timeline2/view/qml/Track.qml
+kdenlive-26.08.2/src/timeline2/view/qml/Clip.qml
+kdenlive-26.08.2/tests/CMakeLists.txt
+kdenlive-26.08.2/tests/vegasrippletest.cpp
+kdenlive-26.08.2/po/pt_BR/kdenlive.po
+# Regions (range markers) follow their content in a ripple: MarkerListModel::rippleMarkers
+kdenlive-26.08.2/src/bin/model/markerlistmodel.hpp
+kdenlive-26.08.2/src/bin/model/markerlistmodel.cpp

@@ -1,0 +1,18 @@
+# Catavan: faster render: colour conversions with the slice threads of libswscale (MLT) and parallel processing on by
+# default (parallelrender). kdenlivesettings.kcfg also carries other features.
+mlt-7.42.0/src/modules/avformat/filter_avcolour_space.c
+# Per thread cache of swscale contexts and conversions without copies (common), used by the colour, scale and
+# producer conversions; a progressive source keeps its format in avdeinterlace; the avformat producer converts after
+# releasing its locks and keeps a reference to the decoded picture for error concealment. producer_avformat.c also
+# carries monitor-speed.
+mlt-7.42.0/src/modules/avformat/common.c
+mlt-7.42.0/src/modules/avformat/common.h
+mlt-7.42.0/src/modules/avformat/filter_swscale.c
+mlt-7.42.0/src/modules/avformat/filter_avdeinterlace.c
+mlt-7.42.0/src/modules/avformat/producer_avformat.c
+# Kdenlive: hardware decoding (nvdec) on by default once an NVIDIA encoder is found (Wizard::autoEnableHwDecoding, flag
+# hwDecodingAutoChecked; turning it off is kept)
+kdenlive-26.08.2/src/dialogs/wizard.h
+kdenlive-26.08.2/src/dialogs/wizard.cpp
+kdenlive-26.08.2/src/mltconnection.cpp
+kdenlive-26.08.2/src/kdenlivesettings.kcfg

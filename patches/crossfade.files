@@ -1,0 +1,18 @@
+# Catavan: dragging a clip over the edge of another clip on the same track creates a crossfade (mix) in the overlap
+# (option overlapCrossfade). Model: planCrossfadeMove/requestCrossfadeMove/suggestCrossfadeMove; the drag uses a fake move.
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/timeline2/model/timelinemodel.hpp
+kdenlive-26.08.2/src/timeline2/model/timelinemodel.cpp
+kdenlive-26.08.2/src/timeline2/model/timelinefunctions.hpp
+kdenlive-26.08.2/src/timeline2/model/timelinefunctions.cpp
+kdenlive-26.08.2/src/timeline2/model/trackmodel.hpp
+kdenlive-26.08.2/src/timeline2/model/trackmodel.cpp
+kdenlive-26.08.2/src/timeline2/view/timelinecontroller.h
+kdenlive-26.08.2/src/timeline2/view/timelinecontroller.cpp
+kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml
+kdenlive-26.08.2/src/timeline2/view/qml/Clip.qml
+kdenlive-26.08.2/src/timeline2/view/qml/Track.qml
+kdenlive-26.08.2/po/pt_BR/kdenlive.po
+kdenlive-26.08.2/tests/CMakeLists.txt
+kdenlive-26.08.2/tests/vegascrossfadetest.cpp

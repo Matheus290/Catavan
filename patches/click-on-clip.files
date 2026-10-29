@@ -1,0 +1,4 @@
+# Catavan: clicking a clip moves the playhead there (or the action cursor during playback). Option clickOnClipSeeks.
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml

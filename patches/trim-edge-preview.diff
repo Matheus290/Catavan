@@ -1,0 +1,1896 @@
+--- a/kdenlive-26.08.2/src/kdenlivesettings.kcfg
++++ b/kdenlive-26.08.2/src/kdenlivesettings.kcfg
+@@ -326,7 +326,8 @@
+ 
+     <entry name="parallelrender" type="Bool">
+       <label>Enable parallel processing for rendering.</label>
+-      <default>false</default>
++      <!-- Catavan: on by default (the render took about twice as long with one thread) -->
++      <default>true</default>
+     </entry>
+ 
+     <entry name="renderInterp" type="String">
+@@ -427,6 +428,151 @@
+       <default>true</default>
+     </entry>
+ 
++    <entry name="pitchMethodPerClip" type="Bool">
++      <label>Choose the pitch compensation algorithm (Rubberband or WSOLA) of each clip in the speed dialog.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="actionCursor" type="Bool">
++      <label>Clicking the timeline during playback places an action cursor, used by edit actions, without moving the playback.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="splitShortcut" type="Bool">
++      <label>S splits the clips at the action cursor, X selects the selection tool and the razor tool has no shortcut (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="deleteMarkerMenu" type="Bool">
++      <label>Right clicking a timeline marker offers to edit or remove it; elsewhere in the ruler the menu only offers to add a marker.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="clickOnClipSeeks" type="Bool">
++      <label>Clicking a clip moves the playhead to the click position (the action cursor during playback).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="autoRippleTool" type="Bool">
++      <label>Replace the spacer tool by the Auto Ripple toggle (M) in the timeline toolbar (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="autoRipple" type="Bool">
++      <label>Auto Ripple is on: inserting, deleting or moving a clip also moves what follows it on all tracks.</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="autoRippleMarkers" type="Bool">
++      <label>Auto Ripple also moves the timeline markers.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="groupTrimPush" type="Bool">
++      <label>Trimming a grouped clip: grouped clips whose edge is reached are pushed along, and stop at the end of their material.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="wheelZoomsTimeline" type="Bool">
++      <label>Timeline mouse wheel: the plain wheel zooms and Ctrl+wheel scrolls.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="rippleTrimLive" type="Bool">
++      <label>Auto Ripple: the following clips move while dragging a clip edge (otherwise only when the mouse is released).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="dropPushesClips" type="Bool">
++      <label>Dropping a clip from the bin where there is no room pushes the following clips.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="scrollReleasesPlayhead" type="Bool">
++      <label>During playback, scrolling the timeline or placing the action cursor stops the view from following the playhead until the playback stops.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="ungroupSelectedOnly" type="Bool">
++      <label>Ungroup takes only the clicked clips out of their group; the other clips stay grouped.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="removeMixClips" type="Bool">
++      <label>Mix Clips is hidden and a double click on a clip edge creates no mix (overlapping clips makes the crossfades); U ungroups (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="vegasShortcuts" type="Bool">
++      <label>Vegas shortcuts: M adds a timeline marker, G groups, Ctrl+L toggles Auto Ripple (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="hwDecodingAutoChecked" type="Bool">
++      <label>Catavan: hardware decoding was already turned on once because an NVIDIA encoder was found (turning it off afterwards is kept).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="dragSetsZone" type="Bool">
++      <label>Dragging in an empty part of the timeline sets the zone (in point where the drag starts, out point where it ends), as in Vegas.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="vegasSelection" type="Bool">
++      <label>Ctrl+click adds or removes a clip from the selection and Shift+click selects the clips between the last clicked one and the clicked one, as in Vegas.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="shareSpeedProducers" type="Bool">
++      <label>Clips with the same speed on a track share one decoder instead of one each.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="groupTracksIndependent" type="Bool">
++      <label>Moving a grouped clip to another track moves the clips of the same kind (video or audio) only; the others keep their tracks.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="transformMirror" type="Bool">
++      <label>In the Transform effect, a negative width or height mirrors the image in place.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="clipHighlight" type="Bool">
++      <label>A clip under the mouse is lighter; among the selected clips, the clicked one keeps the bright selection border and the others get a darker one.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="overlapCrossfade" type="Bool">
++      <label>Dragging a clip over the edge of another clip on the same track creates a crossfade in the overlap.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="monitorSpeedSlider" type="Bool">
++      <label>Playback speed slider in the status bar, with audio at speeds up to 4x (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="monitorPlaybackSpeed" type="Double">
++      <label>Speed used when playing the monitors.</label>
++      <default>1.0</default>
++    </entry>
++
++    <entry name="monitorSpeedPreservePitch" type="Bool">
++      <label>Keep the pitch of the audio played at a speed other than 1 (WSOLA, more processing).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="markersKeepPlayhead" type="Bool">
++      <label>Right clicking the timeline ruler or a marker opens the menu without moving the playhead, and creating a marker does not move the playhead to it.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="trimEdgePreview" type="Bool">
++      <label>While trimming, the project monitor displays the frame at the dragged clip edge instead of the video (audio keeps playing).</label>
++      <default>true</default>
++    </entry>
++
+     <entry name="normalizechannels" type="Bool">
+       <label>Normalize audio channels in thumbnails.</label>
+       <default>true</default>
+@@ -451,7 +597,8 @@
+ 
+     <entry name="pauseonseek" type="Bool">
+       <label>Pause playback when seeking.</label>
+-      <default>true</default>
++      <!-- Catavan: the playback goes on when seeking (clicking the ruler) -->
++      <default>false</default>
+     </entry>
+ 
+     <entry name="rewindOnStop" type="Bool">
+@@ -672,7 +819,7 @@
+     </entry>
+ 
+     <entry name="kdenliverendererpath" type="Path">
+-      <label>Kdenlive renderer install path.</label>
++      <label>Catavan renderer install path.</label>
+       <default></default>
+     </entry>
+ 
+@@ -723,13 +870,14 @@
+     </entry>
+ 
+     <entry name="maxcachesize" type="Int">
+-      <label>Kdenlive will periodically check if the cached data exceeds this limit. Data is in Mb</label>
++      <label>Catavan will periodically check if the cached data exceeds this limit. Data is in Mb</label>
+       <default>1024</default>
+     </entry>
+ 
+     <entry name="checkForUpdate" type="Bool">
+       <label>Automatically check for updates</label>
+-      <default>true</default>
++      <!-- Catavan: off, the reminder compares the Kdenlive base version and sends to the Kdenlive download page -->
++      <default>false</default>
+     </entry>
+ 
+     <entry name="usePowerManagement" type="Bool">
+@@ -738,7 +886,7 @@
+     </entry>
+ 
+     <entry name="lastCacheCheck" type="DateTime">
+-      <label>Kdenlive will check every 2 weeks on startup if the cached data exceeds the defined maxcachesize. This is the last checked date</label>
++      <label>Catavan will check every 2 weeks on startup if the cached data exceeds the defined maxcachesize. This is the last checked date</label>
+       <default></default>
+     </entry>
+ 
+@@ -1109,7 +1257,8 @@
+ 
+     <entry name="timelinemousezoomonplayhead" type="Bool">
+       <label>Mouse zoom on timeline based on playhead position, not mouse position.</label>
+-      <default>false</default>
++      <!-- Catavan: on by default, shown in the timeline settings; centers on the action cursor when there is one -->
++      <default>true</default>
+     </entry>
+ 
+     <entry name="transitionfollowcursor" type="Bool">
+@@ -1480,15 +1629,15 @@
+       <default>true</default>
+     </entry>
+     <entry name="lastSeenVersionMajor" type="Int">
+-      <label>Last used version of Kdenlive - major.</label>
++      <label>Last used version of Catavan - major.</label>
+       <default>0</default>
+     </entry>
+     <entry name="lastSeenVersionMinor" type="Int">
+-      <label>Last used version of Kdenlive - minor.</label>
++      <label>Last used version of Catavan - minor.</label>
+       <default>0</default>
+     </entry>
+     <entry name="lastSeenVersionMicro" type="Int">
+-      <label>Last used version of Kdenlive - micro.</label>
++      <label>Last used version of Catavan - micro.</label>
+       <default>0</default>
+     </entry>
+ 
+--- a/kdenlive-26.08.2/src/ui/configtimeline_ui.ui
++++ b/kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+@@ -234,6 +234,263 @@
+     </widget>
+    </item>
+    <item row="22" column="0">
++    <widget class="QLabel" name="label_vegas">
++     <property name="text">
++      <string>Catavan:</string>
++     </property>
++    </widget>
++   </item>
++   <item row="22" column="1">
++    <widget class="QCheckBox" name="kcfg_pitchMethodPerClip">
++     <property name="toolTip">
++      <string>In the clip speed dialog, choose the pitch compensation algorithm of each clip: Rubberband shifts the pitch, WSOLA time stretches the audio as web browsers do</string>
++     </property>
++     <property name="text">
++      <string>Choose pitch compensation algorithm per clip</string>
++     </property>
++    </widget>
++   </item>
++   <item row="23" column="1">
++    <widget class="QCheckBox" name="kcfg_trimEdgePreview">
++     <property name="toolTip">
++      <string>While the edge of a clip is dragged, the project monitor displays the frame at that edge instead of the video; audio keeps playing</string>
++     </property>
++     <property name="text">
++      <string>Show the edge frame in the project monitor while trimming a clip</string>
++     </property>
++    </widget>
++   </item>
++   <item row="24" column="1">
++    <widget class="QCheckBox" name="kcfg_actionCursor">
++     <property name="toolTip">
++      <string>During playback, clicking the timeline places an action cursor without moving the playback; cuts, markers and other actions use it. Pausing or seeking removes it</string>
++     </property>
++     <property name="text">
++      <string>Separate action cursor during playback</string>
++     </property>
++    </widget>
++   </item>
++   <item row="25" column="1">
++    <widget class="QCheckBox" name="kcfg_splitShortcut">
++     <property name="toolTip">
++      <string>S splits the selected clips (or the active tracks) at the action cursor, X picks the selection tool and the razor tool has no shortcut. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Split shortcut (S) and selection tool on X</string>
++     </property>
++    </widget>
++   </item>
++   <item row="26" column="1">
++    <widget class="QCheckBox" name="kcfg_deleteMarkerMenu">
++     <property name="toolTip">
++      <string>Right clicking a marker in the timeline ruler shows entries to edit and remove it; elsewhere in the ruler only Add Marker is shown (it never removes a marker)</string>
++     </property>
++     <property name="text">
++      <string>Marker context menu: add elsewhere, edit and remove on a marker</string>
++     </property>
++    </widget>
++   </item>
++   <item row="27" column="1">
++    <widget class="QCheckBox" name="kcfg_clickOnClipSeeks">
++     <property name="toolTip">
++      <string>A click on a clip, without dragging it, moves the playhead to the clicked position; during playback it only moves the action cursor</string>
++     </property>
++     <property name="text">
++      <string>Clicking a clip moves the playhead there</string>
++     </property>
++    </widget>
++   </item>
++   <item row="28" column="1">
++    <widget class="QCheckBox" name="kcfg_markersKeepPlayhead">
++     <property name="toolTip">
++      <string>Right clicking the ruler or a marker opens the menu without moving the playhead or pausing the playback; creating a marker does not move the playhead to it</string>
++     </property>
++     <property name="text">
++      <string>Ruler menu and new markers keep the playhead</string>
++     </property>
++    </widget>
++   </item>
++   <item row="29" column="1">
++    <widget class="QCheckBox" name="kcfg_autoRippleTool">
++     <property name="toolTip">
++      <string>The spacer tool button and its M shortcut become the Auto Ripple toggle: with it on, inserting, deleting or moving a clip also moves what follows on all tracks. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Auto Ripple toggle instead of the spacer tool</string>
++     </property>
++    </widget>
++   </item>
++   <item row="30" column="1">
++    <widget class="QCheckBox" name="kcfg_dropPushesClips">
++     <property name="toolTip">
++      <string>Dropping a clip from the bin over other clips places it there and pushes the following clips forward by its duration (on all tracks with Auto Ripple)</string>
++     </property>
++     <property name="text">
++      <string>Dropping a clip pushes the following clips</string>
++     </property>
++    </widget>
++   </item>
++   <item row="31" column="1">
++    <widget class="QCheckBox" name="kcfg_monitorSpeedSlider">
++     <property name="toolTip">
++      <string>A slider in the status bar sets the speed of the monitors playback (0x to 4x), with audio; a Pitch box keeps the pitch with WSOLA. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Playback speed slider in the status bar</string>
++     </property>
++    </widget>
++   </item>
++   <item row="32" column="1">
++    <widget class="QCheckBox" name="kcfg_rippleTrimLive">
++     <property name="toolTip">
++      <string>With Auto Ripple, the following clips move while the edge of a clip is dragged; unchecked, only the clip changes while dragging and the timeline follows when the mouse is released</string>
++     </property>
++     <property name="text">
++      <string>Auto Ripple: move the following clips while trimming (live)</string>
++     </property>
++    </widget>
++   </item>
++   <item row="33" column="1">
++    <widget class="QCheckBox" name="kcfg_groupTrimPush">
++     <property name="toolTip">
++      <string>When the edge of a grouped clip reaches the edge of another clip of the group, that clip is trimmed along; growing again, it follows until the end of its own material while the dragged clip goes on</string>
++     </property>
++     <property name="text">
++      <string>Grouped clips: an edge pushes the edges it reaches</string>
++     </property>
++    </widget>
++   </item>
++   <item row="34" column="1">
++    <widget class="QCheckBox" name="kcfg_wheelZoomsTimeline">
++     <property name="toolTip">
++      <string>In the timeline, the mouse wheel zooms and Ctrl+wheel scrolls; unchecked, the wheel scrolls and Ctrl+wheel zooms</string>
++     </property>
++     <property name="text">
++      <string>Mouse wheel zooms, Ctrl+wheel scrolls</string>
++     </property>
++    </widget>
++   </item>
++   <item row="35" column="1">
++    <widget class="QCheckBox" name="kcfg_overlapCrossfade">
++     <property name="toolTip">
++      <string>Dragging a clip over the start or end of another clip on the same track overlaps them and creates a crossfade (mix) as long as the overlap; dragging it away removes the crossfade</string>
++     </property>
++     <property name="text">
++      <string>Overlapping clips creates a crossfade</string>
++     </property>
++    </widget>
++   </item>
++   <item row="36" column="1">
++    <widget class="QCheckBox" name="kcfg_timelinemousezoomonplayhead">
++     <property name="toolTip">
++      <string>Zooming the timeline with the mouse centers it on the action cursor (or on the playhead when there is none) instead of keeping the frame under the mouse</string>
++     </property>
++     <property name="text">
++      <string>Mouse zoom centers on the action cursor or playhead, not on the mouse</string>
++     </property>
++    </widget>
++   </item>
++   <item row="37" column="1">
++    <widget class="QCheckBox" name="kcfg_scrollReleasesPlayhead">
++     <property name="toolTip">
++      <string>During playback, scrolling the timeline or placing the action cursor stops the view from following the playhead; it follows again after the playback stops and restarts</string>
++     </property>
++     <property name="text">
++      <string>Scrolling during playback stops following the playhead</string>
++     </property>
++    </widget>
++   </item>
++   <item row="38" column="1">
++    <widget class="QCheckBox" name="kcfg_ungroupSelectedOnly">
++     <property name="toolTip">
++      <string>Ungroup takes only the clicked clip (with its audio or video) out of its group and the other clips stay grouped; Ctrl+click (Shift+click without the Vegas selection) picks more clips, Alt+click picks a single item. Unchecked, Ungroup dissolves the whole group</string>
++     </property>
++     <property name="text">
++      <string>Ungroup removes only the clicked clip from its group</string>
++     </property>
++    </widget>
++   </item>
++   <item row="39" column="1">
++    <widget class="QCheckBox" name="kcfg_removeMixClips">
++     <property name="toolTip">
++      <string>Overlapping clips already creates the crossfades: the Mix Clips action is hidden, a double click on a clip edge does nothing and the U key ungroups clips, as in Vegas. Dropping a transition on a cut still creates a mix. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Remove Mix Clips, U ungroups</string>
++     </property>
++    </widget>
++   </item>
++   <item row="40" column="1">
++    <widget class="QCheckBox" name="kcfg_vegasShortcuts">
++     <property name="toolTip">
++      <string>As in Vegas: M adds or removes a timeline marker, G groups the selected clips (Ctrl+G still works) and Ctrl+L toggles Auto Ripple. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Vegas shortcuts: M marker, G group, Ctrl+L Auto Ripple</string>
++     </property>
++    </widget>
++   </item>
++   <item row="41" column="1">
++    <widget class="QCheckBox" name="kcfg_clipHighlight">
++     <property name="toolTip">
++      <string>The clip under the mouse turns a bit lighter and paler, in its own color. When a group is selected, the clicked clip keeps the bright selection border and the other selected clips get a darker border, as the title of the clicked clip</string>
++     </property>
++     <property name="text">
++      <string>Highlight the clip under the mouse and the clicked clip</string>
++     </property>
++    </widget>
++   </item>
++   <item row="42" column="1">
++    <widget class="QCheckBox" name="kcfg_transformMirror">
++     <property name="toolTip">
++      <string>Size W and H of the Transform effect accept negative values: the image is mirrored horizontally (W) or vertically (H) and keeps its position and size. Takes effect when the effect is shown again</string>
++     </property>
++     <property name="text">
++      <string>Negative size in Transform mirrors the image</string>
++     </property>
++    </widget>
++   </item>
++   <item row="43" column="1">
++    <widget class="QCheckBox" name="kcfg_groupTracksIndependent">
++     <property name="toolTip">
++      <string>Dragging the video of a grouped clip to another video track leaves its audio on its track (and the other way round). Grouped clips of the same kind move together. Without this option, the audio moves in mirror</string>
++     </property>
++     <property name="text">
++      <string>Grouped audio and video change tracks independently</string>
++     </property>
++    </widget>
++   </item>
++   <item row="44" column="1">
++    <widget class="QCheckBox" name="kcfg_shareSpeedProducers">
++     <property name="toolTip">
++      <string>Kdenlive opens one decoder for each clip with a changed speed, which takes a lot of memory (and render time) when a clip is cut in many pieces. With this option the clips with the same speed, pitch setting and audio stream on a track share one. Takes effect for clips loaded or changed afterwards (reopen the project)</string>
++     </property>
++     <property name="text">
++      <string>Clips with the same speed share one decoder</string>
++     </property>
++    </widget>
++   </item>
++   <item row="45" column="1">
++    <widget class="QCheckBox" name="kcfg_vegasSelection">
++     <property name="toolTip">
++      <string>As in Vegas: Ctrl+click adds a clip to the selection or removes it, Shift+click selects the clips between the last clicked clip and the clicked one (on the tracks in between too), Ctrl+Shift+click adds them. Ctrl+drag still scrolls the timeline and Shift+drag still draws a selection rectangle. Unchecked, Shift+click adds or removes a clip, as in Kdenlive</string>
++     </property>
++     <property name="text">
++      <string>Ctrl+click selects more clips, Shift+click selects a range</string>
++     </property>
++    </widget>
++   </item>
++   <item row="46" column="1">
++    <widget class="QCheckBox" name="kcfg_dragSetsZone">
++     <property name="toolTip">
++      <string>As in Vegas: pressing in an empty part of the timeline (not on a clip) and dragging sets the zone, from where the drag starts to where it ends. A click without dragging still moves the playhead. Unchecked, the drag moves the playhead, as in Kdenlive</string>
++     </property>
++     <property name="text">
++      <string>Dragging in an empty area sets the zone</string>
++     </property>
++    </widget>
++   </item>
++   <item row="47" column="0">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Orientation::Vertical</enum>
+@@ -304,6 +561,31 @@
+   <tabstop>kcfg_multistream</tabstop>
+   <tabstop>kcfg_multistream_checktrack</tabstop>
+   <tabstop>kcfg_uiDebugMode</tabstop>
++  <tabstop>kcfg_pitchMethodPerClip</tabstop>
++  <tabstop>kcfg_trimEdgePreview</tabstop>
++  <tabstop>kcfg_actionCursor</tabstop>
++  <tabstop>kcfg_splitShortcut</tabstop>
++  <tabstop>kcfg_deleteMarkerMenu</tabstop>
++  <tabstop>kcfg_clickOnClipSeeks</tabstop>
++  <tabstop>kcfg_markersKeepPlayhead</tabstop>
++  <tabstop>kcfg_autoRippleTool</tabstop>
++  <tabstop>kcfg_dropPushesClips</tabstop>
++  <tabstop>kcfg_monitorSpeedSlider</tabstop>
++  <tabstop>kcfg_rippleTrimLive</tabstop>
++  <tabstop>kcfg_groupTrimPush</tabstop>
++  <tabstop>kcfg_wheelZoomsTimeline</tabstop>
++  <tabstop>kcfg_overlapCrossfade</tabstop>
++  <tabstop>kcfg_timelinemousezoomonplayhead</tabstop>
++  <tabstop>kcfg_scrollReleasesPlayhead</tabstop>
++  <tabstop>kcfg_ungroupSelectedOnly</tabstop>
++  <tabstop>kcfg_removeMixClips</tabstop>
++  <tabstop>kcfg_vegasShortcuts</tabstop>
++  <tabstop>kcfg_clipHighlight</tabstop>
++  <tabstop>kcfg_transformMirror</tabstop>
++  <tabstop>kcfg_groupTracksIndependent</tabstop>
++  <tabstop>kcfg_shareSpeedProducers</tabstop>
++  <tabstop>kcfg_vegasSelection</tabstop>
++  <tabstop>kcfg_dragSetsZone</tabstop>
+  </tabstops>
+  <resources/>
+  <connections>
+--- a/kdenlive-26.08.2/src/monitor/videowidget.h
++++ b/kdenlive-26.08.2/src/monitor/videowidget.h
+@@ -113,6 +113,14 @@
+     void purgeCache();
+     /** @brief Show / hide monitor ruler */
+     void switchRuler(bool show);
++    /** @brief Catavan: until hideEdgeFrame(), display this frame of a bin clip instead of the
++     *  frames of the playing producer (audio keeps playing). Requests made while a frame is being
++     *  rendered are merged: only the last one is rendered next. */
++    void showEdgeFrame(const QString &binId, int frame);
++    /** @brief Catavan: go back to displaying the frames of the playing producer */
++    void hideEdgeFrame();
++    /** @brief Catavan: keep the pitch (WSOLA) of the audio played at a speed other than 1 */
++    void setSpeedPreservePitch(bool preserve);
+     /** @brief Returns true if consumer is initialized */
+     bool isReady() const;
+     virtual const QStringList getGPUInfo();
+@@ -210,6 +218,20 @@
+     bool m_isInitialized{false};
+     int m_maxProducerPosition{0};
+     bool m_nearestNeighborInterpolation{false};
++    /** @brief Catavan: audio of the playback at a speed other than 1 (MLT filter monitorspeed on the consumer) */
++    std::unique_ptr<Mlt::Filter> m_speedFilter;
++    /** @brief The filter can only be attached once the consumer has a producer */
++    bool m_speedFilterAttached{false};
++    /** @brief Catavan: edge frame displayed instead of the video (see showEdgeFrame) */
++    bool m_edgeFrameActive{false};
++    bool m_edgeFrameBusy{false};
++    bool m_edgeFramePending{false};
++    QString m_edgeBinId;
++    int m_edgeFrame{0};
++    QString m_edgeProducerBinId;
++    std::shared_ptr<Mlt::Producer> m_edgeProducer;
++    void renderEdgeFrame();
++    void edgeFrameReady(Mlt::Frame *frame);
+ 
+     /** @brief adjust monitor ruler size (for example if we want to display audio thumbs permanently) */
+     virtual void updateRulerHeight(int addedHeight);
+--- a/kdenlive-26.08.2/src/monitor/videowidget.cpp
++++ b/kdenlive-26.08.2/src/monitor/videowidget.cpp
+@@ -34,6 +34,7 @@
+ #include <QQmlContext>
+ #include <QQuickItem>
+ #include <QStyle>
++#include <QtConcurrent/QtConcurrentRun>
+ #include <QtGlobal>
+ #include <memory>
+ 
+@@ -41,6 +42,10 @@
+ #include <KLocalizedString>
+ #include <KMessageBox>
+ 
++// Catavan: after KLocalizedQmlContext, which clashes with a macro from these headers
++#include "bin/projectclip.h"
++#include "bin/projectitemmodel.h"
++
+ #include <mlt++/Mlt.h>
+ 
+ #ifndef GL_UNPACK_ROW_LENGTH
+@@ -804,6 +809,18 @@
+                 qWarning() << "no audio backend found";
+                 return -1;
+             }
++            // Catavan: audio at playback speeds other than 1, up to 4x
++            m_speedFilter.reset();
++            m_speedFilterAttached = false;
++            if (KdenliveSettings::monitorSpeedSlider()) {
++                m_speedFilter = std::make_unique<Mlt::Filter>(pCore->getMonitorProfile(), "monitorspeed");
++                if (m_speedFilter->is_valid()) {
++                    m_speedFilter->set("preserve_pitch", KdenliveSettings::monitorSpeedPreservePitch() ? 1 : 0);
++                    m_speedFilter->set("max_speed", 4.);
++                } else {
++                    m_speedFilter.reset();
++                }
++            }
+             setProperty("mlt_service", serviceName);
+             if (KdenliveSettings::external_display()) {
+                 m_consumer->set("terminate_on_pause", 0);
+@@ -827,6 +844,13 @@
+         // Connect the producer to the consumer - tell it to "run" later
+         if (m_producer) {
+             m_consumer->connect(*m_producer.get());
++            if (m_speedFilter && !m_speedFilterAttached) {
++                // Catavan: FilteredConsumer::attach needs a connected producer; later connects go through the filter
++                m_speedFilterAttached = static_cast<Mlt::FilteredConsumer *>(m_consumer.get())->attach(*m_speedFilter.get()) == 0;
++                if (!m_speedFilterAttached) {
++                    qWarning() << "Catavan: cannot attach the monitorspeed filter, no audio at other playback speeds";
++                }
++            }
+         }
+ 
+         int dropFrames = 1;
+@@ -988,6 +1012,10 @@
+ 
+ void VideoWidget::onFrameDisplayed(const SharedFrame &frame)
+ {
++    if (m_edgeFrameActive) {
++        // Catavan: the edge frame of the trimmed clip replaces the video
++        return;
++    }
+     m_mutex.lock();
+     m_sharedFrame = frame;
+     m_sendFrame = sendFrameForAnalysis;
+@@ -995,6 +1023,116 @@
+     quickWindow()->update();
+ }
+ 
++void VideoWidget::setSpeedPreservePitch(bool preserve)
++{
++    if (m_speedFilter) {
++        m_speedFilter->set("preserve_pitch", preserve ? 1 : 0);
++    }
++}
++
++void VideoWidget::showEdgeFrame(const QString &binId, int frame)
++{
++    m_edgeFrameActive = true;
++    m_edgeBinId = binId;
++    m_edgeFrame = frame;
++    m_edgeFramePending = true;
++    if (!m_edgeFrameBusy) {
++        renderEdgeFrame();
++    }
++}
++
++void VideoWidget::hideEdgeFrame()
++{
++    if (!m_edgeFrameActive) {
++        return;
++    }
++    m_edgeFrameActive = false;
++    m_edgeFramePending = false;
++    if (!m_edgeFrameBusy) {
++        m_edgeProducer.reset();
++        m_edgeProducerBinId.clear();
++    }
++    // Back to the last frame of the playing producer
++    m_mutex.lock();
++    m_sharedFrame = m_frameRenderer ? m_frameRenderer->getDisplayFrame() : SharedFrame();
++    m_mutex.unlock();
++    quickWindow()->update();
++}
++
++void VideoWidget::renderEdgeFrame()
++{
++    m_edgeFrameBusy = true;
++    m_edgeFramePending = false;
++    std::shared_ptr<ProjectClip> binClip;
++    if (m_edgeBinId != m_edgeProducerBinId || !m_edgeProducer) {
++        m_edgeProducer.reset();
++        m_edgeProducerBinId = m_edgeBinId;
++        binClip = pCore->projectItemModel()->getClipByBinID(m_edgeBinId);
++    }
++    const int position = m_edgeFrame;
++    const QSize size = m_profileSize;
++    // The producer is only used by this job; a new job starts after edgeFrameReady()
++    (void)QtConcurrent::run([this, binClip, position, size]() {
++        if (binClip) {
++            std::shared_ptr<Mlt::Producer> prod = binClip->cloneProducer(true);
++            if (prod && prod->is_valid()) {
++                prod->set("audio_index", -1);
++                prod->set("set.test_audio", 1);
++                if (binClip->clipType() != ClipType::Timeline && binClip->clipType() != ClipType::Playlist) {
++                    Mlt::Filter scaler(pCore->getProjectProfile(), "swscale");
++                    Mlt::Filter padder(pCore->getProjectProfile(), "resize");
++                    Mlt::Filter converter(pCore->getProjectProfile(), "avcolor_space");
++                    prod->attach(scaler);
++                    prod->attach(padder);
++                    prod->attach(converter);
++                }
++                m_edgeProducer = prod;
++            }
++        }
++        Mlt::Frame *frame = nullptr;
++        if (m_edgeProducer) {
++            int duration = m_edgeProducer->get_length();
++            m_edgeProducer->seek(duration > 0 ? qBound(0, position, duration - 1) : position);
++            frame = m_edgeProducer->get_frame();
++            if (frame && frame->is_valid()) {
++                frame->set("consumer.deinterlacer", "onefield");
++                frame->set("consumer.top_field_first", -1);
++                frame->set("consumer.rescale", "bilinear");
++                // Same format and size as the frames of the monitor consumer
++                mlt_image_format format = mlt_image_yuv420p;
++                int width = size.width();
++                int height = size.height();
++                if (!frame->get_image(format, width, height) || format != mlt_image_yuv420p) {
++                    delete frame;
++                    frame = nullptr;
++                }
++            } else {
++                delete frame;
++                frame = nullptr;
++            }
++        }
++        QMetaObject::invokeMethod(this, [this, frame]() { edgeFrameReady(frame); }, Qt::QueuedConnection);
++    });
++}
++
++void VideoWidget::edgeFrameReady(Mlt::Frame *frame)
++{
++    m_edgeFrameBusy = false;
++    if (m_edgeFrameActive && frame) {
++        m_mutex.lock();
++        m_sharedFrame = SharedFrame(*frame);
++        m_mutex.unlock();
++        quickWindow()->update();
++    }
++    delete frame;
++    if (!m_edgeFrameActive) {
++        m_edgeProducer.reset();
++        m_edgeProducerBinId.clear();
++    } else if (m_edgeFramePending) {
++        renderEdgeFrame();
++    }
++}
++
+ void VideoWidget::purgeCache()
+ {
+     if (m_consumer) {
+@@ -1190,7 +1328,10 @@
+         }
+         double current_speed = m_producer->get_speed();
+         setProducerSpeed(speed);
+-        if (qFuzzyCompare(speed, 1.0) || speed < -6. || speed > 6.) {
++        if (m_speedFilterAttached && !qFuzzyIsNull(speed) && qAbs(speed) <= 4. && !qFuzzyCompare(speed, 1.0)) {
++            // Catavan: the monitorspeed filter delivers the audio, let the consumer play it
++            m_consumer->set("scrub_audio", 1);
++        } else if (qFuzzyCompare(speed, 1.0) || speed < -6. || speed > 6.) {
+             m_consumer->set("scrub_audio", 0);
+         } else if (KdenliveSettings::audio_scrub()) {
+             m_consumer->set("scrub_audio", 1);
+@@ -1207,7 +1348,13 @@
+         } else {
+             // Speed change, purge to reduce latency
+             m_consumer->purge();
+-            m_producer->seek(m_consumer->position() + (speed > 1. ? 1 : 0));
++            if (m_speedFilterAttached) {
++                // Catavan: go on from the next frame in the play direction (seeking back to the shown frame replays
++                // its audio at every speed change)
++                m_producer->seek(m_consumer->position() + (speed > 0. ? 1 : -1));
++            } else {
++                m_producer->seek(m_consumer->position() + (speed > 1. ? 1 : 0));
++            }
+         }
+     } else if (m_producer->get_speed() != 0.) {
+         pause();
+@@ -1337,7 +1484,7 @@
+         // ARGH CONSUMER BROKEN!!!!
+         KMessageBox::error(
+             qApp->activeWindow(),
+-            i18n("Could not create the video preview window.\nThere is something wrong with your Kdenlive install or your driver settings, please fix it."));
++            i18n("Could not create the video preview window.\nThere is something wrong with your Catavan install or your driver settings, please fix it."));
+         m_displayEvent.reset();
+         m_consumer.reset();
+         return;
+--- a/kdenlive-26.08.2/src/monitor/monitor.h
++++ b/kdenlive-26.08.2/src/monitor/monitor.h
+@@ -382,6 +382,18 @@
+     * @see slotTrimmingPos
+     */
+     void slotTrimmingPos(int offset);
++    /** @brief Catavan: display this frame of a bin clip instead of the video until hideEdgeFrame() (audio keeps playing) */
++    void showEdgeFrame(const QString &binId, int frame);
++    void hideEdgeFrame();
++    /** @brief Catavan: speed used by play (the status bar slider), 1 without the option */
++    static double normalPlaySpeed();
++    /** @brief Catavan: change the speed of the playback in progress (0 pauses) */
++    void setPlaybackSpeed(double speed);
++    /** @brief Catavan (J/L): play 0.25x slower (-1) or faster (+1), 1x steps beyond -4x / 4x */
++    void stepPlaybackSpeed(int direction);
++    /** @brief Catavan (K): the play speed goes back to 1x (a playback in progress goes on at 1x) */
++    void resetPlaybackSpeed();
++    void setSpeedPreservePitch(bool preserve);
+     void slotEnd();
+     void slotSetZoneStart();
+     void slotSetZoneEnd();
+@@ -425,6 +437,8 @@
+     void abortPreviewMask(bool rebuildProducer = true);
+ 
+ Q_SIGNALS:
++    /** @brief Catavan: the play speed was changed by J/K/L */
++    void playbackSpeedChanged(double speed);
+     void screenChanged(int screenIndex);
+     void seekPosition(int pos);
+     void seekRemap(int pos);
+--- a/kdenlive-26.08.2/src/monitor/monitor.cpp
++++ b/kdenlive-26.08.2/src/monitor/monitor.cpp
+@@ -410,6 +410,12 @@
+     }
+     m_playMenu->addAction(m_playAction);
+     connect(m_playAction, &QAction::triggered, this, &Monitor::slotSwitchPlay);
++    // Catavan: when playback stops, the action cursor joins the playhead where it stopped
++    connect(m_playAction, &KDualAction::activeChanged, this, [this](bool active) {
++        if (!active) {
++            m_glMonitor->getControllerProxy()->setActionPosition(-1);
++        }
++    });
+ 
+     playButton->setMenu(m_playMenu);
+     playButton->setPopupMode(QToolButton::MenuButtonPopup);
+@@ -1753,6 +1759,11 @@
+     if (!slotActivateMonitor() || m_trimmingbar->isVisible()) {
+         return;
+     }
++    if (qFuzzyIsNull(speed) && KdenliveSettings::monitorSpeedSlider()) {
++        // Catavan: J slows down by 0.25x (can go reverse)
++        stepPlaybackSpeed(-1);
++        return;
++    }
+     if (qFuzzyIsNull(speed)) {
+         double currentspeed = m_glMonitor->playSpeed();
+         if (currentspeed > -1) {
+@@ -1776,6 +1787,11 @@
+     if (!slotActivateMonitor() || m_trimmingbar->isVisible()) {
+         return;
+     }
++    if (qFuzzyIsNull(speed) && KdenliveSettings::monitorSpeedSlider()) {
++        // Catavan: L speeds up by 0.25x
++        stepPlaybackSpeed(1);
++        return;
++    }
+     if (qFuzzyIsNull(speed)) {
+         double currentspeed = m_glMonitor->playSpeed();
+         if (currentspeed < 1) {
+@@ -1943,12 +1959,64 @@
+     if (!KdenliveSettings::autoscroll()) {
+         Q_EMIT pCore->autoScrollChanged();
+     }
+-    if (!m_glMonitor->switchPlay(play)) {
++    if (!m_glMonitor->switchPlay(play, normalPlaySpeed())) {
+         play = false;
+     }
+     m_playAction->setActive(play);
+ }
+ 
++double Monitor::normalPlaySpeed()
++{
++    if (!KdenliveSettings::monitorSpeedSlider() || qFuzzyIsNull(KdenliveSettings::monitorPlaybackSpeed())) {
++        return 1.;
++    }
++    return KdenliveSettings::monitorPlaybackSpeed();
++}
++
++void Monitor::setPlaybackSpeed(double speed)
++{
++    if (!m_playAction->isActive()) {
++        return;
++    }
++    if (qFuzzyIsNull(speed)) {
++        pause();
++        return;
++    }
++    m_glMonitor->switchPlay(true, speed);
++}
++
++void Monitor::stepPlaybackSpeed(int direction)
++{
++    double base = m_playAction->isActive() ? m_glMonitor->playSpeed() : KdenliveSettings::monitorPlaybackSpeed();
++    bool beyond = direction > 0 ? (base >= 4. || base < -4.) : (base > 4. || base <= -4.);
++    double speed = std::round((base + direction * (beyond ? 1. : 0.25)) * 100.) / 100.;
++    KdenliveSettings::setMonitorPlaybackSpeed(speed);
++    Q_EMIT playbackSpeedChanged(speed);
++    if (qFuzzyIsNull(speed)) {
++        pause();
++        return;
++    }
++    if (!m_playAction->isActive()) {
++        m_startPlaybackPos = position();
++    }
++    updatePlayAction(true);
++    m_glMonitor->switchPlay(true, speed);
++}
++
++void Monitor::resetPlaybackSpeed()
++{
++    KdenliveSettings::setMonitorPlaybackSpeed(1.);
++    Q_EMIT playbackSpeedChanged(1.);
++    if (m_playAction->isActive()) {
++        m_glMonitor->switchPlay(true, 1.);
++    }
++}
++
++void Monitor::setSpeedPreservePitch(bool preserve)
++{
++    m_glMonitor->setSpeedPreservePitch(preserve);
++}
++
+ void Monitor::updatePlayAction(bool play)
+ {
+     m_playAction->setActive(play);
+@@ -1992,7 +2060,7 @@
+     if (play) {
+         m_startPlaybackPos = position();
+     }
+-    if (!m_glMonitor->switchPlay(play)) {
++    if (!m_glMonitor->switchPlay(play, normalPlaySpeed())) {
+         play = false;
+         m_playAction->setActive(false);
+     }
+@@ -2523,7 +2591,8 @@
+         return;
+     }
+     setUpEffectGeometry(list, types, keyframes, box);
+-    root->setProperty("framesize", r);
++    // Catavan (transformMirror): a negative size is a mirrored image, the frame keeps its position
++    root->setProperty("framesize", QRect(r.x(), r.y(), qAbs(r.width()), qAbs(r.height())));
+ }
+ 
+ void Monitor::setEffectSceneProperty(const QString &name, const QVariant &value)
+@@ -2708,7 +2777,7 @@
+                 m_splitEffect->set("2", -0.747); // 2 is tilt
+             } else {
+                 // frei0r.alphagrad is not available
+-                warningMessage(i18n("The alphagrad filter is required for that feature, please install frei0r and restart Kdenlive"));
++                warningMessage(i18n("The alphagrad filter is required for that feature, please install frei0r and restart Catavan"));
+                 return;
+             }
+             Q_EMIT createSplitOverlay(m_splitEffect);
+@@ -2765,14 +2834,14 @@
+         m_splitEffect->set("2", -0.747); // 2 is tilt
+     } else {
+         // frei0r.alphagrad is not available
+-        pCore->displayMessage(i18n("The alphagrad filter is required for that feature, please install frei0r and restart Kdenlive"), ErrorMessage);
++        pCore->displayMessage(i18n("The alphagrad filter is required for that feature, please install frei0r and restart Catavan"), ErrorMessage);
+         return;
+     }
+     QString splitTransition = TransitionsRepository::get()->getCompositingTransition();
+     Mlt::Transition t(pCore->getProjectProfile(), splitTransition.toUtf8().constData());
+     if (!t.is_valid()) {
+         m_splitEffect.reset();
+-        pCore->displayMessage(i18n("The cairoblend transition is required for that feature, please install frei0r and restart Kdenlive"), ErrorMessage);
++        pCore->displayMessage(i18n("The cairoblend transition is required for that feature, please install frei0r and restart Catavan"), ErrorMessage);
+         return;
+     }
+     Mlt::Tractor trac(pCore->getProjectProfile());
+@@ -3093,6 +3162,8 @@
+     if (KdenliveSettings::pauseonseek() && m_playAction->isActive()) {
+         pause();
+     }
++    // Catavan: seeking moves both cursors
++    m_glMonitor->getControllerProxy()->setActionPosition(-1);
+     m_glMonitor->requestSeek(pos, noAudioScrub);
+     Q_EMIT m_monitorManager->cleanMixer();
+ }
+@@ -3183,6 +3254,16 @@
+     m_glMonitor->getControllerProxy()->setTrimmingTC2(offset, true);
+ }
+ 
++void Monitor::showEdgeFrame(const QString &binId, int frame)
++{
++    m_glMonitor->showEdgeFrame(binId, frame);
++}
++
++void Monitor::hideEdgeFrame()
++{
++    m_glMonitor->hideEdgeFrame();
++}
++
+ void Monitor::slotEnd()
+ {
+     if (!slotActivateMonitor()) {
+--- a/kdenlive-26.08.2/src/timeline2/view/timelinecontroller.h
++++ b/kdenlive-26.08.2/src/timeline2/view/timelinecontroller.h
+@@ -320,6 +320,12 @@
+     /** @brief Ungroup selected items in timeline
+      */
+     Q_INVOKABLE void unGroupSelection(int cid = -1);
++    /** @brief Catavan (ungroupSelectedOnly): the item clicked to make the current selection (added to the previous
++     *  ones with @p add, for Shift+click). Ungroup takes only these items out of their groups. */
++    Q_INVOKABLE void setClickedItem(int itemId, bool add);
++    /** @brief Catavan (vegasSelection): Shift+click as in Vegas, selects the items between @p anchorId and @p itemId
++     *  (see TimelineModel::getItemsBetween). Replaces the selection, or adds to it with @p addToSelect. */
++    Q_INVOKABLE void selectItemsBetween(int anchorId, int itemId, bool addToSelect);
+     /** @brief Ask for edit marker dialog
+      */
+     Q_INVOKABLE void editMarker(int cid = -1, int position = -1);
+@@ -475,7 +481,8 @@
+     Q_INVOKABLE void cutAllClipsUnderCursor(int position = -1);
+     /** @brief Request a spacer operation
+      */
+-    Q_INVOKABLE int requestSpacerStartOperation(int trackId, int position);
++    /** @param startingAfterOnly Catavan (Auto Ripple): only move the items starting at or after @p position */
++    Q_INVOKABLE int requestSpacerStartOperation(int trackId, int position, bool startingAfterOnly = false);
+     /** @brief Returns the minimum available position for a spacer operation
+      */
+     Q_INVOKABLE int spacerMinPos() const;
+@@ -486,6 +493,12 @@
+     /** @brief Move a list of guides from a given offset
+      */
+     Q_INVOKABLE void spacerMoveGuides(const QVector<int> &ids, int offset);
++    /** @brief Catavan (Auto Ripple drag): remembers the regions crossing @p frame, which grow or shrink with the drag */
++    Q_INVOKABLE void rippleGuidesStart(int frame);
++    /** @brief Catavan (Auto Ripple drag): preview of the regions crossing the drag point, @p offset from the drag start */
++    Q_INVOKABLE void rippleResizeGuides(int offset);
++    /** @brief Catavan (Auto Ripple drag): gives the regions their duration back before the real (undoable) ripple */
++    Q_INVOKABLE void rippleRestoreGuides();
+     /** @brief Get the position of the first marker in the list
+      */
+     Q_INVOKABLE int getGuidePosition(int ids);
+@@ -530,6 +543,9 @@
+     Q_INVOKABLE void urlDropped(QStringList droppedFile, int frame, int tid);
+ 
+     Q_INVOKABLE bool endFakeMove(int clipId, int position, bool updateView, bool logUndo, bool invalidateTimeline);
++    /** @brief The original endFakeMove (Catavan: endFakeMove first tries the crossfades of overlapCrossfade) */
++    /** @brief Ends a fake move with the usual move. Catavan: trackId, when given, is the target track (else getItemMovingTrack) */
++    bool endFakeMoveUsual(int clipId, int position, bool updateView, bool logUndo, bool invalidateTimeline, int trackId = -1);
+     Q_INVOKABLE int getItemMovingTrack(int itemId) const;
+     bool endFakeGroupMove(int clipId, int groupId, int delta_track, int delta_pos, bool updateView, bool logUndo);
+     bool endFakeGroupMove(int clipId, int groupId, int delta_track, int delta_pos, bool updateView, bool finalMove, Fun &undo, Fun &redo);
+@@ -634,6 +650,37 @@
+     Q_INVOKABLE void requestEndTrimmingMode();
+     Q_INVOKABLE void slipPosChanged(int offset);
+     Q_INVOKABLE void ripplePosChanged(int pos, bool right);
++    /** @brief Catavan: the project monitor displays the frame at the edge of a clip being trimmed
++     *  instead of the video (audio keeps playing)
++     *  @param right true for the out edge, false for the in edge
++     *  @param size when > 0, the out edge is taken for this duration (growth only drawn in the timeline) */
++    Q_INVOKABLE void showTrimEdgeFrame(int clipId, bool right, int size = -1);
++    /** @brief Catavan: the project monitor displays the video again */
++    Q_INVOKABLE void hideTrimEdgeFrame();
++    /** @brief Catavan: during playback, a click on the timeline places the action cursor
++     *  instead of seeking. Returns false when the caller should seek as usual. */
++    Q_INVOKABLE bool requestActionPosition(int frame);
++    /** @brief Catavan (Split): cut the selected clips at the action cursor (or playhead). Without
++     *  selected clips, cut in the tracks active for timeline operations, or in all tracks if none is active */
++    void splitClipsAtCursor();
++    /** @brief Catavan: whether Auto Ripple applies now (option, toggle on, selection tool, normal edit mode) */
++    Q_INVOKABLE bool autoRippleActive() const;
++    /** @brief Catavan (Auto Ripple): delete the selection and pull back what follows on all tracks, as far as possible */
++    bool rippleDeleteSelection();
++    /** @brief Catavan: drop of a bin clip that pushes the following clips when there is no room.
++     *  @param previewId the clip inserted for the drag preview (it is deleted and replaced)
++     *  A drop inside a clip places the new clip after it. The following items move by the clip duration, on the
++     *  tracks of the new clip, or on all tracks with Auto Ripple. Returns the new clip id, or -1 */
++    Q_INVOKABLE int insertDroppedClipPushing(int previewId, const QString &binId, int tid, int position);
++    /** @brief Catavan (Auto Ripple): trim preview while dragging a clip edge, returns the new clip duration or -1 */
++    Q_INVOKABLE int rippleTrimPreview(int clipId, int size, bool right);
++    /** @brief Catavan (Auto Ripple): end of the edge drag, restore the preview and apply the final trim with undo */
++    Q_INVOKABLE void rippleTrimEnd(int clipId, bool right);
++    /** @brief Catavan (Auto Ripple, not live): resize the clip to @p size and move what follows, with undo */
++    Q_INVOKABLE void rippleTrimApply(int clipId, int size, bool right);
++    /** @brief Catavan: put back the items of @p data (id, position, duration triplets, from getGroupData) without undo,
++     *  each one alone, after an edge drag previewed with the normal trim */
++    Q_INVOKABLE void restoreItemsData(const QVariantList &data, bool right);
+ 
+     /** @brief @todo TODO */
+     Q_INVOKABLE int requestItemRippleResize(int itemId, int size, bool right, bool logUndo = true, int snapDistance = -1, bool allowSingleResize = false);
+@@ -822,6 +869,13 @@
+     int timelineMouseOffset() { return m_timelineMouseOffset; };
+ 
+ private:
++    /** @brief Catavan: undo of the ripple trim preview in progress (see rippleTrimPreview) */
++    Fun m_rippleTrimUndo{[]() { return true; }};
++    int m_rippleTrimClip{-1};
++    /** @brief Catavan (ungroupSelectedOnly): the items clicked to make a selection (see setClickedItem), and that
++     *  selection: they only count while the current selection is still the same */
++    std::unordered_set<int> m_clickedItems;
++    std::unordered_set<int> m_clickedSelection;
+     int m_duration;
+     QQuickItem *m_root;
+     KActionCollection *m_actionCollection;
+@@ -849,6 +903,8 @@
+     QAction *m_disablePreview;
+     std::shared_ptr<AudioCorrelation> m_audioCorrelator;
+     QMutex m_metaMutex;
++    /** @brief Catavan: regions crossing the Auto Ripple drag point, {marker id: duration in frames before the drag} */
++    QMap<int, int> m_rippleRanges;
+     bool m_ready;
+     std::vector<int> m_activeSnaps;
+     int m_snapStackIndex;
+--- a/kdenlive-26.08.2/src/timeline2/view/timelinecontroller.cpp
++++ b/kdenlive-26.08.2/src/timeline2/view/timelinecontroller.cpp
+@@ -28,6 +28,7 @@
+ #include "lib/audio/audioEnvelope.h"
+ #include "mainwindow.h"
+ #include "monitor/monitormanager.h"
++#include "monitor/monitorproxy.h"
+ #include "project/dialogs/guideslist.h"
+ #include "project/projectmanager.h"
+ #include "timeline2/model/clipmodel.hpp"
+@@ -55,6 +56,7 @@
+ #include <QJsonArray>
+ #include <QQuickItem>
+ #include <QtMath>
++#include <climits>
+ 
+ #include <memory>
+ 
+@@ -746,6 +748,9 @@
+         pCore->displayMessage(i18n("Cannot perform operation while dragging in timeline"), ErrorMessage);
+         return;
+     }
++    if (autoRippleActive() && rippleDeleteSelection()) {
++        return;
++    }
+     auto sel = m_model->getCurrentSelection();
+     // Check if we are operating on a locked track
+     std::unordered_set<int> trackIds;
+@@ -1240,6 +1245,34 @@
+         return;
+     }
+     auto ids = m_model->getCurrentSelection();
++    if (KdenliveSettings::ungroupSelectedOnly()) {
++        // Catavan: only the items picked inside the groups leave them: Alt+click (single selection) or the clicked items
++        std::unordered_set<int> picked;
++        if (cid > -1) {
++            picked.insert(cid);
++        } else if (m_model->singleSelectionMode()) {
++            picked = ids;
++        } else if (ids == m_clickedSelection) {
++            // The clicks only count for the selection they made
++            picked = m_clickedItems;
++        }
++        const bool singleSelection = m_model->singleSelectionMode();
++        if (!picked.empty() && m_model->requestRemoveItemsFromGroups(picked)) {
++            // The clips taken out stay selected
++            if (singleSelection) {
++                bool clear = true;
++                for (int id : picked) {
++                    m_model->requestAddToSelection(id, clear, true);
++                    clear = false;
++                }
++            } else {
++                m_model->requestSetSelection(picked);
++                m_clickedItems = picked;
++                m_clickedSelection = m_model->getCurrentSelection();
++            }
++            return;
++        }
++    }
+     // ask to unselect if needed
+     m_model->requestClearSelection();
+     if (cid > -1) {
+@@ -1250,6 +1283,36 @@
+     }
+ }
+ 
++void TimelineController::setClickedItem(int itemId, bool add)
++{
++    const auto selection = m_model->getCurrentSelection();
++    if (add) {
++        // Shift+click: the previous clicks still count if the selection only grew by the clicked item (and its group)
++        auto previous = m_clickedSelection;
++        const auto added = m_model->getGroupElements(itemId);
++        previous.insert(added.begin(), added.end());
++        add = previous == selection;
++    }
++    if (!add) {
++        m_clickedItems.clear();
++    }
++    m_clickedItems.insert(itemId);
++    m_clickedSelection = selection;
++}
++
++void TimelineController::selectItemsBetween(int anchorId, int itemId, bool addToSelect)
++{
++    auto itemsToSelect = m_model->getItemsBetween(anchorId, itemId);
++    if (itemsToSelect.empty()) {
++        return;
++    }
++    if (addToSelect) {
++        const auto selection = m_model->getCurrentSelection();
++        itemsToSelect.insert(selection.begin(), selection.end());
++    }
++    m_model->requestSetSelection(itemsToSelect);
++}
++
+ bool TimelineController::trimmingActive()
+ {
+     ToolType::ProjectTool tool = pCore->activeTool();
+@@ -1801,6 +1864,10 @@
+ 
+ bool TimelineController::moveGuidesInRange(int start, int end, int offset, Fun &undo, Fun &redo)
+ {
++    if (end == -1) {
++        // Catavan: everything after start moves, regions follow their content (see MarkerListModel::rippleMarkers)
++        return m_model->getGuideModel()->rippleMarkers(start, offset, undo, redo);
++    }
+     GenTime fromPos(start, pCore->getCurrentFps());
+     GenTime toPos(start + offset, pCore->getCurrentFps());
+     QList<CommentedTime> guides = m_model->getGuideModel()->getMarkersInRange(start, end);
+@@ -2246,6 +2313,173 @@
+     }
+ }
+ 
++bool TimelineController::autoRippleActive() const
++{
++    return KdenliveSettings::autoRippleTool() && KdenliveSettings::autoRipple() && pCore->activeTool() == ToolType::SelectTool &&
++           m_model->m_editMode == TimelineMode::NormalEdit;
++}
++
++bool TimelineController::rippleDeleteSelection()
++{
++    const auto sel = m_model->getCurrentSelection();
++    int start = -1;
++    int end = -1;
++    for (int id : sel) {
++        if (!m_model->isClip(id) && !m_model->isComposition(id)) {
++            continue;
++        }
++        if (m_model->trackIsLocked(m_model->getItemTrackId(id))) {
++            Q_EMIT m_model->flashLock(m_model->getItemTrackId(id));
++            return true;
++        }
++        int pos = m_model->getItemPosition(id);
++        start = start < 0 ? pos : qMin(start, pos);
++        end = qMax(end, pos + m_model->getItemPlaytime(id));
++    }
++    if (start < 0) {
++        return false;
++    }
++    Fun undo = []() { return true; };
++    Fun redo = []() { return true; };
++    int moved = TimelineFunctions::rippleDelete(m_model, sel, KdenliveSettings::autoRippleMarkers(), undo, redo);
++    if (moved == INT_MIN) {
++        undo();
++        pCore->displayMessage(i18n("Cannot delete the selection"), ErrorMessage, 500);
++        return true;
++    }
++    pCore->pushUndo(undo, redo, i18n("Ripple delete"));
++    return true;
++}
++
++int TimelineController::insertDroppedClipPushing(int previewId, const QString &binId, int tid, int position)
++{
++    if (!m_model->isClip(previewId)) {
++        return -1;
++    }
++    // Duration and tracks of the dropped clip (with its audio/video part), from the drag preview
++    const int duration = m_model->getClipPlaytime(previewId);
++    QVector<int> tracks;
++    const int previewTrack = m_model->getClipTrackId(previewId);
++    const int trackCount = m_model->getTracksCount();
++    for (int id : m_model->getGroupElements(previewId)) {
++        if (m_model->isClip(id)) {
++            // The preview may sit on another track than the drop target, keep the same layout
++            int index = m_model->getTrackPosition(m_model->getClipTrackId(id)) - m_model->getTrackPosition(previewTrack) + m_model->getTrackPosition(tid);
++            if (index >= 0 && index < trackCount) {
++                tracks << m_model->getTrackIndexFromPosition(index);
++            }
++        }
++    }
++    m_model->requestItemDeletion(previewId, false);
++    Fun undo = []() { return true; };
++    Fun redo = []() { return true; };
++    const bool ripple = autoRippleActive();
++    int id = -1;
++    if (!TimelineFunctions::insertClipPushing(m_model, binId, tid, position, duration, tracks, ripple, ripple && KdenliveSettings::autoRippleMarkers(), id,
++                                              undo, redo)) {
++        undo();
++        pCore->displayMessage(i18n("Cannot insert the clip"), ErrorMessage, 500);
++        return -1;
++    }
++    pCore->pushUndo(undo, redo, i18n("Insert clip"));
++    return id;
++}
++
++int TimelineController::rippleTrimPreview(int clipId, int size, bool right)
++{
++    if (!m_model->isClip(clipId)) {
++        return -1;
++    }
++    if (m_rippleTrimClip != clipId) {
++        m_rippleTrimClip = clipId;
++        m_rippleTrimUndo = []() { return true; };
++    }
++    // The undo of every preview step is accumulated, rippleTrimEnd uses it to restore the original state
++    Fun redo = []() { return true; };
++    Fun undo = []() { return true; };
++    if (!TimelineFunctions::rippleResize(m_model, clipId, size, right, KdenliveSettings::autoRippleMarkers(), undo, redo)) {
++        undo();
++        return -1;
++    }
++    Fun previous = m_rippleTrimUndo;
++    m_rippleTrimUndo = [undo, previous]() { return undo() && previous(); };
++    return m_model->getClipPlaytime(clipId);
++}
++
++void TimelineController::rippleTrimEnd(int clipId, bool right)
++{
++    if (m_rippleTrimClip != clipId || !m_model->isClip(clipId)) {
++        m_rippleTrimClip = -1;
++        return;
++    }
++    const int finalSize = m_model->getClipPlaytime(clipId);
++    m_rippleTrimUndo();
++    m_rippleTrimUndo = []() { return true; };
++    m_rippleTrimClip = -1;
++    Fun undo = []() { return true; };
++    Fun redo = []() { return true; };
++    if (TimelineFunctions::rippleResize(m_model, clipId, finalSize, right, KdenliveSettings::autoRippleMarkers(), undo, redo)) {
++        pCore->pushUndo(undo, redo, i18n("Ripple trim"));
++    } else {
++        undo();
++        pCore->displayMessage(i18n("Cannot resize the clip"), ErrorMessage, 500);
++    }
++}
++
++void TimelineController::restoreItemsData(const QVariantList &data, bool right)
++{
++    for (int i = 0; i + 2 < data.size(); i += 3) {
++        int id = data.at(i).toInt();
++        int duration = data.at(i + 2).toInt();
++        if (m_model->isItem(id) && m_model->getItemPlaytime(id) != duration) {
++            m_model->requestItemResize(id, duration, right, false, -1, true);
++        }
++    }
++}
++
++void TimelineController::rippleTrimApply(int clipId, int size, bool right)
++{
++    if (!m_model->isClip(clipId) || size == m_model->getClipPlaytime(clipId)) {
++        return;
++    }
++    Fun undo = []() { return true; };
++    Fun redo = []() { return true; };
++    if (TimelineFunctions::rippleResize(m_model, clipId, size, right, KdenliveSettings::autoRippleMarkers(), undo, redo)) {
++        pCore->pushUndo(undo, redo, i18n("Ripple trim"));
++    } else {
++        undo();
++        pCore->displayMessage(i18n("Cannot resize the clip"), ErrorMessage, 500);
++    }
++}
++
++void TimelineController::splitClipsAtCursor()
++{
++    const int position = pCore->getMonitorPosition();
++    const auto selection = m_model->getCurrentSelection();
++    bool hasSelectedClip = false;
++    {
++        QMutexLocker lk(&m_metaMutex);
++        for (int cid : selection) {
++            if (!m_model->isClip(cid) && !m_model->isSubTitle(cid)) {
++                continue;
++            }
++            hasSelectedClip = true;
++            int start = m_model->getItemPosition(cid);
++            if (position > start && position < start + m_model->getItemPlaytime(cid)) {
++                // Cutting the other clips of the selection is handled in TimelineFunctions
++                TimelineFunctions::requestClipCut(m_model, cid, position);
++                return;
++            }
++        }
++    }
++    if (hasSelectedClip) {
++        pCore->displayMessage(i18n("No clip to cut"), ErrorMessage, 500);
++        return;
++    }
++    QMutexLocker lk(&m_metaMutex);
++    TimelineFunctions::requestClipCutAll(m_model, position, true);
++}
++
+ void TimelineController::cutAllClipsUnderCursor(int position)
+ {
+     if (position == -1) {
+@@ -2255,10 +2489,10 @@
+     TimelineFunctions::requestClipCutAll(m_model, position);
+ }
+ 
+-int TimelineController::requestSpacerStartOperation(int trackId, int position)
++int TimelineController::requestSpacerStartOperation(int trackId, int position, bool startingAfterOnly)
+ {
+     QMutexLocker lk(&m_metaMutex);
+-    std::pair<int, int> spacerOp = TimelineFunctions::requestSpacerStartOperation(m_model, trackId, position);
++    std::pair<int, int> spacerOp = TimelineFunctions::requestSpacerStartOperation(m_model, trackId, position, false, false, startingAfterOnly);
+     int itemId = spacerOp.first;
+     return itemId;
+ }
+@@ -2278,6 +2512,31 @@
+     m_model->getGuideModel()->moveMarkersWithoutUndo(ids, offset);
+ }
+ 
++void TimelineController::rippleGuidesStart(int frame)
++{
++    m_rippleRanges = m_model->getGuideModel()->getRangesCrossing(frame);
++}
++
++void TimelineController::rippleResizeGuides(int offset)
++{
++    if (m_rippleRanges.isEmpty()) {
++        return;
++    }
++    QMap<int, int> durations;
++    for (auto it = m_rippleRanges.constBegin(); it != m_rippleRanges.constEnd(); ++it) {
++        durations.insert(it.key(), qMax(1, it.value() + offset));
++    }
++    m_model->getGuideModel()->setDurationsWithoutUndo(durations);
++}
++
++void TimelineController::rippleRestoreGuides()
++{
++    if (!m_rippleRanges.isEmpty()) {
++        m_model->getGuideModel()->setDurationsWithoutUndo(m_rippleRanges);
++        m_rippleRanges.clear();
++    }
++}
++
+ QVector<int> TimelineController::spacerSelection(int startFrame)
+ {
+     return m_model->getGuideModel()->getMarkersIdInRange(startFrame, -1);
+@@ -2299,7 +2558,8 @@
+         // Move guides back to original position
+         m_model->getGuideModel()->moveMarkersWithoutUndo(selectedGuides, startPosition - endPosition, false);
+     }
+-    bool result = TimelineFunctions::requestSpacerEndOperation(m_model, clipId, startPosition, endPosition, affectedTrack, guideStart, undo, redo);
++    bool result = TimelineFunctions::requestSpacerEndOperation(m_model, clipId, startPosition, endPosition, affectedTrack, guideStart, undo, redo, true,
++                                                               autoRippleActive());
+     return result;
+ }
+ 
+@@ -2637,6 +2897,37 @@
+     pCore->monitorManager()->projectMonitor()->slotTrimmingPos(pos + 1, delta, right ? mainClip->getIn() : pos, right ? pos : mainClip->getOut());
+ }
+ 
++void TimelineController::showTrimEdgeFrame(int clipId, bool right, int size)
++{
++    if (!KdenliveSettings::trimEdgePreview() || pCore->activeTool() != ToolType::SelectTool || !m_model->isClip(clipId)) {
++        return;
++    }
++    std::shared_ptr<ClipModel> clip = m_model->getClipPtr(clipId);
++    if (clip->isAudioOnly() || clip->clipState() == PlaylistState::AudioOnly) {
++        return;
++    }
++    // Source frame of the edge, as computed for the clip thumbnails
++    int pos = right ? (size > 0 ? clip->getIn() + size - 1 : clip->getOut()) : clip->getIn();
++    double speed = clip->getSpeed();
++    int frame = speed >= 0 ? qRound(pos * speed) : qRound((clip->getMaxDuration() - pos) * -speed - 1);
++    pCore->monitorManager()->projectMonitor()->showEdgeFrame(clip->binId(), qMax(0, frame));
++}
++
++bool TimelineController::requestActionPosition(int frame)
++{
++    Monitor *monitor = pCore->monitorManager()->projectMonitor();
++    if (!KdenliveSettings::actionCursor() || !monitor->isPlaying()) {
++        return false;
++    }
++    monitor->getControllerProxy()->setActionPosition(qBound(0, frame, m_model->duration() - 1));
++    return true;
++}
++
++void TimelineController::hideTrimEdgeFrame()
++{
++    pCore->monitorManager()->projectMonitor()->hideEdgeFrame();
++}
++
+ bool TimelineController::slipProcessSelection(int mainClipId, bool addToSelection)
+ {
+     std::unordered_set<int> sel = m_model->getCurrentSelection();
+@@ -3239,7 +3530,7 @@
+     }
+ 
+     bool isSingleOrPartnerClip = false;
+-    bool pitchCompensate = false;
++    int pitchCompensate = 0;
+     int duration = 0;
+     if (sel.size() > 2) {
+         speed = 100.;
+@@ -3258,7 +3549,7 @@
+         }
+         if (isSingleOrPartnerClip) {
+             duration = m_model->getItemPlaytime(mainClipId);
+-            pitchCompensate = m_model->m_allClips[mainClipId]->getIntProperty(QStringLiteral("warp_pitch"));
++            pitchCompensate = m_model->m_allClips[mainClipId]->getPitchCompensation();
+             // single or partner clip selected and speed is provided by argument, if not provided get it from mainClip
+             if (!qFuzzyCompare(speed, -1)) {
+                 qDebug() << "Requesting speed " << speed << " for clip " << mainClipId;
+@@ -3283,7 +3574,7 @@
+     double firstSpeed = 0.;
+     int firstOriginalDuration = 0;
+     int firstDuration = 0;
+-    bool firstPitchCompensate = false;
++    int firstPitchCompensate = 0;
+     bool isCommonSpeed = true;
+     bool isCommonPitchCompensate = true;
+     bool isCommonOriginalDuration = true;
+@@ -3291,7 +3582,7 @@
+     for (int cid : sel) {
+         double clipDuration = m_model->getItemPlaytime(cid);
+         double clipSpeed = 100. * m_model->getClipSpeed(cid);
+-        bool clipPitchCompensate = m_model->m_allClips[cid]->getIntProperty(QStringLiteral("warp_pitch"));
++        int clipPitchCompensate = m_model->m_allClips[cid]->getPitchCompensation();
+         int clipOriginalDuration = int(clipDuration * qAbs(clipSpeed) / 100.0);
+         if (!haveFirstClipStats) {
+             firstSpeed = clipSpeed;
+@@ -4805,7 +5096,36 @@
+ 
+ bool TimelineController::endFakeMove(int clipId, int position, bool updateView, bool logUndo, bool invalidateTimeline)
+ {
+-    int trackId = getItemMovingTrack(clipId);
++    if (m_model->m_editMode == TimelineMode::NormalEdit && m_model->canCrossfadeDrag(clipId)) {
++        // Catavan: a drag with overlaps (overlapCrossfade) ends with crossfades
++        const std::unordered_set<int> items = m_model->crossfadeMovingItems(clipId);
++        int result = m_model->requestCrossfadeMove(clipId, logUndo);
++        if (result > -1) {
++            return result == 1;
++        }
++        // Nothing to crossfade: the usual move to the track where the drag left the clip (getItemMovingTrack ignores the
++        // fake track in the Normal mode), then forget the positions of the drag
++        int fakeTrack = m_model->m_allClips[clipId]->getFakeTrackId();
++        bool res = endFakeMoveUsual(clipId, position, updateView, logUndo, invalidateTimeline, fakeTrack);
++        for (int item : items) {
++            if (m_model->isClip(item)) {
++                m_model->m_allClips[item]->cleanFakeState();
++                QModelIndex modelIndex = m_model->makeClipIndexFromID(item);
++                if (modelIndex.isValid()) {
++                    m_model->notifyChange(modelIndex, modelIndex, {TimelineModel::FakeTrackIdRole, TimelineModel::FakePositionRole});
++                }
++            }
++        }
++        return res;
++    }
++    return endFakeMoveUsual(clipId, position, updateView, logUndo, invalidateTimeline);
++}
++
++bool TimelineController::endFakeMoveUsual(int clipId, int position, bool updateView, bool logUndo, bool invalidateTimeline, int trackId)
++{
++    if (trackId < 0) {
++        trackId = getItemMovingTrack(clipId);
++    }
+     int subLayer = -1;
+     if (m_model->isSubTitle(clipId)) {
+         subLayer = m_model->getSubtitleLayer(clipId);
+@@ -4957,11 +5277,13 @@
+     int audio_delta, video_delta;
+     audio_delta = video_delta = delta_track;
+     int master_trackId = m_model->getItemTrackId(clipId);
++    // Catavan (groupTracksIndependent): the clips of the other kind keep their tracks
++    const int otherKindDelta = KdenliveSettings::groupTracksIndependent() ? 0 : -delta_track;
+     if (m_model->getTrackById_const(master_trackId)->isAudioTrack()) {
+         // Master clip is audio, so reverse delta for video clips
+-        video_delta = -delta_track;
++        video_delta = otherKindDelta;
+     } else {
+-        audio_delta = -delta_track;
++        audio_delta = otherKindDelta;
+     }
+     int min = -1;
+     int max = -1;
+--- a/kdenlive-26.08.2/src/timeline2/view/qml/Clip.qml
++++ b/kdenlive-26.08.2/src/timeline2/view/qml/Clip.qml
+@@ -87,6 +87,8 @@
+     property double xIntegerOffset: 0
+     property bool isLocked: parentTrack && parentTrack.isLocked === true
+     property color borderColor: "#000000"
++    // Catavan (clipHighlight): the mouse is over the clip
++    property bool hovered: K.KdenliveSettings.clipHighlight && mouseArea.containsMouse
+     property bool isComposition: false
+     property int slipOffset: boundValue(outPoint - maxDuration + 1, root.trimmingOffset, inPoint)
+     visible: fakeTid > -1 || (scrollView.lastVisibleFrame > clipRoot.modelStart && scrollView.firstVisibleFrame <= (clipRoot.modelStart + clipRoot.clipDuration))
+@@ -172,6 +174,16 @@
+         }
+     }
+ 
++    // Catavan (overlapCrossfade): draw the mix with frames while the clip before is trimmed by its mix handle (-1: as
++    // the model has it)
++    function previewMix(frames) {
++        if (frames < 0) {
++            mixContainer.width = Qt.binding(() => clipRoot.mixDuration * clipRoot.timeScale)
++        } else {
++            mixContainer.width = frames * clipRoot.timeScale
++        }
++    }
++
+     onClipDurationChanged: {
+         width = clipDuration * timeScale
+         if (parentTrack && parentTrack.isAudio && thumbsLoader.item) {
+@@ -189,17 +201,31 @@
+         if (fakePosition > -1) {
+             x = fakePosition * timeScale
+             xIntegerOffset = Math.ceil(x) - x
++        } else {
++            // Catavan: end of a fake move that left the clip where it was
++            x = modelStart * timeScale
++            xIntegerOffset = Math.ceil(x) - x
+         }
+     }
++    // Catavan: the item of the track that holds the clip while it is in the drag container
++    property Item trackHolder: null
+     onFakeTidChanged: {
+         if (clipRoot.fakeTid > -1 && parentTrack) {
+             if (clipRoot.parent != dragContainer) {
+                 // Clip is parented to a track, reparent to allow moving outside of the track
++                clipRoot.trackHolder = clipRoot.parent
+                 clipRoot.parent = dragContainer
+             }
+             clipRoot.y = Logic.getTrackById(clipRoot.fakeTid).y
+             clipRoot.height = Logic.getTrackById(clipRoot.fakeTid).height
+         } else if (parentTrack) {
++            // Catavan: a fake move that ends with the clip on its own track keeps this item, which would stay in the
++            // drag container: drawn where the drag left it and out of reach of clicks (after a track insertion it even
++            // shows on another track). Back into its track.
++            if (clipRoot.parent == dragContainer && clipRoot.trackHolder) {
++                clipRoot.parent = clipRoot.trackHolder
++                clipRoot.y = 0
++            }
+             clipRoot.height = Qt.binding(function () {
+                 return parentTrack.height
+             })
+@@ -248,6 +274,15 @@
+         clipRoot.timeline.showToolTip(text)
+     }
+ 
++    // Catavan (clipHighlight): a hovered clip is a bit lighter and paler, in its own color
++    function hoverColor(c) {
++        if (!clipRoot.hovered) {
++            return c
++        }
++        // hslHue is -1 for grays
++        return Qt.hsla(Math.max(0, c.hslHue), c.hslSaturation * 0.8, Math.min(1, c.hslLightness + 0.08), c.a)
++    }
++
+     function getColor() {
+         if (clipRoot.clipState === K.PlaylistState.Disabled) {
+             return '#888'
+@@ -321,6 +356,8 @@
+                 if (clipRoot.timeline.selection.indexOf(clipRoot.clipId) === -1) {
+                     clipRoot.controller.requestAddToSelection(clipRoot.clipId, true)
+                 }
++                // Catavan (ungroupSelectedOnly): Ungroup in the menu takes this clip out of its group
++                clipRoot.timeline.setClickedItem(clipRoot.clipId, false)
+                 root.clickFrame = Math.round(mouse.x / clipRoot.timeline.scaleFactor)
+                 root.showClipMenu(clipRoot.clipId)
+             }
+@@ -456,6 +493,10 @@
+                 }
+ 
+                 if (clipRoot.selected) {
++                    // Catavan (clipHighlight): the clicked clip keeps the bright selection color, the others are darker
++                    if (K.KdenliveSettings.clipHighlight && root.mainItemId != clipRoot.clipId) {
++                        return Qt.darker(clipRoot.timeline.selectionColor, 1.6)
++                    }
+                     return clipRoot.timeline.selectionColor
+                 }
+ 
+@@ -580,28 +621,76 @@
+                         width: K.UiUtils.baseSizeMedium / 2
+                         visible: K.Core.activeTool === K.ToolType.SelectTool
+                         property int previousMix
++                        // Catavan (overlapCrossfade): this handle is the end of the clip before, trimmed as an edge (-1: the mix resize)
++                        property int crossfadeFirstDuration: -1
++                        // Catavan (overlapCrossfade): the clips (and mixes) drawn as the preview plans them, put back on release
++                        property var crossfadeDrawnClips: []
++                        property var crossfadeDrawnMixes: []
+                         enabled: !clipRoot.isPanning && !clipRoot.isLocked && mixArea.enabled && (pressed || container.handleVisible)
+                         hoverEnabled: !clipRoot.isPanning
+                         drag.target: trimInMixArea
+                         drag.axis: Drag.XAxis
+                         drag.smoothed: false
+                         drag.maximumX: clipRoot.width
+-                        drag.minimumX: (clipRoot.mixDuration - clipRoot.mixCut) * clipRoot.timeScale
++                        drag.minimumX: K.KdenliveSettings.overlapCrossfade ? -clipRoot.x : (clipRoot.mixDuration - clipRoot.mixCut) * clipRoot.timeScale
+                         property bool sizeChanged: false
+                         cursorShape: (containsMouse ? Qt.SizeHorCursor : Qt.ClosedHandCursor)
++                        // Catavan (overlapCrossfade): the handle does not trim live, draw the clip before and the grouped
++                        // clips where the preview puts them (ending at the edge, or at the clip they crossfade with)
++                        function drawCrossfadeTrim(items) {
++                            restoreCrossfadeDrawing()
++                            if (items === undefined) {
++                                return
++                            }
++                            for (let i = 0; i < items.length; i++) {
++                                let data = items[i]
++                                let clipItem = root.getClipItemById(data.trackId, data.id)
++                                if (clipItem) {
++                                    clipItem.width = Math.max(1, data.end - data.start) * clipItem.timeScale
++                                    crossfadeDrawnClips.push(clipItem)
++                                }
++                                if (data.mixClipId > -1 && data.mixClipId !== clipRoot.clipId) {
++                                    let mixItem = root.getClipItemById(data.trackId, data.mixClipId)
++                                    if (mixItem) {
++                                        mixItem.previewMix(data.mixFrames)
++                                        crossfadeDrawnMixes.push(mixItem)
++                                    }
++                                }
++                            }
++                        }
++                        function restoreCrossfadeDrawing() {
++                            for (let i = 0; i < crossfadeDrawnClips.length; i++) {
++                                crossfadeDrawnClips[i].width = crossfadeDrawnClips[i].clipDuration * crossfadeDrawnClips[i].timeScale
++                            }
++                            for (let i = 0; i < crossfadeDrawnMixes.length; i++) {
++                                crossfadeDrawnMixes[i].previewMix(-1)
++                            }
++                            crossfadeDrawnClips = []
++                            crossfadeDrawnMixes = []
++                        }
+                         onPressed: (mouse) => {
+                             if (mouse.modifiers & Qt.ControlModifier && (K.Core.activeTool === K.ToolType.SelectTool || K.Core.activeTool === K.ToolType.RippleTool)) {
+                                 mouse.accepted = false
+                                 return
+                             }
+                             previousMix = clipRoot.mixDuration
++                            crossfadeFirstDuration = clipRoot.timeline.autoRippleActive() ? -1 : clipRoot.controller.crossfadeTrimBeginMix(clipRoot.clipId, mouse.modifiers & Qt.ShiftModifier)
+                             mixOut.color = 'red'
+                             anchors.left = undefined
+                             parent.anchors.right = undefined
+                             mixCutPos.anchors.right = undefined
+                         }
+                         onReleased: mouse => {
+-                            if (sizeChanged) {
++                            if (crossfadeFirstDuration > -1) {
++                                root.crossfadePreviews = []
++                                if (sizeChanged) {
++                                    clipRoot.controller.requestCrossfadeTrim()
++                                }
++                                clipRoot.controller.crossfadeTrimBegin(-1, true, false)
++                                crossfadeFirstDuration = -1
++                                restoreCrossfadeDrawing()
++                                sizeChanged = false
++                            } else if (sizeChanged) {
+                                 clipRoot.controller.resizeStartMix(clipRoot.clipId, Math.round(Math.max(0, x) / clipRoot.timeScale), mouse.modifiers & Qt.ShiftModifier)
+                                 sizeChanged = false
+                             }
+@@ -616,6 +705,17 @@
+                                 return
+                             }
+                             var currentFrame = Math.round(x / clipRoot.timeScale)
++                            if (crossfadeFirstDuration > -1) {
++                                // Catavan (overlapCrossfade): the end of the clip before goes where the handle is
++                                let crossfadeTrim = clipRoot.controller.crossfadeTrimPreview(crossfadeFirstDuration + currentFrame - previousMix, root.snapping)
++                                root.crossfadePreviews = crossfadeTrim.overlaps
++                                sizeChanged = crossfadeTrim.pending
++                                let mixFrames = crossfadeTrim.duration - crossfadeFirstDuration + previousMix
++                                parent.width = Math.max(0, mixFrames) * clipRoot.timeScale
++                                drawCrossfadeTrim(crossfadeTrim.items)
++                                clipRoot.timeline.showToolTip(KI18n.i18n("Mix duration: %1", clipRoot.timeline.simplifiedTC(Math.max(0, mixFrames))))
++                                return
++                            }
+                             if (currentFrame != previousMix) {
+                                 parent.width = currentFrame * clipRoot.timeScale
+                                 sizeChanged = true
+@@ -1066,6 +1166,7 @@
+                 drag.smoothed: false
+                 property bool shiftTrim: false
+                 property bool controlTrim: false
++                property bool crossfadeTrim: false
+                 property bool sizeChanged: false
+                 property int lastDuration
+                 cursorShape: (enabled && (containsMouse || pressed) ? Qt.SizeHorCursor : Qt.OpenHandCursor)
+@@ -1080,11 +1181,21 @@
+                     if (!shiftTrim && (clipRoot.grouped || clipRoot.controller.hasMultipleSelection())) {
+                         clipRoot.initGroupTrim(clipRoot.clipId)
+                     }
++                    // Catavan (overlapCrossfade): this edge may go on over the clip in the way as a crossfade
++                    crossfadeTrim = K.Core.activeTool === K.ToolType.SelectTool && !controlTrim && !clipRoot.timeline.autoRippleActive()
++                                    && clipRoot.controller.canCrossfadeDrag(clipRoot.clipId)
++                    clipRoot.controller.crossfadeTrimBegin(crossfadeTrim ? clipRoot.clipId : -1, false, shiftTrim)
+                     if (K.Core.activeTool === K.ToolType.RippleTool) { //TODO
+                         clipRoot.timeline.requestStartTrimmingMode(clipRoot.clipId, false, false);
+                     }
++                    clipRoot.timeline.showTrimEdgeFrame(clipRoot.clipId, false)
++                }
++                onCanceled: {
++                    clipRoot.timeline.hideTrimEdgeFrame()
++                    root.crossfadePreviews = []
+                 }
+                 onReleased: {
++                    clipRoot.timeline.hideTrimEdgeFrame()
+                     trimIn.opacity = 0
+                     x = -itemBorder.border.width
+                     if (sizeChanged) {
+@@ -1108,7 +1219,8 @@
+                     }
+                 }
+                 onDoubleClicked: {
+-                    if (clipRoot.mixDuration == 0) {
++                    // Catavan (removeMixClips): no mix on double click, overlapping clips makes the crossfades
++                    if (clipRoot.mixDuration == 0 && !K.KdenliveSettings.removeMixClips) {
+                         clipRoot.timeline.mixClip(clipRoot.clipId, -1)
+                     }
+                 }
+@@ -1118,7 +1230,8 @@
+                         var currentClipPos = clipRoot.modelStart
+                         var delta = currentFrame - currentClipPos
+                         if (delta !== 0) {
+-                            if (delta > 0 && (clipRoot.mixDuration > 0 && clipRoot.mixDuration - clipRoot.mixCut - delta < (clipRoot.mixCut == 0 ? 1 : 0))) {
++                            // Catavan (overlapCrossfade): the crossfade is the overlap, the edge may leave it
++                            if (delta > 0 && !crossfadeTrim && (clipRoot.mixDuration > 0 && clipRoot.mixDuration - clipRoot.mixCut - delta < (clipRoot.mixCut == 0 ? 1 : 0))) {
+                                 if (clipRoot.mixCut == 0 && clipRoot.mixDuration > 1) {
+                                     delta = clipRoot.mixDuration - clipRoot.mixCut - 1
+                                 } else if (clipRoot.mixCut > 0 && clipRoot.mixDuration > clipRoot.mixCut) {
+@@ -1128,7 +1241,9 @@
+                                 }
+                             }
+                             var newDuration = 0;
+-                            if (K.Core.activeTool === K.ToolType.RippleTool) {
++                            // Catavan: with Auto Ripple the clip start stays, as with the ripple tool
++                            if (K.Core.activeTool === K.ToolType.RippleTool
++                                    || (clipRoot.timeline.autoRippleActive() && K.KdenliveSettings.rippleTrimLive && !controlTrim)) {
+                                 newDuration = clipRoot.originalDuration - delta
+                             } else {
+                                 if (clipRoot.maxDuration > 0 && delta < -clipRoot.inPoint && !(mouse.modifiers & Qt.ControlModifier)) {
+@@ -1140,6 +1255,7 @@
+                                 sizeChanged = true
+                                 clipRoot.trimmingIn(clipRoot, newDuration, shiftTrim, controlTrim)
+                                 lastDuration = newDuration
++                                clipRoot.timeline.showTrimEdgeFrame(clipRoot.clipId, false)
+                             }
+                         }
+                     }
+@@ -1207,11 +1323,20 @@
+                     if (!shiftTrim && (clipRoot.grouped || clipRoot.controller.hasMultipleSelection())) {
+                         clipRoot.initGroupTrim(clipRoot.clipId)
+                     }
++                    // Catavan (overlapCrossfade): this edge may go on over the clip in the way as a crossfade
++                    clipRoot.controller.crossfadeTrimBegin(K.Core.activeTool === K.ToolType.SelectTool && !controlTrim
++                                                           && !clipRoot.timeline.autoRippleActive() ? clipRoot.clipId : -1, true, shiftTrim)
+                     if (K.Core.activeTool === K.ToolType.RippleTool) {
+                         clipRoot.timeline.requestStartTrimmingMode(clipRoot.clipId, false, true);
+                     }
++                    clipRoot.timeline.showTrimEdgeFrame(clipRoot.clipId, true)
++                }
++                onCanceled: {
++                    clipRoot.timeline.hideTrimEdgeFrame()
++                    root.crossfadePreviews = []
+                 }
+                 onReleased: {
++                    clipRoot.timeline.hideTrimEdgeFrame()
+                     trimOut.opacity = 0
+                     anchors.right = parent.right
+                     if (sizeChanged) {
+@@ -1234,7 +1359,10 @@
+                     }
+                 }
+                 onDoubleClicked: {
+-                    clipRoot.timeline.mixClip(clipRoot.clipId, 1)
++                    // Catavan (removeMixClips): no mix on double click, overlapping clips makes the crossfades
++                    if (!K.KdenliveSettings.removeMixClips) {
++                        clipRoot.timeline.mixClip(clipRoot.clipId, 1)
++                    }
+                 }
+                 onPositionChanged: mouse => {
+                     if (mouse.buttons === Qt.LeftButton) {
+@@ -1246,6 +1374,7 @@
+                             sizeChanged = true
+                             clipRoot.trimmingOut(clipRoot, newDuration, shiftTrim, controlTrim)
+                             lastDuration = newDuration
++                            clipRoot.timeline.showTrimEdgeFrame(clipRoot.clipId, true, clipRoot.lastValidDuration)
+                         }
+                     }
+                 }
+@@ -1606,7 +1735,7 @@
+                 name: 'normal'
+                 when: clipRoot.selected === false
+                 PropertyChanges {
+-                    clipRoot.color: Qt.darker(getColor(), 1.5)
++                    clipRoot.color: hoverColor(Qt.darker(getColor(), 1.5))
+                     clipRoot.z: 0
+                 }
+             },
+@@ -1614,7 +1743,7 @@
+                 name: 'selectedClip'
+                 when: clipRoot.selected === true
+                 PropertyChanges {
+-                    clipRoot.color: getColor()
++                    clipRoot.color: hoverColor(getColor())
+                     clipRoot.z: 3
+                 }
+             }

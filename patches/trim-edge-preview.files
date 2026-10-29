@@ -1,0 +1,11 @@
+# Catavan: while dragging a clip edge, the Project Monitor shows the edge frame instead of the video (audio goes
+# on). Option trimEdgePreview; kcfg, ui and timelinecontroller.cpp also carry wsola changes.
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/monitor/videowidget.h
+kdenlive-26.08.2/src/monitor/videowidget.cpp
+kdenlive-26.08.2/src/monitor/monitor.h
+kdenlive-26.08.2/src/monitor/monitor.cpp
+kdenlive-26.08.2/src/timeline2/view/timelinecontroller.h
+kdenlive-26.08.2/src/timeline2/view/timelinecontroller.cpp
+kdenlive-26.08.2/src/timeline2/view/qml/Clip.qml

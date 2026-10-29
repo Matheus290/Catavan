@@ -1,0 +1,29 @@
+// Syncthing ignore rules (the author syncs this folder between machines; included by ../.stignore).
+// The build goes to ~/.cache/catavan-build; these rules cover any artifact created in the folder by mistake.
+
+// Build directories
+build/
+build-*/
+_build/
+CMakeFiles/
+(?d)CMakeCache.txt
+(?d)compile_commands.json
+(?d).cache/
+
+// Objects and binaries
+*.o
+*.obj
+*.so
+*.so.*
+*.a
+*.part
+
+// Editors
+*~
+.*.swp
+(?d).vscode/.browse*
+
+// KanWork (task board used during development): hook state and atomic writes
+(?d).state/
+*.kanwork-tmp
+*.kanwork.json.bak

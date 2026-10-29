@@ -1,0 +1,153 @@
+--- a/kdenlive-26.08.2/data/layouts/editing.json
++++ b/kdenlive-26.08.2/data/layouts/editing.json
+@@ -87,11 +87,11 @@
+         "placeholders": [
+           {
+             "isFloatingWindow": false,
+-            "itemIndex": 3,
++            "itemIndex": 2,
+             "mainWindowUniqueName": "KdenliveKDDock"
+           }
+         ],
+-        "tabIndex": 3,
++        "tabIndex": 5,
+         "wasFloating": false
+       },
+       "uniqueName": "library"
+@@ -241,11 +241,11 @@
+         "placeholders": [
+           {
+             "isFloatingWindow": false,
+-            "itemIndex": 3,
++            "itemIndex": 4,
+             "mainWindowUniqueName": "KdenliveKDDock"
+           }
+         ],
+-        "tabIndex": 0,
++        "tabIndex": 1,
+         "wasFloating": false
+       },
+       "uniqueName": "clipmonitor"
+@@ -588,24 +588,6 @@
+             "objectName": "timeline",
+             "options": 0
+           },
+-          "13799": {
+-            "currentTabIndex": 0,
+-            "dockWidgets": [
+-              "clipmonitor",
+-              "library"
+-            ],
+-            "geometry": {
+-              "height": 439,
+-              "width": 660,
+-              "x": 594,
+-              "y": 0
+-            },
+-            "id": "13799",
+-            "isNull": false,
+-            "mainWindowUniqueName": "KdenliveKDDock",
+-            "objectName": "clipmonitor",
+-            "options": 0
+-          },
+           "13862": {
+             "currentTabIndex": 0,
+             "dockWidgets": [
+@@ -633,11 +615,12 @@
+               "transition_list",
+               "effect_list",
+               "clip_properties",
+-              "undo_history"
++              "undo_history",
++              "library"
+             ],
+             "geometry": {
+               "height": 439,
+-              "width": 594,
++              "width": 919,
+               "x": 0,
+               "y": 0
+             },
+@@ -651,13 +634,14 @@
+             "currentTabIndex": 0,
+             "dockWidgets": [
+               "projectmonitor",
++              "clipmonitor",
+               "textedit",
+               "notes_widget"
+             ],
+             "geometry": {
+               "height": 439,
+-              "width": 660,
+-              "x": 1254,
++              "width": 995,
++              "x": 919,
+               "y": 0
+             },
+             "id": "14179",
+@@ -722,7 +706,7 @@
+                       "sizingInfo": {
+                         "geometry": {
+                           "height": 439,
+-                          "width": 594,
++                          "width": 919,
+                           "x": 0,
+                           "y": 0
+                         },
+@@ -734,18 +718,17 @@
+                           "height": 267,
+                           "width": 141
+                         },
+-                        "percentageWithinParent": 0.3103448275862069
++                        "percentageWithinParent": 0.48014629049111807
+                       }
+                     },
+                     {
+-                      "guestId": "13799",
+                       "isContainer": false,
+-                      "isVisible": true,
++                      "isVisible": false,
+                       "sizingInfo": {
+                         "geometry": {
+                           "height": 439,
+-                          "width": 660,
+-                          "x": 594,
++                          "width": 80,
++                          "x": 0,
+                           "y": 0
+                         },
+                         "maxSizeHint": {
+@@ -753,10 +736,10 @@
+                           "width": 524293
+                         },
+                         "minSize": {
+-                          "height": 230,
+-                          "width": 326
++                          "height": 90,
++                          "width": 80
+                         },
+-                        "percentageWithinParent": 0.3448275862068966
++                        "percentageWithinParent": 0.0
+                       }
+                     },
+                     {
+@@ -766,8 +749,8 @@
+                       "sizingInfo": {
+                         "geometry": {
+                           "height": 439,
+-                          "width": 660,
+-                          "x": 1254,
++                          "width": 995,
++                          "x": 919,
+                           "y": 0
+                         },
+                         "maxSizeHint": {
+@@ -778,7 +761,7 @@
+                           "height": 295,
+                           "width": 394
+                         },
+-                        "percentageWithinParent": 0.3448275862068966
++                        "percentageWithinParent": 0.5198537095088819
+                       }
+                     },
+                     {

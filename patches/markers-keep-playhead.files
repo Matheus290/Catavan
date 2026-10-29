@@ -1,0 +1,8 @@
+# Catavan: a right click on the ruler or a marker neither moves the playhead nor pauses; a new marker does not
+# bring the playhead to it (the Markers panel only seeks on click/key). Option markersKeepPlayhead.
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/timeline2/view/qml/Ruler.qml
+kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml
+kdenlive-26.08.2/src/project/dialogs/guideslist.h
+kdenlive-26.08.2/src/project/dialogs/guideslist.cpp

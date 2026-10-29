@@ -1,0 +1,1392 @@
+--- a/kdenlive-26.08.2/src/kdenlivesettings.kcfg
++++ b/kdenlive-26.08.2/src/kdenlivesettings.kcfg
+@@ -326,7 +326,8 @@
+ 
+     <entry name="parallelrender" type="Bool">
+       <label>Enable parallel processing for rendering.</label>
+-      <default>false</default>
++      <!-- Catavan: on by default (the render took about twice as long with one thread) -->
++      <default>true</default>
+     </entry>
+ 
+     <entry name="renderInterp" type="String">
+@@ -427,6 +428,151 @@
+       <default>true</default>
+     </entry>
+ 
++    <entry name="pitchMethodPerClip" type="Bool">
++      <label>Choose the pitch compensation algorithm (Rubberband or WSOLA) of each clip in the speed dialog.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="actionCursor" type="Bool">
++      <label>Clicking the timeline during playback places an action cursor, used by edit actions, without moving the playback.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="splitShortcut" type="Bool">
++      <label>S splits the clips at the action cursor, X selects the selection tool and the razor tool has no shortcut (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="deleteMarkerMenu" type="Bool">
++      <label>Right clicking a timeline marker offers to edit or remove it; elsewhere in the ruler the menu only offers to add a marker.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="clickOnClipSeeks" type="Bool">
++      <label>Clicking a clip moves the playhead to the click position (the action cursor during playback).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="autoRippleTool" type="Bool">
++      <label>Replace the spacer tool by the Auto Ripple toggle (M) in the timeline toolbar (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="autoRipple" type="Bool">
++      <label>Auto Ripple is on: inserting, deleting or moving a clip also moves what follows it on all tracks.</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="autoRippleMarkers" type="Bool">
++      <label>Auto Ripple also moves the timeline markers.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="groupTrimPush" type="Bool">
++      <label>Trimming a grouped clip: grouped clips whose edge is reached are pushed along, and stop at the end of their material.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="wheelZoomsTimeline" type="Bool">
++      <label>Timeline mouse wheel: the plain wheel zooms and Ctrl+wheel scrolls.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="rippleTrimLive" type="Bool">
++      <label>Auto Ripple: the following clips move while dragging a clip edge (otherwise only when the mouse is released).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="dropPushesClips" type="Bool">
++      <label>Dropping a clip from the bin where there is no room pushes the following clips.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="scrollReleasesPlayhead" type="Bool">
++      <label>During playback, scrolling the timeline or placing the action cursor stops the view from following the playhead until the playback stops.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="ungroupSelectedOnly" type="Bool">
++      <label>Ungroup takes only the clicked clips out of their group; the other clips stay grouped.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="removeMixClips" type="Bool">
++      <label>Mix Clips is hidden and a double click on a clip edge creates no mix (overlapping clips makes the crossfades); U ungroups (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="vegasShortcuts" type="Bool">
++      <label>Vegas shortcuts: M adds a timeline marker, G groups, Ctrl+L toggles Auto Ripple (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="hwDecodingAutoChecked" type="Bool">
++      <label>Catavan: hardware decoding was already turned on once because an NVIDIA encoder was found (turning it off afterwards is kept).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="dragSetsZone" type="Bool">
++      <label>Dragging in an empty part of the timeline sets the zone (in point where the drag starts, out point where it ends), as in Vegas.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="vegasSelection" type="Bool">
++      <label>Ctrl+click adds or removes a clip from the selection and Shift+click selects the clips between the last clicked one and the clicked one, as in Vegas.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="shareSpeedProducers" type="Bool">
++      <label>Clips with the same speed on a track share one decoder instead of one each.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="groupTracksIndependent" type="Bool">
++      <label>Moving a grouped clip to another track moves the clips of the same kind (video or audio) only; the others keep their tracks.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="transformMirror" type="Bool">
++      <label>In the Transform effect, a negative width or height mirrors the image in place.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="clipHighlight" type="Bool">
++      <label>A clip under the mouse is lighter; among the selected clips, the clicked one keeps the bright selection border and the others get a darker one.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="overlapCrossfade" type="Bool">
++      <label>Dragging a clip over the edge of another clip on the same track creates a crossfade in the overlap.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="monitorSpeedSlider" type="Bool">
++      <label>Playback speed slider in the status bar, with audio at speeds up to 4x (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="monitorPlaybackSpeed" type="Double">
++      <label>Speed used when playing the monitors.</label>
++      <default>1.0</default>
++    </entry>
++
++    <entry name="monitorSpeedPreservePitch" type="Bool">
++      <label>Keep the pitch of the audio played at a speed other than 1 (WSOLA, more processing).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="markersKeepPlayhead" type="Bool">
++      <label>Right clicking the timeline ruler or a marker opens the menu without moving the playhead, and creating a marker does not move the playhead to it.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="trimEdgePreview" type="Bool">
++      <label>While trimming, the project monitor displays the frame at the dragged clip edge instead of the video (audio keeps playing).</label>
++      <default>true</default>
++    </entry>
++
+     <entry name="normalizechannels" type="Bool">
+       <label>Normalize audio channels in thumbnails.</label>
+       <default>true</default>
+@@ -451,7 +597,8 @@
+ 
+     <entry name="pauseonseek" type="Bool">
+       <label>Pause playback when seeking.</label>
+-      <default>true</default>
++      <!-- Catavan: the playback goes on when seeking (clicking the ruler) -->
++      <default>false</default>
+     </entry>
+ 
+     <entry name="rewindOnStop" type="Bool">
+@@ -672,7 +819,7 @@
+     </entry>
+ 
+     <entry name="kdenliverendererpath" type="Path">
+-      <label>Kdenlive renderer install path.</label>
++      <label>Catavan renderer install path.</label>
+       <default></default>
+     </entry>
+ 
+@@ -723,13 +870,14 @@
+     </entry>
+ 
+     <entry name="maxcachesize" type="Int">
+-      <label>Kdenlive will periodically check if the cached data exceeds this limit. Data is in Mb</label>
++      <label>Catavan will periodically check if the cached data exceeds this limit. Data is in Mb</label>
+       <default>1024</default>
+     </entry>
+ 
+     <entry name="checkForUpdate" type="Bool">
+       <label>Automatically check for updates</label>
+-      <default>true</default>
++      <!-- Catavan: off, the reminder compares the Kdenlive base version and sends to the Kdenlive download page -->
++      <default>false</default>
+     </entry>
+ 
+     <entry name="usePowerManagement" type="Bool">
+@@ -738,7 +886,7 @@
+     </entry>
+ 
+     <entry name="lastCacheCheck" type="DateTime">
+-      <label>Kdenlive will check every 2 weeks on startup if the cached data exceeds the defined maxcachesize. This is the last checked date</label>
++      <label>Catavan will check every 2 weeks on startup if the cached data exceeds the defined maxcachesize. This is the last checked date</label>
+       <default></default>
+     </entry>
+ 
+@@ -1109,7 +1257,8 @@
+ 
+     <entry name="timelinemousezoomonplayhead" type="Bool">
+       <label>Mouse zoom on timeline based on playhead position, not mouse position.</label>
+-      <default>false</default>
++      <!-- Catavan: on by default, shown in the timeline settings; centers on the action cursor when there is one -->
++      <default>true</default>
+     </entry>
+ 
+     <entry name="transitionfollowcursor" type="Bool">
+@@ -1480,15 +1629,15 @@
+       <default>true</default>
+     </entry>
+     <entry name="lastSeenVersionMajor" type="Int">
+-      <label>Last used version of Kdenlive - major.</label>
++      <label>Last used version of Catavan - major.</label>
+       <default>0</default>
+     </entry>
+     <entry name="lastSeenVersionMinor" type="Int">
+-      <label>Last used version of Kdenlive - minor.</label>
++      <label>Last used version of Catavan - minor.</label>
+       <default>0</default>
+     </entry>
+     <entry name="lastSeenVersionMicro" type="Int">
+-      <label>Last used version of Kdenlive - micro.</label>
++      <label>Last used version of Catavan - micro.</label>
+       <default>0</default>
+     </entry>
+ 
+--- a/kdenlive-26.08.2/src/ui/configtimeline_ui.ui
++++ b/kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+@@ -234,6 +234,263 @@
+     </widget>
+    </item>
+    <item row="22" column="0">
++    <widget class="QLabel" name="label_vegas">
++     <property name="text">
++      <string>Catavan:</string>
++     </property>
++    </widget>
++   </item>
++   <item row="22" column="1">
++    <widget class="QCheckBox" name="kcfg_pitchMethodPerClip">
++     <property name="toolTip">
++      <string>In the clip speed dialog, choose the pitch compensation algorithm of each clip: Rubberband shifts the pitch, WSOLA time stretches the audio as web browsers do</string>
++     </property>
++     <property name="text">
++      <string>Choose pitch compensation algorithm per clip</string>
++     </property>
++    </widget>
++   </item>
++   <item row="23" column="1">
++    <widget class="QCheckBox" name="kcfg_trimEdgePreview">
++     <property name="toolTip">
++      <string>While the edge of a clip is dragged, the project monitor displays the frame at that edge instead of the video; audio keeps playing</string>
++     </property>
++     <property name="text">
++      <string>Show the edge frame in the project monitor while trimming a clip</string>
++     </property>
++    </widget>
++   </item>
++   <item row="24" column="1">
++    <widget class="QCheckBox" name="kcfg_actionCursor">
++     <property name="toolTip">
++      <string>During playback, clicking the timeline places an action cursor without moving the playback; cuts, markers and other actions use it. Pausing or seeking removes it</string>
++     </property>
++     <property name="text">
++      <string>Separate action cursor during playback</string>
++     </property>
++    </widget>
++   </item>
++   <item row="25" column="1">
++    <widget class="QCheckBox" name="kcfg_splitShortcut">
++     <property name="toolTip">
++      <string>S splits the selected clips (or the active tracks) at the action cursor, X picks the selection tool and the razor tool has no shortcut. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Split shortcut (S) and selection tool on X</string>
++     </property>
++    </widget>
++   </item>
++   <item row="26" column="1">
++    <widget class="QCheckBox" name="kcfg_deleteMarkerMenu">
++     <property name="toolTip">
++      <string>Right clicking a marker in the timeline ruler shows entries to edit and remove it; elsewhere in the ruler only Add Marker is shown (it never removes a marker)</string>
++     </property>
++     <property name="text">
++      <string>Marker context menu: add elsewhere, edit and remove on a marker</string>
++     </property>
++    </widget>
++   </item>
++   <item row="27" column="1">
++    <widget class="QCheckBox" name="kcfg_clickOnClipSeeks">
++     <property name="toolTip">
++      <string>A click on a clip, without dragging it, moves the playhead to the clicked position; during playback it only moves the action cursor</string>
++     </property>
++     <property name="text">
++      <string>Clicking a clip moves the playhead there</string>
++     </property>
++    </widget>
++   </item>
++   <item row="28" column="1">
++    <widget class="QCheckBox" name="kcfg_markersKeepPlayhead">
++     <property name="toolTip">
++      <string>Right clicking the ruler or a marker opens the menu without moving the playhead or pausing the playback; creating a marker does not move the playhead to it</string>
++     </property>
++     <property name="text">
++      <string>Ruler menu and new markers keep the playhead</string>
++     </property>
++    </widget>
++   </item>
++   <item row="29" column="1">
++    <widget class="QCheckBox" name="kcfg_autoRippleTool">
++     <property name="toolTip">
++      <string>The spacer tool button and its M shortcut become the Auto Ripple toggle: with it on, inserting, deleting or moving a clip also moves what follows on all tracks. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Auto Ripple toggle instead of the spacer tool</string>
++     </property>
++    </widget>
++   </item>
++   <item row="30" column="1">
++    <widget class="QCheckBox" name="kcfg_dropPushesClips">
++     <property name="toolTip">
++      <string>Dropping a clip from the bin over other clips places it there and pushes the following clips forward by its duration (on all tracks with Auto Ripple)</string>
++     </property>
++     <property name="text">
++      <string>Dropping a clip pushes the following clips</string>
++     </property>
++    </widget>
++   </item>
++   <item row="31" column="1">
++    <widget class="QCheckBox" name="kcfg_monitorSpeedSlider">
++     <property name="toolTip">
++      <string>A slider in the status bar sets the speed of the monitors playback (0x to 4x), with audio; a Pitch box keeps the pitch with WSOLA. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Playback speed slider in the status bar</string>
++     </property>
++    </widget>
++   </item>
++   <item row="32" column="1">
++    <widget class="QCheckBox" name="kcfg_rippleTrimLive">
++     <property name="toolTip">
++      <string>With Auto Ripple, the following clips move while the edge of a clip is dragged; unchecked, only the clip changes while dragging and the timeline follows when the mouse is released</string>
++     </property>
++     <property name="text">
++      <string>Auto Ripple: move the following clips while trimming (live)</string>
++     </property>
++    </widget>
++   </item>
++   <item row="33" column="1">
++    <widget class="QCheckBox" name="kcfg_groupTrimPush">
++     <property name="toolTip">
++      <string>When the edge of a grouped clip reaches the edge of another clip of the group, that clip is trimmed along; growing again, it follows until the end of its own material while the dragged clip goes on</string>
++     </property>
++     <property name="text">
++      <string>Grouped clips: an edge pushes the edges it reaches</string>
++     </property>
++    </widget>
++   </item>
++   <item row="34" column="1">
++    <widget class="QCheckBox" name="kcfg_wheelZoomsTimeline">
++     <property name="toolTip">
++      <string>In the timeline, the mouse wheel zooms and Ctrl+wheel scrolls; unchecked, the wheel scrolls and Ctrl+wheel zooms</string>
++     </property>
++     <property name="text">
++      <string>Mouse wheel zooms, Ctrl+wheel scrolls</string>
++     </property>
++    </widget>
++   </item>
++   <item row="35" column="1">
++    <widget class="QCheckBox" name="kcfg_overlapCrossfade">
++     <property name="toolTip">
++      <string>Dragging a clip over the start or end of another clip on the same track overlaps them and creates a crossfade (mix) as long as the overlap; dragging it away removes the crossfade</string>
++     </property>
++     <property name="text">
++      <string>Overlapping clips creates a crossfade</string>
++     </property>
++    </widget>
++   </item>
++   <item row="36" column="1">
++    <widget class="QCheckBox" name="kcfg_timelinemousezoomonplayhead">
++     <property name="toolTip">
++      <string>Zooming the timeline with the mouse centers it on the action cursor (or on the playhead when there is none) instead of keeping the frame under the mouse</string>
++     </property>
++     <property name="text">
++      <string>Mouse zoom centers on the action cursor or playhead, not on the mouse</string>
++     </property>
++    </widget>
++   </item>
++   <item row="37" column="1">
++    <widget class="QCheckBox" name="kcfg_scrollReleasesPlayhead">
++     <property name="toolTip">
++      <string>During playback, scrolling the timeline or placing the action cursor stops the view from following the playhead; it follows again after the playback stops and restarts</string>
++     </property>
++     <property name="text">
++      <string>Scrolling during playback stops following the playhead</string>
++     </property>
++    </widget>
++   </item>
++   <item row="38" column="1">
++    <widget class="QCheckBox" name="kcfg_ungroupSelectedOnly">
++     <property name="toolTip">
++      <string>Ungroup takes only the clicked clip (with its audio or video) out of its group and the other clips stay grouped; Ctrl+click (Shift+click without the Vegas selection) picks more clips, Alt+click picks a single item. Unchecked, Ungroup dissolves the whole group</string>
++     </property>
++     <property name="text">
++      <string>Ungroup removes only the clicked clip from its group</string>
++     </property>
++    </widget>
++   </item>
++   <item row="39" column="1">
++    <widget class="QCheckBox" name="kcfg_removeMixClips">
++     <property name="toolTip">
++      <string>Overlapping clips already creates the crossfades: the Mix Clips action is hidden, a double click on a clip edge does nothing and the U key ungroups clips, as in Vegas. Dropping a transition on a cut still creates a mix. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Remove Mix Clips, U ungroups</string>
++     </property>
++    </widget>
++   </item>
++   <item row="40" column="1">
++    <widget class="QCheckBox" name="kcfg_vegasShortcuts">
++     <property name="toolTip">
++      <string>As in Vegas: M adds or removes a timeline marker, G groups the selected clips (Ctrl+G still works) and Ctrl+L toggles Auto Ripple. Takes effect after a restart</string>
++     </property>
++     <property name="text">
++      <string>Vegas shortcuts: M marker, G group, Ctrl+L Auto Ripple</string>
++     </property>
++    </widget>
++   </item>
++   <item row="41" column="1">
++    <widget class="QCheckBox" name="kcfg_clipHighlight">
++     <property name="toolTip">
++      <string>The clip under the mouse turns a bit lighter and paler, in its own color. When a group is selected, the clicked clip keeps the bright selection border and the other selected clips get a darker border, as the title of the clicked clip</string>
++     </property>
++     <property name="text">
++      <string>Highlight the clip under the mouse and the clicked clip</string>
++     </property>
++    </widget>
++   </item>
++   <item row="42" column="1">
++    <widget class="QCheckBox" name="kcfg_transformMirror">
++     <property name="toolTip">
++      <string>Size W and H of the Transform effect accept negative values: the image is mirrored horizontally (W) or vertically (H) and keeps its position and size. Takes effect when the effect is shown again</string>
++     </property>
++     <property name="text">
++      <string>Negative size in Transform mirrors the image</string>
++     </property>
++    </widget>
++   </item>
++   <item row="43" column="1">
++    <widget class="QCheckBox" name="kcfg_groupTracksIndependent">
++     <property name="toolTip">
++      <string>Dragging the video of a grouped clip to another video track leaves its audio on its track (and the other way round). Grouped clips of the same kind move together. Without this option, the audio moves in mirror</string>
++     </property>
++     <property name="text">
++      <string>Grouped audio and video change tracks independently</string>
++     </property>
++    </widget>
++   </item>
++   <item row="44" column="1">
++    <widget class="QCheckBox" name="kcfg_shareSpeedProducers">
++     <property name="toolTip">
++      <string>Kdenlive opens one decoder for each clip with a changed speed, which takes a lot of memory (and render time) when a clip is cut in many pieces. With this option the clips with the same speed, pitch setting and audio stream on a track share one. Takes effect for clips loaded or changed afterwards (reopen the project)</string>
++     </property>
++     <property name="text">
++      <string>Clips with the same speed share one decoder</string>
++     </property>
++    </widget>
++   </item>
++   <item row="45" column="1">
++    <widget class="QCheckBox" name="kcfg_vegasSelection">
++     <property name="toolTip">
++      <string>As in Vegas: Ctrl+click adds a clip to the selection or removes it, Shift+click selects the clips between the last clicked clip and the clicked one (on the tracks in between too), Ctrl+Shift+click adds them. Ctrl+drag still scrolls the timeline and Shift+drag still draws a selection rectangle. Unchecked, Shift+click adds or removes a clip, as in Kdenlive</string>
++     </property>
++     <property name="text">
++      <string>Ctrl+click selects more clips, Shift+click selects a range</string>
++     </property>
++    </widget>
++   </item>
++   <item row="46" column="1">
++    <widget class="QCheckBox" name="kcfg_dragSetsZone">
++     <property name="toolTip">
++      <string>As in Vegas: pressing in an empty part of the timeline (not on a clip) and dragging sets the zone, from where the drag starts to where it ends. A click without dragging still moves the playhead. Unchecked, the drag moves the playhead, as in Kdenlive</string>
++     </property>
++     <property name="text">
++      <string>Dragging in an empty area sets the zone</string>
++     </property>
++    </widget>
++   </item>
++   <item row="47" column="0">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Orientation::Vertical</enum>
+@@ -304,6 +561,31 @@
+   <tabstop>kcfg_multistream</tabstop>
+   <tabstop>kcfg_multistream_checktrack</tabstop>
+   <tabstop>kcfg_uiDebugMode</tabstop>
++  <tabstop>kcfg_pitchMethodPerClip</tabstop>
++  <tabstop>kcfg_trimEdgePreview</tabstop>
++  <tabstop>kcfg_actionCursor</tabstop>
++  <tabstop>kcfg_splitShortcut</tabstop>
++  <tabstop>kcfg_deleteMarkerMenu</tabstop>
++  <tabstop>kcfg_clickOnClipSeeks</tabstop>
++  <tabstop>kcfg_markersKeepPlayhead</tabstop>
++  <tabstop>kcfg_autoRippleTool</tabstop>
++  <tabstop>kcfg_dropPushesClips</tabstop>
++  <tabstop>kcfg_monitorSpeedSlider</tabstop>
++  <tabstop>kcfg_rippleTrimLive</tabstop>
++  <tabstop>kcfg_groupTrimPush</tabstop>
++  <tabstop>kcfg_wheelZoomsTimeline</tabstop>
++  <tabstop>kcfg_overlapCrossfade</tabstop>
++  <tabstop>kcfg_timelinemousezoomonplayhead</tabstop>
++  <tabstop>kcfg_scrollReleasesPlayhead</tabstop>
++  <tabstop>kcfg_ungroupSelectedOnly</tabstop>
++  <tabstop>kcfg_removeMixClips</tabstop>
++  <tabstop>kcfg_vegasShortcuts</tabstop>
++  <tabstop>kcfg_clipHighlight</tabstop>
++  <tabstop>kcfg_transformMirror</tabstop>
++  <tabstop>kcfg_groupTracksIndependent</tabstop>
++  <tabstop>kcfg_shareSpeedProducers</tabstop>
++  <tabstop>kcfg_vegasSelection</tabstop>
++  <tabstop>kcfg_dragSetsZone</tabstop>
+  </tabstops>
+  <resources/>
+  <connections>
+--- a/kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml
++++ b/kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml
+@@ -11,6 +11,7 @@
+ pragma ComponentBehavior: Bound
+ 
+ import QtQuick 2.15
++import QtQuick.Shapes 1.15
+ import QtQml.Models 2.15
+ import QtQuick.Controls 2.15
+ import QtQuick.Window 2.15
+@@ -225,6 +226,15 @@
+         root.timeline.activeTrack = (tracksRepeater.itemAt(newTrack) as Track).trackInternalId
+     }
+ 
++    // Catavan: with wheelZoomsTimeline the plain wheel zooms and Ctrl+wheel scrolls (the other way around without it)
++    function wheelZooms(wheel) {
++        let control = (wheel.modifiers & Qt.ControlModifier) !== 0
++        if (K.KdenliveSettings.wheelZoomsTimeline) {
++            return !control && !(wheel.modifiers & (Qt.AltModifier | Qt.ShiftModifier))
++        }
++        return control
++    }
++
+     function zoomByWheel(wheel) {
+         if (wheel.modifiers & Qt.AltModifier) {
+             // Seek to next snap
+@@ -233,7 +243,7 @@
+             } else {
+                 K.Core.triggerAction('monitor_seek_snap_forward')
+             }
+-        } else if (wheel.modifiers & Qt.ControlModifier) {
++        } else if (root.wheelZooms(wheel)) {
+             root.wheelAccumulatedDelta += wheel.angleDelta.y;
+             // Zoom
+             if (root.wheelAccumulatedDelta >= defaultDeltasPerStep) {
+@@ -260,6 +270,7 @@
+     }
+ 
+     function horizontalScroll(wheel) {
++        root.releasePlayheadFollow()
+         var initialX = scrollView.contentX
+         if (wheel.angleDelta.y < 0) {
+             scrollView.contentX = Math.max(0, Math.min(scrollView.contentX - wheel.angleDelta.y, root.timeline.fullDuration * root.timeScale - scrollView.width))
+@@ -490,6 +501,25 @@
+         }
+     }
+ 
++    // Catavan: the item of a clip on a track
++    function getClipItemById(tk, clipId) {
++        var track = Logic.getTrackById(tk)
++        if (track == undefined || track.children == undefined) {
++            return undefined
++        }
++        var container = track.children[0]
++        for (var i = 0 ; i < container.children.length; i++) {
++            if (container.children[i].children.length === 0) {
++                continue
++            }
++            var clipItem = container.children[i].children[0].item
++            if (clipItem && clipItem.clipId === clipId) {
++                return clipItem
++            }
++        }
++        return undefined
++    }
++
+     function getItemAtPos(tk, posx, compositionWanted) {
+         var track = Logic.getTrackById(tk)
+         if (track == undefined || track.children == undefined) {
+@@ -531,12 +561,29 @@
+     readonly property color frameColor: Qt.rgba(activePalette.shadow.r, activePalette.shadow.g, activePalette.shadow.b, 0.5)
+     property int headerWidth: Math.max(minHeaderWidth, root.timeline.headerWidth())
+     property bool blockAutoScroll: false
++    // Catavan: during playback, scrolling the view or placing the action cursor stops following the playhead
++    // until the playback stops (scrollReleasesPlayhead)
++    property bool playheadFollowReleased: false
++    function releasePlayheadFollow() {
++        if (K.KdenliveSettings.scrollReleasesPlayhead && root.proxy && root.proxy.speed != 0) {
++            root.playheadFollowReleased = true
++        }
++    }
+     property int duration: root.timeline.duration
+     property color audioColor: root.timeline.audioColor
+     property color videoColor: root.timeline.videoColor
+     property int doubleClickInterval: root.timeline.doubleClickInterval()
+     property int mainItemId: -1
+     property int clickFrame: -1
++    /** Catavan: a single clip dropped from the bin pushes the following clips (fake move while dragging) */
++    function dropPushes() {
++        return root.controller.normalEdit() && K.KdenliveSettings.dropPushesClips && root.clipBeingDroppedData.indexOf(';') === -1
++    }
++    function dropUsesFakeMove() {
++        return !root.controller.normalEdit() || root.dropPushes()
++    }
++    /** Catavan: frame of the marker right clicked in the ruler, read by the ruler menu */
++    property int rightClickedGuide: -1
+     property int clipBeingDroppedId: -1
+     property string clipBeingDroppedData
+     property int droppedPosition: -1
+@@ -545,6 +592,120 @@
+     property int clipBeingMovedId: -1
+     property int consumerPosition: proxy ? proxy.position : -1
+     property int spacerGroup: -1
++    /** Catavan (Auto Ripple): clip dragged with everything after it (spacer operation), -1 when none */
++    property int rippleDragItem: -1
++    /** Catavan (Auto Ripple): start of the dragged clip, where the markers ripple from (the spacer group item may be a
++        later clip on another track, and the click frame is inside the clip) */
++    property int rippleGuidesFrame: -1
++    /** Catavan (dragSetsZone): frame where a press in an empty area started (-1 when none), the zone before it, and
++        whether the mouse moved enough to set the zone */
++    property int zoneDragFrame: -1
++    property real zoneDragX: -1
++    property point zoneDragOld
++    property bool zoneDragActive: false
++    /** Catavan (vegasSelection): the last item clicked (plain or Ctrl+click), where Shift+click starts its range */
++    property int selectionAnchor: -1
++    /** Catavan (Auto Ripple): clip dragged to another track, a plain move (-1 when none), from rippleMoveTrack / rippleMoveFrame */
++    property int rippleMoveItem: -1
++    property int rippleMoveTrack: -1
++    property int rippleMoveFrame: -1
++    property real rippleMoveClickFrame: -1
++    property int rippleMoveDragFrame: -1
++    property bool rippleMoveCrossfade: false
++    /** Catavan (Auto Ripple): starts the ripple drag of a clip clicked at clickFrame, false if it cannot move */
++    function startRippleDrag(itemId, clickFrame) {
++        root.rippleDragItem = itemId
++        // Catavan: the clicked clip, as in the plain drag (title and clipHighlight border)
++        root.mainItemId = itemId
++        root.spacerTrack = -1
++        root.spacerGuides = K.KdenliveSettings.autoRippleMarkers
++        // Only what starts at the clip start or later follows it (a clip crossing that point stays)
++        root.spacerGroup = root.timeline.requestSpacerStartOperation(-1, root.controller.getItemPosition(itemId), true)
++        root.spacerMinPos = root.timeline.spacerMinPos()
++        root.spacerMaxPos = root.timeline.spacerMaxPos()
++        if (root.spacerGroup < 0) {
++            root.rippleDragItem = -1
++            root.spacerGuides = false
++            return false
++        }
++        root.rippleCrossfade = root.controller.canCrossfadeDrag(root.spacerGroup)
++        root.spacerClickFrame = clickFrame
++        root.spacerFrame = root.controller.getItemPosition(root.spacerGroup)
++        root.finalSpacerFrame = root.spacerFrame
++        root.rippleGuidesFrame = root.controller.getItemPosition(itemId)
++        if (root.spacerGuides) {
++            root.selectedGuides = root.timeline.spacerSelection(root.rippleGuidesFrame)
++            root.timeline.rippleGuidesStart(root.rippleGuidesFrame)
++            if (root.selectedGuides.length > 0) {
++                var firstRippleGuide = root.timeline.getGuidePosition(root.selectedGuides[0])
++                if (firstRippleGuide < root.spacerFrame) {
++                    root.spacerMinPos = Math.max(root.spacerMinPos, root.spacerFrame - firstRippleGuide + 1)
++                }
++            }
++        }
++        return true
++    }
++    /** Catavan (Auto Ripple): the drag leaves the track of the clip, it becomes a plain move of the clip
++        (the clips after it go back to their place, nothing is pushed) */
++    function rippleDragToMove() {
++        let itemId = root.rippleDragItem
++        let groupPos = root.controller.getItemFakePosition(root.spacerGroup)
++        if (groupPos < 0) {
++            groupPos = root.controller.getItemPosition(root.spacerGroup)
++        }
++        if (root.spacerGuides) {
++            root.timeline.spacerMoveGuides(root.selectedGuides, root.spacerFrame - groupPos)
++        }
++        root.timeline.rippleRestoreGuides()
++        root.timeline.requestSpacerEndOperation(root.spacerGroup, root.spacerFrame, root.spacerFrame, root.spacerTrack, [], -1)
++        root.rippleMoveClickFrame = root.spacerClickFrame
++        root.spacerGroup = -1
++        root.spacerGuides = false
++        root.selectedGuides = []
++        root.finalSpacerFrame = -1
++        root.spacerClickFrame = -1
++        root.rippleCrossfade = false
++        root.crossfadePreviews = []
++        root.rippleDragItem = -1
++        root.controller.requestAddToSelection(itemId, true)
++        root.mainItemId = itemId
++        root.rippleMoveItem = itemId
++        root.rippleMoveTrack = root.controller.getItemTrackId(itemId)
++        root.rippleMoveFrame = root.controller.getItemPosition(itemId)
++        root.rippleMoveDragFrame = root.rippleMoveFrame
++        root.rippleMoveCrossfade = root.controller.canCrossfadeDrag(itemId)
++    }
++    /** Catavan (Auto Ripple): the plain move comes back to the track of the clip, the ripple drag starts again */
++    function rippleMoveToDrag() {
++        let itemId = root.rippleMoveItem
++        root.rippleMoveItem = -1
++        root.crossfadePreviews = []
++        if (root.rippleMoveCrossfade) {
++            root.controller.suggestCrossfadeMove(itemId, root.rippleMoveTrack, root.rippleMoveFrame, root.consumerPosition, 0)
++            root.timeline.endFakeMove(itemId, root.rippleMoveFrame, true, false, true)
++        } else {
++            root.controller.requestClipMove(itemId, root.rippleMoveTrack, root.rippleMoveFrame, true, true, false, false, true)
++        }
++        root.startRippleDrag(itemId, root.rippleMoveClickFrame)
++    }
++    /** Catavan (Auto Ripple): id of the track under the mouse of the tracks area, -1 outside the tracks */
++    function rippleMouseTrack(mouseY) {
++        let posy = mouseY + scrollView.contentY - ruler.height - subtitleTrack.height
++        if (posy < 0) {
++            return -1
++        }
++        return Logic.getTrackIdFromPos(Math.min(posy, tracksContainerArea.height))
++    }
++    /** Catavan (Auto Ripple): true when the clip may go to that track (same kind, audio or video) */
++    function rippleTrackAccepts(itemId, trackId) {
++        let source = Logic.getTrackById(root.controller.getItemTrackId(itemId))
++        let target = Logic.getTrackById(trackId)
++        return source && target && trackId !== source.trackInternalId && source.isAudio === target.isAudio
++    }
++    /** Catavan (overlapCrossfade): the Auto Ripple drag may overlap the clips before it, with crossfades */
++    property bool rippleCrossfade: false
++    /** Catavan (overlapCrossfade): crossfades of the clip being dragged, {trackId, start, length} */
++    property var crossfadePreviews: []
+     property int spacerTrack: -1
+     property int spacerFrame: -1
+     property int finalSpacerFrame: -1
+@@ -627,7 +788,9 @@
+         } else if (root.zoomOnBar) {
+             root.zoomOnBar = false
+         } else {
+-            scrollView.contentX = Math.max(0, root.consumerPosition * root.timeScale - (scrollView.width / 2))
++            // Catavan: center on the action cursor when there is one (zoom on playhead), else on the playhead
++            var zoomCenter = root.proxy && root.proxy.actionPosition > -1 ? root.proxy.actionPosition : root.consumerPosition
++            scrollView.contentX = Math.max(0, zoomCenter * root.timeScale - (scrollView.width / 2))
+         }
+         ruler.adjustStepSize()
+         if (dragProxy.draggedItem > -1 && dragProxy.masterObject) {
+@@ -638,7 +801,7 @@
+     }
+ 
+     onConsumerPositionChanged: {
+-        if (!root.blockAutoScroll && root.consumerPosition > -1) {
++        if (!root.blockAutoScroll && !root.playheadFollowReleased && root.consumerPosition > -1) {
+             if (K.KdenliveSettings.centeredplayhead) {
+                 scrollView.contentX = Math.max(0, root.consumerPosition * root.timeScale - (scrollView.width / 2))
+             } else if (root.timeline.autoScroll) {
+@@ -884,10 +1047,10 @@
+                         root.clipBeingDroppedId = -1
+                         root.timeline.activeTrack = targetTrack
+ 
+-                        if (root.controller.normalEdit()) {
++                        if (!root.dropUsesFakeMove()) {
+                             root.clipBeingDroppedId = insertAndMaybeGroup(targetTrack, frame, root.clipBeingDroppedData)
+                         } else {
+-                            // insert/overwrite mode: insert at end of timeline, then let suggestClipMove position it
++                            // insert/overwrite mode (or Catavan pushing drop): insert at end of timeline, then let suggestClipMove position it
+                             root.clipBeingDroppedId = insertAndMaybeGroup(targetTrack, root.timeline.fullDuration, root.clipBeingDroppedData)
+                         }
+                         root.lastDropTrack = targetTrack
+@@ -922,11 +1085,11 @@
+                     else {
+                         bubbleHelp.hide()
+                     }
+-                    var moveData = root.controller.suggestClipMove(root.clipBeingDroppedId, targetTrack, frame, root.consumerPosition, root.snapping)
++                    var moveData = root.controller.suggestClipMove(root.clipBeingDroppedId, targetTrack, frame, root.consumerPosition, root.snapping, true, root.dropPushes())
+                     fakeFrame = moveData[0]
+                     fakeTrack = moveData[1]
+                     root.timeline.activeTrack = fakeTrack
+-                    if (!root.controller.normalEdit()) {
++                    if (root.dropUsesFakeMove()) {
+                         root.controller.requestFakeClipMove(root.clipBeingDroppedId, fakeTrack, fakeFrame, true, false, false)
+                     }
+                     root.continuousScrolling(drag.x + scrollView.contentX, drag.y + scrollView.contentY, upMove)
+@@ -947,10 +1110,21 @@
+                 root.clearDropData()
+                 var frame = root.controller.getClipPosition(cid)
+                 var track = root.controller.getClipTrackId(cid)
+-                if (!root.controller.normalEdit()) {
++                const pushing = root.dropPushes()
++                if (root.dropUsesFakeMove()) {
+                     frame = fakeFrame
+                     track = fakeTrack
+                 }
++                if (pushing) {
++                    // Catavan: place the clip, pushing the following clips if there is no room (replaces the preview)
++                    root.timeline.insertDroppedClipPushing(cid, root.clipBeingDroppedData, track, frame)
++                    fakeTrack = -1
++                    fakeFrame = -1
++                    if (clipDropArea.containsDrag) {
++                        root.regainFocus(clipDropArea.mapToItem(root, drag.x, drag.y))
++                    }
++                    return
++                }
+                 /* We simulate insertion at the final position so that stored undo has correct value
+                  * NOTE: even if dropping multiple clips, requesting the deletion of the first one is
+                  * enough as internally it will request the group deletion
+@@ -1005,7 +1179,7 @@
+                     root.droppedPosition = frame
+                     root.timeline.activeTrack = (tracksRepeater.itemAt(track) as Track).trackInternalId
+                     root.lastDropTrack = root.timeline.activeTrack
+-                    if (root.controller.normalEdit()) {
++                    if (!root.dropUsesFakeMove()) {
+                         root.clipBeingDroppedId = insertAndMaybeGroup(root.timeline.activeTrack, frame, root.clipBeingDroppedData)
+                         if (root.clipBeingDroppedId > -1) {
+                             drag.accepted=true
+@@ -1017,7 +1191,7 @@
+                         // we want insert/overwrite mode, make a fake insert at end of timeline, then move to position
+                         root.clipBeingDroppedId = insertAndMaybeGroup(root.timeline.activeTrack, root.timeline.fullDuration, root.clipBeingDroppedData)
+                         if (root.clipBeingDroppedId > -1) {
+-                            var moveData = root.controller.suggestClipMove(root.clipBeingDroppedId, root.timeline.activeTrack, frame, root.consumerPosition, root.snapping)
++                            var moveData = root.controller.suggestClipMove(root.clipBeingDroppedId, root.timeline.activeTrack, frame, root.consumerPosition, root.snapping, true, root.dropPushes())
+                             fakeFrame = moveData[0]
+                             fakeTrack = moveData[1]
+                             drag.accepted=true
+@@ -1042,7 +1216,7 @@
+                 root.clearDropData()
+             } else if (root.clipBeingDroppedId > -1 && fakeTrack > -1) {
+                 // Clip is dropped
+-                var moveData = root.controller.suggestClipMove(root.clipBeingDroppedId, fakeTrack, 0, root.consumerPosition, root.snapping)
++                var moveData = root.controller.suggestClipMove(root.clipBeingDroppedId, fakeTrack, 0, root.consumerPosition, root.snapping, true, root.dropPushes())
+                 fakeFrame = moveData[0]
+                 fakeTrack = moveData[1]
+                 root.timeline.activeTrack = fakeTrack
+@@ -1356,6 +1530,9 @@
+             height: root.height
+             x: root.headerWidth
+             property bool shiftPress: false
++            // Catavan (vegasSelection): item under a Ctrl+press, toggled in the selection on release unless the press
++            // turns into a pan (the mouse moved)
++            property int ctrlClickItem: -1
+             // This provides continuous scrubbing and scimming at the left/right edges.
+             hoverEnabled: true
+             preventStealing: true
+@@ -1377,7 +1554,7 @@
+                 }
+             }
+             onWheel: wheel => {
+-                if (wheel.modifiers & Qt.AltModifier || wheel.modifiers & Qt.ControlModifier || mouseY > trackHeaders.height) {
++                if (wheel.modifiers & Qt.AltModifier || wheel.modifiers & Qt.ControlModifier || mouseY > trackHeaders.height || root.wheelZooms(wheel)) {
+                     root.zoomByWheel(wheel)
+                 } else if (K.Core.activeTool !== K.ToolType.SlipTool) {
+                     var delta = wheel.modifiers & Qt.ShiftModifier ? K.Core.getCurrentFps() : 1
+@@ -1388,12 +1565,19 @@
+                 focus = true
+                 shiftPress = (mouse.modifiers & Qt.ShiftModifier) && (mouse.y > ruler.height) && !(mouse.modifiers & Qt.AltModifier)
+                 let selectLikeTool = K.Core.activeTool === K.ToolType.SelectTool || K.Core.activeTool === K.ToolType.RippleTool
++                ctrlClickItem = -1
+                 if (mouse.buttons === Qt.MiddleButton || (selectLikeTool && (mouse.modifiers & Qt.ControlModifier) && !shiftPress)) {
+                     clickX = mouseX
+                     clickY = mouseY
+                     panStartGlobalPos = mapToGlobal(mouse.x, mouse.y)
+                     lastGlobalPos = panStartGlobalPos
+                     isWarping = false
++                    if (mouse.buttons === Qt.LeftButton && K.KdenliveSettings.vegasSelection && mouse.y > ruler.height
++                            && root.timeline.exists(dragProxy.draggedItem)) {
++                        // Catavan (vegasSelection): Ctrl+click on an item selects it, the pan starts when the mouse moves
++                        ctrlClickItem = dragProxy.draggedItem
++                        return
++                    }
+                     root.timeline.hideCursor(true)
+                     isCursorHidden = true
+                     return
+@@ -1434,6 +1618,17 @@
+                             root.endDrag()
+                         }
+                     }
++                    if (dragProxy.draggedItem > -1 && mouse.y > ruler.height && mouse.button === Qt.LeftButton && !shiftPress
++                            && !(mouse.modifiers & Qt.ControlModifier) && root.timeline.autoRippleActive()) {
++                        // Catavan (Auto Ripple): the clip moves with everything after it on all tracks,
++                        // as a spacer operation starting at the clip (to another track: a plain move, see rippleDragToMove)
++                        if (root.startRippleDrag(dragProxy.draggedItem, (scrollView.contentX + mouse.x) / root.timeScale)) {
++                            drag.axis = Drag.XAxis
++                            Drag.active = true
++                            Drag.proposedAction = Qt.MoveAction
++                        }
++                        return
++                    }
+                     if (dragProxy.draggedItem > -1 && mouse.y > ruler.height) {
+                         // Check if the mouse exit event was not correctly triggered on the draggeditem
+                         root.regainFocus(tracksArea.mapToItem(root,mouseX, mouseY))
+@@ -1492,7 +1687,18 @@
+                     } else if (selectLikeTool || mouse.y <= ruler.height) {
+                         if (mouse.y > ruler.height) {
+                             root.controller.requestClearSelection();
+-                            root.proxy.position = Math.min((scrollView.contentX + mouse.x) / root.timeScale, root.timeline.fullDuration - 1)
++                            let clickedFrame = Math.min((scrollView.contentX + mouse.x) / root.timeScale, root.timeline.fullDuration - 1)
++                            // Catavan: during playback the click only places the action cursor
++                            if (!root.timeline.requestActionPosition(Math.floor(clickedFrame))) {
++                                root.proxy.position = clickedFrame
++                            }
++                            if (K.KdenliveSettings.dragSetsZone && (mouse.button & Qt.LeftButton)) {
++                                // Catavan (dragSetsZone): a drag from here sets the zone instead of moving the playhead
++                                root.zoneDragFrame = Math.max(0, Math.round(clickedFrame))
++                                root.zoneDragX = scrollView.contentX + mouse.x
++                                root.zoneDragOld = Qt.point(root.timeline.zoneIn, root.timeline.zoneOut)
++                                root.zoneDragActive = false
++                            }
+                         } else if (mouse.y > ruler.guideLabelHeight) {
+                             root.proxy.position = Math.min((scrollView.contentX + mouse.x) / root.timeScale, root.timeline.fullDuration - 1)
+                         }
+@@ -1512,7 +1718,10 @@
+                         root.showTimelineMenu()
+                     } else {
+                         // ruler menu
+-                        root.proxy.position = (scrollView.contentX + mouse.x) / root.timeScale
++                        // Catavan: a right click only opens the menu, the playback goes on
++                        if (!K.KdenliveSettings.markersKeepPlayhead) {
++                            root.proxy.position = (scrollView.contentX + mouse.x) / root.timeScale
++                        }
+                         root.showRulerMenu()
+                     }
+                 }
+@@ -1548,6 +1757,14 @@
+                 let selectLikeTool = K.Core.activeTool === K.ToolType.SelectTool || K.Core.activeTool === K.ToolType.RippleTool
+                 if (pressed && ((mouse.buttons === Qt.MiddleButton) || (mouse.buttons === Qt.LeftButton && selectLikeTool && (mouse.modifiers & Qt.ControlModifier) && !shiftPress))) {
+                     // Pan view
++                    if (ctrlClickItem > -1) {
++                        // Catavan (vegasSelection): a Ctrl+press on an item pans only after a real move
++                        let pressPos = mapToGlobal(mouse.x, mouse.y)
++                        if (Math.abs(pressPos.x - panStartGlobalPos.x) + Math.abs(pressPos.y - panStartGlobalPos.y) < 5) {
++                            return
++                        }
++                        ctrlClickItem = -1
++                    }
+                     if (!isCursorHidden) {
+                         root.timeline.hideCursor(true)
+                         isCursorHidden = true
+@@ -1575,6 +1792,9 @@
+                     var maxScrollX = root.timeline.fullDuration * root.timeScale - scrollView.width
+                     var maxScrollY = trackHeaders.height + subtitleTrackHeader.height - scrollView.height + horZoomBar.height
+                     
++                    if (deltaX !== 0) {
++                        root.releasePlayheadFollow()
++                    }
+                     scrollView.contentX = Math.max(0, Math.min(scrollView.contentX - deltaX, maxScrollX))
+                     scrollView.contentY = Math.max(0, Math.min(scrollView.contentY - deltaY, maxScrollY))
+                     
+@@ -1639,10 +1859,52 @@
+                     }
+                     root.continuousScrolling(newX, newY)
+                 } else if ((pressedButtons & Qt.LeftButton) && (!shiftPress || root.spacerGuides)) {
+-                    if (selectLikeTool || (mouse.y < ruler.height && K.Core.activeTool !== K.ToolType.SlipTool && (K.Core.activeTool !== K.ToolType.SpacerTool || root.spacerGroup == -1))) {
+-                        root.proxy.position = Math.max(0, Math.min((scrollView.contentX + mouse.x) / root.timeScale, root.timeline.fullDuration - 1))
+-                    } else if (K.Core.activeTool === K.ToolType.SpacerTool && root.spacerGroup > -1) {
+-                        // Spacer tool, move group
++                    if (root.rippleMoveItem > -1) {
++                        // Catavan (Auto Ripple): plain move of the clip on another track
++                        let moveTrack = root.rippleMouseTrack(mouse.y)
++                        if (moveTrack === root.rippleMoveTrack) {
++                            root.rippleMoveToDrag()
++                        } else {
++                            if (moveTrack < 0) {
++                                moveTrack = root.controller.getItemTrackId(root.rippleMoveItem)
++                            }
++                            let moveFrame = Math.max(0, Math.round((mouse.x + scrollView.contentX) / root.timeScale - root.rippleMoveClickFrame) + root.rippleMoveFrame)
++                            let snap = (mouse.modifiers & Qt.ShiftModifier) ? 0 : root.snapping
++                            let moveData = root.rippleMoveCrossfade
++                                ? root.controller.suggestCrossfadeMove(root.rippleMoveItem, moveTrack, moveFrame, root.consumerPosition, snap)
++                                : root.controller.suggestClipMove(root.rippleMoveItem, moveTrack, moveFrame, root.consumerPosition, snap, true)
++                            root.rippleMoveDragFrame = moveData[0]
++                            root.timeline.activeTrack = moveData[1]
++                            if (root.rippleMoveCrossfade) {
++                                root.crossfadePreviews = root.controller.crossfadePreview(root.rippleMoveItem)
++                            }
++                            root.continuousScrolling(mouse.x + scrollView.contentX, mouse.y + scrollView.contentY - ruler.height)
++                        }
++                    } else if (root.rippleDragItem > -1 && root.spacerGroup > -1 && root.rippleTrackAccepts(root.rippleDragItem, root.rippleMouseTrack(mouse.y))) {
++                        // Catavan (Auto Ripple): to another track, a plain move of the clip
++                        root.rippleDragToMove()
++                    } else if (root.zoneDragFrame > -1) {
++                        // Catavan (dragSetsZone): the zone goes from the press to the mouse
++                        if (!root.zoneDragActive && Math.abs(scrollView.contentX + mouse.x - root.zoneDragX) > Application.styleHints.startDragDistance) {
++                            root.zoneDragActive = true
++                        }
++                        if (root.zoneDragActive) {
++                            let snap = (mouse.modifiers & Qt.ShiftModifier) ? -1 : root.snapping
++                            let zoneStart = Math.max(0, root.controller.suggestSnapPoint(root.zoneDragFrame, snap))
++                            let zoneEnd = Math.max(0, root.controller.suggestSnapPoint(Math.round((scrollView.contentX + mouse.x) / root.timeScale), snap))
++                            if (zoneEnd !== zoneStart) {
++                                root.timeline.updateZone(root.zoneDragOld, Qt.point(Math.min(zoneStart, zoneEnd), Math.max(zoneStart, zoneEnd)), false)
++                            }
++                            root.continuousScrolling(mouse.x + scrollView.contentX, mouse.y + scrollView.contentY - ruler.height)
++                        }
++                    } else if ((selectLikeTool && root.rippleDragItem < 0) || (mouse.y < ruler.height && K.Core.activeTool !== K.ToolType.SlipTool && (K.Core.activeTool !== K.ToolType.SpacerTool || root.spacerGroup == -1))) {
++                        let draggedFrame = Math.max(0, Math.min((scrollView.contentX + mouse.x) / root.timeScale, root.timeline.fullDuration - 1))
++                        // Catavan: dragging in the tracks during playback moves the action cursor
++                        if (mouse.y < ruler.height || root.proxy.actionPosition < 0 || !root.timeline.requestActionPosition(Math.floor(draggedFrame))) {
++                            root.proxy.position = draggedFrame
++                        }
++                    } else if ((K.Core.activeTool === K.ToolType.SpacerTool || root.rippleDragItem > -1) && root.spacerGroup > -1) {
++                        // Spacer tool (or Auto Ripple drag), move group
+                         var track = root.controller.getItemTrackId(root.spacerGroup)
+                         var lastPos = 0;
+                         if (root.spacerGuides) {
+@@ -1652,13 +1914,23 @@
+                             }
+                         }
+                         var frame = Math.round((mouse.x + scrollView.contentX) / root.timeScale) + root.spacerFrame - root.spacerClickFrame
+-                        frame = Math.max(root.spacerMinPos, frame)
++                        // Catavan: with crossfades the clip may go over the clips before it (the model stops it where needed)
++                        frame = Math.max(root.rippleCrossfade ? 0 : root.spacerMinPos, frame)
+                         if (root.spacerMaxPos > -1) {
+                             frame = Math.min(root.spacerMaxPos, frame)
+                         }
+-                        root.finalSpacerFrame = root.controller.suggestItemMove(root.spacerGroup, track, frame, root.consumerPosition, (mouse.modifiers & Qt.ShiftModifier) ? 0 : root.snapping, true)[0]
++                        if (root.rippleCrossfade) {
++                            root.finalSpacerFrame = root.controller.suggestCrossfadeMove(root.spacerGroup, track, frame, root.consumerPosition, (mouse.modifiers & Qt.ShiftModifier) ? 0 : root.snapping)[0]
++                            root.crossfadePreviews = root.controller.crossfadePreview(root.spacerGroup)
++                        } else {
++                            root.finalSpacerFrame = root.controller.suggestItemMove(root.spacerGroup, track, frame, root.consumerPosition, (mouse.modifiers & Qt.ShiftModifier) ? 0 : root.snapping, true)[0]
++                        }
+                         if (root.spacerGuides && root.finalSpacerFrame > -1) {
+                             root.timeline.spacerMoveGuides(root.selectedGuides, root.finalSpacerFrame - lastPos)
++                            if (root.rippleDragItem > -1) {
++                                // Catavan: the regions crossing the clip start grow or shrink with it
++                                root.timeline.rippleResizeGuides(root.finalSpacerFrame - root.spacerFrame)
++                            }
+                         }
+                         root.continuousScrolling(mouse.x + scrollView.contentX, mouse.y + scrollView.contentY - ruler.height)
+                     } else if (root.spacerGuides) {
+@@ -1674,6 +1946,13 @@
+                 }
+             }
+             onCanceled: {
++                if (root.zoneDragFrame > -1) {
++                    if (root.zoneDragActive) {
++                        root.timeline.updateZone(root.zoneDragOld, root.zoneDragOld, false)
++                    }
++                    root.zoneDragFrame = -1
++                    root.zoneDragActive = false
++                }
+                 if (isCursorHidden) {
+                     root.timeline.hideCursor(false)
+                     isCursorHidden = false
+@@ -1682,11 +1961,38 @@
+             }
+             onReleased: mouse => {
+                 tracksArea.isWarping = false
++                if (root.zoneDragFrame > -1) {
++                    if (root.zoneDragActive) {
++                        // Catavan (dragSetsZone): back to the zone before the drag, then the new one with undo
++                        let newZone = Qt.point(root.timeline.zoneIn, root.timeline.zoneOut)
++                        root.timeline.updateZone(root.zoneDragOld, root.zoneDragOld, false)
++                        if (newZone.y > newZone.x && (newZone.x !== root.zoneDragOld.x || newZone.y !== root.zoneDragOld.y)) {
++                            root.timeline.updateZone(root.zoneDragOld, newZone, true)
++                        }
++                    }
++                    root.zoneDragFrame = -1
++                    root.zoneDragActive = false
++                }
+                 if (tracksArea.isCursorHidden) {
+                     root.timeline.hideCursor(false)
+                     tracksArea.isCursorHidden = false
+                     root.timeline.warpCursor(panStartGlobalPos)
+                 }
++                if (ctrlClickItem > -1) {
++                    // Catavan (vegasSelection): Ctrl+click adds the item to the selection or removes it
++                    let ctrlItem = ctrlClickItem
++                    ctrlClickItem = -1
++                    if (root.timeline.exists(ctrlItem)) {
++                        if (root.timeline.selection.indexOf(ctrlItem) === -1) {
++                            root.controller.requestAddToSelection(ctrlItem)
++                            root.timeline.setClickedItem(ctrlItem, true)
++                        } else {
++                            root.controller.requestRemoveFromSelection(ctrlItem)
++                        }
++                        root.selectionAnchor = ctrlItem
++                    }
++                    return
++                }
+                 if((mouse.button & Qt.LeftButton) && K.Core.activeTool === K.ToolType.SlipTool) {
+                     // slip tool
+                     root.controller.requestSlipSelection(root.trimmingOffset, true)
+@@ -1734,10 +2040,20 @@
+                     if (K.Core.activeTool === K.ToolType.RazorTool) {
+                         // Shift click, process seek
+                         root.proxy.position = Math.min((scrollView.contentX + mouse.x) / root.timeScale, root.timeline.fullDuration - 1)
++                    } else if (dragProxy.draggedItem > -1 && K.KdenliveSettings.vegasSelection) {
++                        // Catavan (vegasSelection): Shift+click selects the items between the last clicked one and
++                        // this one; Ctrl+Shift+click adds them to the selection
++                        let anchor = root.timeline.exists(root.selectionAnchor) && root.timeline.selection.length > 0
++                                ? root.selectionAnchor : dragProxy.draggedItem
++                        root.timeline.selectItemsBetween(anchor, dragProxy.draggedItem, mouse.modifiers & Qt.ControlModifier)
++                        if (anchor === dragProxy.draggedItem) {
++                            root.selectionAnchor = anchor
++                        }
+                     } else if (dragProxy.draggedItem > -1) {
+                         // Select item
+                         if (root.timeline.selection.indexOf(dragProxy.draggedItem) === -1) {
+                             root.controller.requestAddToSelection(dragProxy.draggedItem)
++                            root.timeline.setClickedItem(dragProxy.draggedItem, true)
+                         } else {
+                             root.controller.requestRemoveFromSelection(dragProxy.draggedItem)
+                         }
+@@ -1748,10 +2064,27 @@
+                     return
+                 }
+ 
++                if (root.rippleMoveItem > -1) {
++                    // Catavan (Auto Ripple): end of the plain move on another track
++                    let movedItem = root.rippleMoveItem
++                    root.rippleMoveItem = -1
++                    root.crossfadePreviews = []
++                    if (root.rippleMoveCrossfade) {
++                        root.timeline.endFakeMove(movedItem, root.rippleMoveDragFrame, true, true, true)
++                    } else {
++                        let movedTrack = root.controller.getItemTrackId(movedItem)
++                        root.controller.requestClipMove(movedItem, root.rippleMoveTrack, root.rippleMoveFrame, true, true, false, false, true)
++                        root.controller.requestClipMove(movedItem, movedTrack, root.rippleMoveDragFrame, true, true, true, true)
++                    }
++                    root.timeline.setClickedItem(movedItem, false)
++                    root.timeline.showAsset(movedItem)
++                }
+                 if (root.finalSpacerFrame > -1) {
+                     if (root.spacerGroup > -1) {
+                         var frame = root.controller.getItemPosition(root.spacerGroup)
+-                        root.timeline.requestSpacerEndOperation(root.spacerGroup, root.spacerFrame, root.finalSpacerFrame, root.spacerTrack, root.selectedGuides, root.spacerGuides ? root.spacerClickFrame : -1);
++                        let guidesFrom = root.rippleGuidesFrame > -1 ? root.rippleGuidesFrame : root.spacerClickFrame
++                        root.timeline.rippleRestoreGuides()
++                        root.timeline.requestSpacerEndOperation(root.spacerGroup, root.spacerFrame, root.finalSpacerFrame, root.spacerTrack, root.selectedGuides, root.spacerGuides ? guidesFrom : -1);
+                     } else if (root.spacerGuides) {
+                         // Move back guides to original pos
+                         root.timeline.spacerMoveGuides(root.selectedGuides, root.spacerClickFrame - root.spacerFrame)
+@@ -1759,6 +2092,28 @@
+                     }
+                 }
+ 
++                root.rippleCrossfade = false
++                root.crossfadePreviews = []
++                if (root.rippleDragItem > -1) {
++                    // Catavan: a ripple press without move is a click on the clip
++                    let rippleItem = root.rippleDragItem
++                    root.rippleDragItem = -1
++                    if (root.finalSpacerFrame == root.spacerFrame && root.controller.isClip(rippleItem)) {
++                        root.controller.requestAddToSelection(rippleItem, true)
++                        // Catavan (ungroupSelectedOnly): Ungroup takes the clicked clip out of its group
++                        root.timeline.setClickedItem(rippleItem, false)
++                        root.selectionAnchor = rippleItem
++                        // Catavan: as in the plain click, the effect stack shows the clicked clip (a grouped clip, e.g.
++                        // the audio/video parts of a cut, is a multiple selection that shows nothing by itself)
++                        root.timeline.showAsset(rippleItem)
++                        if (K.KdenliveSettings.clickOnClipSeeks) {
++                            let clickedFrame = Math.max(0, Math.min(Math.floor((scrollView.contentX + mouse.x) / root.timeScale), root.timeline.fullDuration - 1))
++                            if (!root.timeline.requestActionPosition(clickedFrame)) {
++                                root.proxy.position = clickedFrame
++                            }
++                        }
++                    }
++                }
+                 if (root.spacerGroup > -1 || root.spacerGuides) {
+                     root.spacerClickFrame = -1
+                     root.spacerFrame = -1
+@@ -1768,6 +2123,8 @@
+                     root.selectedGuides = []
+                     root.spacerGuides = false
+                 }
++                root.rippleGuidesFrame = -1
++                root.timeline.rippleRestoreGuides()
+ 
+                 scim = false
+             }
+@@ -1982,6 +2339,8 @@
+                                     property int dragFrame
+                                     property int snapping: root.snapping
+                                     property bool moveMirrorTracks: true
++                                    // Catavan (overlapCrossfade): the clip moves over the others (fake move) and the overlaps become crossfades
++                                    property bool crossfade: false
+                                     property point dragStartGlobalPos
+                                     cursorShape: {
+                                         if (K.Core.activeTool === K.ToolType.SelectTool) {
+@@ -1998,6 +2357,11 @@
+                                             mouse.accepted = false
+                                             return
+                                         }
++                                        if (root.timeline.autoRippleActive()) {
++                                            // Catavan (Auto Ripple): tracksArea moves the clip with what follows it
++                                            mouse.accepted = false
++                                            return
++                                        }
+                                         dragStartGlobalPos = mapToGlobal(mouse.x, mouse.y)
+                                         tracksArea.lastGlobalPos = dragStartGlobalPos
+                                         if (!root.timeline.exists(dragProxy.draggedItem)) {
+@@ -2013,6 +2377,9 @@
+                                             doubleClickTimer.start()
+                                             root.controller.requestAddToSelection(dragProxy.draggedItem, /*clear=*/ !(mouse.modifiers & Qt.ShiftModifier), /*single item selection */ singleSelection)
+                                         }
++                                        // Catavan (ungroupSelectedOnly): Ungroup takes the clicked item out of its group
++                                        root.timeline.setClickedItem(dragProxy.draggedItem, false)
++                                        root.selectionAnchor = dragProxy.draggedItem
+                                         root.timeline.showAsset(dragProxy.draggedItem)
+                                         root.blockAutoScroll = true
+                                         root.clipBeingMovedId = dragProxy.draggedItem
+@@ -2053,6 +2420,8 @@
+                                             }
+                                             if (clickAccepted && dragProxy.draggedItem != -1) {
+                                                 focus = true;
++                                                crossfade = K.Core.activeTool === K.ToolType.SelectTool && !dragProxy.isComposition
++                                                            && root.controller.canCrossfadeDrag(dragProxy.draggedItem)
+                                                 root.mainItemId = dragProxy.draggedItem
+                                                 dragProxy.masterObject.originalX = dragProxy.masterObject.x
+                                                 dragProxy.masterObject.originalTrackId = dragProxy.masterObject.trackId
+@@ -2119,7 +2488,12 @@
+                                                 dragProxyArea.dragFrame = moveData[0]
+                                                 root.timeline.activeTrack = moveData[1]
+                                             } else {
+-                                                moveData = root.controller.suggestClipMove(dragProxy.draggedItem, tId, posx, root.consumerPosition, dragProxyArea.snapping, moveMirrorTracks)
++                                                if (dragProxyArea.crossfade) {
++                                                    moveData = root.controller.suggestCrossfadeMove(dragProxy.draggedItem, tId, posx, root.consumerPosition, dragProxyArea.snapping)
++                                                    root.crossfadePreviews = root.controller.crossfadePreview(dragProxy.draggedItem)
++                                                } else {
++                                                    moveData = root.controller.suggestClipMove(dragProxy.draggedItem, tId, posx, root.consumerPosition, dragProxyArea.snapping, moveMirrorTracks)
++                                                }
+                                                 dragProxyArea.dragFrame = moveData[0]
+                                                 root.timeline.activeTrack = moveData[1]
+                                                 if (!root.controller.normalEdit()) {
+@@ -2146,6 +2520,7 @@
+                                     onReleased: {
+                                         root.clipBeingMovedId = -1
+                                         root.blockAutoScroll = false
++                                        root.crossfadePreviews = []
+                                         var itemId = dragProxy.draggedItem
+                                         var sourceTrack = dragProxy.sourceTrack
+                                         var sourceFrame = dragProxy.sourceFrame
+@@ -2164,7 +2539,7 @@
+                                                     root.timeline.endFakeMove(itemId, dragFrame, true, true, true)
+                                                 }
+                                             } else {
+-                                                if (root.controller.normalEdit()) {
++                                                if (root.controller.normalEdit() && !dragProxyArea.crossfade) {
+                                                     // Move clip back to original position
+                                                     root.controller.requestClipMove(itemId, sourceTrack, sourceFrame, moveMirrorTracks, true, false, false, true)
+                                                     // Move clip to final pos
+@@ -2205,10 +2580,18 @@
+                                             }
+                                         }
+                                     }
+-                                    onClicked: {
++                                    onClicked: mouse => {
+                                         if (dragProxy.masterObject.keyframeModel && dragProxy.masterObject.showKeyframes) {
+                                             dragProxy.masterObject.resetSelection()
+                                         }
++                                        if (K.KdenliveSettings.clickOnClipSeeks) {
++                                            // Catavan: a click on a clip (without dragging) moves the playhead there,
++                                            // or only the action cursor during playback
++                                            let clickedFrame = Math.max(0, Math.min(Math.floor((parent.x + mouse.x) / root.timeScale), root.timeline.fullDuration - 1))
++                                            if (!root.timeline.requestActionPosition(clickedFrame)) {
++                                                root.proxy.position = clickedFrame
++                                            }
++                                        }
+                                     }
+                                 }
+                             }
+@@ -2227,6 +2610,59 @@
+                                 anchors.fill: tracksContainer
+                                 z: 100
+                             }
++                            // Catavan (overlapCrossfade): the crossfades of the drag, drawn while dragging
++                            Item {
++                                anchors.fill: tracksContainer
++                                z: 101
++                                Repeater {
++                                    model: root.crossfadePreviews
++                                    delegate: Item {
++                                        id: crossfadePreview
++                                        required property var modelData
++                                        property var track: Logic.getTrackById(modelData.trackId)
++                                        visible: track !== undefined && track !== null
++                                        x: modelData.start * root.timeScale
++                                        y: visible ? track.y : 0
++                                        width: Math.max(1, modelData.length * root.timeScale)
++                                        height: visible ? track.height : 0
++                                        Rectangle {
++                                            anchors.fill: parent
++                                            color: Qt.rgba(1, 1, 1, 0.25)
++                                            border.color: '#FFFFFF'
++                                            border.width: 1
++                                        }
++                                        Shape {
++                                            anchors.fill: parent
++                                            // The clip before fades out, the dragged one fades in
++                                            ShapePath {
++                                                strokeColor: '#FFFFFF'
++                                                strokeWidth: 2
++                                                fillColor: 'transparent'
++                                                startX: 0; startY: 0
++                                                PathLine { x: crossfadePreview.width; y: crossfadePreview.height }
++                                            }
++                                            ShapePath {
++                                                strokeColor: '#FFD54F'
++                                                strokeWidth: 2
++                                                fillColor: 'transparent'
++                                                startX: 0; startY: crossfadePreview.height
++                                                PathLine { x: crossfadePreview.width; y: 0 }
++                                            }
++                                        }
++                                        Text {
++                                            anchors.horizontalCenter: parent.horizontalCenter
++                                            anchors.bottom: parent.bottom
++                                            anchors.bottomMargin: 2
++                                            visible: parent.width > width + 4
++                                            text: root.timeline.simplifiedTC(crossfadePreview.modelData.length)
++                                            color: '#FFFFFF'
++                                            style: Text.Outline
++                                            styleColor: '#000000'
++                                            font: K.UiUtils.smallestReadableFont
++                                        }
++                                    }
++                                }
++                            }
+                             Rectangle {
+                                 id: sameTrackIndicator
+                                 border.color: '#FFF'
+@@ -2332,6 +2768,15 @@
+                             height: tracksContainerArea.height
+                             x: Math.round(root.consumerPosition * root.timeScale)
+                         }
++                        Rectangle {
++                            // Catavan: action cursor, apart from the playhead during playback
++                            id: actionCursor
++                            visible: root.proxy && root.proxy.actionPosition > -1
++                            color: activePalette.highlight
++                            width: 2
++                            height: tracksContainerArea.height
++                            x: visible ? Math.round(root.proxy.actionPosition * root.timeScale) : 0
++                        }
+                     }
+                     K.ZoomBar {
+                         id: horZoomBar
+@@ -2350,7 +2795,10 @@
+                             root.zoomOnBar = true
+                         }
+                         contentPos: scrollView.contentX / scrollView.contentWidth
+-                        onProposeContentPos: (proposedValue) => { scrollView.contentX = Math.max(0, proposedValue * scrollView.contentWidth) }
++                        onProposeContentPos: (proposedValue) => {
++                            root.releasePlayheadFollow()
++                            scrollView.contentX = Math.max(0, proposedValue * scrollView.contentWidth)
++                        }
+                         onZoomByWheel: wheel => root.zoomByWheel(wheel)
+                         onFitZoom: {
+                             root.timeline.scaleFactor = root.fitZoom()
+@@ -2539,6 +2987,21 @@
+         }
+     }
+ 
++    Connections {
++        // Catavan: follow the playhead again once the playback stops; the action cursor releases it
++        target: root.proxy
++        function onSpeedChanged() {
++            if (root.proxy.speed == 0) {
++                root.playheadFollowReleased = false
++            }
++        }
++        function onActionPositionChanged() {
++            if (root.proxy.actionPosition > -1) {
++                root.releasePlayheadFollow()
++            }
++        }
++    }
++
+     Connections {
+         target: root.timeline
+         function onFrameFormatChanged() {

@@ -1,0 +1,27 @@
+# Catavan: adjustable playback speed in the monitors (0x to 4x), with audio (pitch follows, or WSOLA).
+# MLT: fractional producer position; monitorspeed filter; mix and timewarp pass producer_consumer_fps on.
+# producer_avformat.c also carries render-speed.
+mlt-7.42.0/src/framework/mlt_producer.c
+mlt-7.42.0/src/modules/wsola/filter_wsola.cpp
+mlt-7.42.0/src/modules/rtaudio/consumer_rtaudio.cpp
+mlt-7.42.0/src/modules/sdl2/consumer_sdl2_audio.c
+mlt-7.42.0/src/framework/mlt_consumer.c
+mlt-7.42.0/src/modules/core/transition_mix.c
+mlt-7.42.0/src/modules/core/producer_timewarp.c
+mlt-7.42.0/src/modules/avformat/producer_avformat.c
+mlt-7.42.0/src/modules/avformat/link_swresample.c
+mlt-7.42.0/src/modules/wsola/CMakeLists.txt
+mlt-7.42.0/src/modules/wsola/factory.c
+mlt-7.42.0/src/modules/wsola/filter_monitorspeed.cpp
+mlt-7.42.0/src/modules/wsola/filter_monitorspeed.yml
+# Kdenlive: status bar slider, option monitorSpeedSlider, kept in sync with J/L
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/mainwindow.h
+kdenlive-26.08.2/src/mainwindow.cpp
+kdenlive-26.08.2/src/monitor/videowidget.h
+kdenlive-26.08.2/src/monitor/videowidget.cpp
+kdenlive-26.08.2/src/monitor/monitor.h
+kdenlive-26.08.2/src/monitor/monitor.cpp
+kdenlive-26.08.2/src/monitor/monitormanager.cpp
+kdenlive-26.08.2/po/pt_BR/kdenlive.po

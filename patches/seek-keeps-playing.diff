@@ -1,0 +1,238 @@
+--- a/kdenlive-26.08.2/src/kdenlivesettings.kcfg
++++ b/kdenlive-26.08.2/src/kdenlivesettings.kcfg
+@@ -326,7 +326,8 @@
+ 
+     <entry name="parallelrender" type="Bool">
+       <label>Enable parallel processing for rendering.</label>
+-      <default>false</default>
++      <!-- Catavan: on by default (the render took about twice as long with one thread) -->
++      <default>true</default>
+     </entry>
+ 
+     <entry name="renderInterp" type="String">
+@@ -427,6 +428,151 @@
+       <default>true</default>
+     </entry>
+ 
++    <entry name="pitchMethodPerClip" type="Bool">
++      <label>Choose the pitch compensation algorithm (Rubberband or WSOLA) of each clip in the speed dialog.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="actionCursor" type="Bool">
++      <label>Clicking the timeline during playback places an action cursor, used by edit actions, without moving the playback.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="splitShortcut" type="Bool">
++      <label>S splits the clips at the action cursor, X selects the selection tool and the razor tool has no shortcut (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="deleteMarkerMenu" type="Bool">
++      <label>Right clicking a timeline marker offers to edit or remove it; elsewhere in the ruler the menu only offers to add a marker.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="clickOnClipSeeks" type="Bool">
++      <label>Clicking a clip moves the playhead to the click position (the action cursor during playback).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="autoRippleTool" type="Bool">
++      <label>Replace the spacer tool by the Auto Ripple toggle (M) in the timeline toolbar (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="autoRipple" type="Bool">
++      <label>Auto Ripple is on: inserting, deleting or moving a clip also moves what follows it on all tracks.</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="autoRippleMarkers" type="Bool">
++      <label>Auto Ripple also moves the timeline markers.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="groupTrimPush" type="Bool">
++      <label>Trimming a grouped clip: grouped clips whose edge is reached are pushed along, and stop at the end of their material.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="wheelZoomsTimeline" type="Bool">
++      <label>Timeline mouse wheel: the plain wheel zooms and Ctrl+wheel scrolls.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="rippleTrimLive" type="Bool">
++      <label>Auto Ripple: the following clips move while dragging a clip edge (otherwise only when the mouse is released).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="dropPushesClips" type="Bool">
++      <label>Dropping a clip from the bin where there is no room pushes the following clips.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="scrollReleasesPlayhead" type="Bool">
++      <label>During playback, scrolling the timeline or placing the action cursor stops the view from following the playhead until the playback stops.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="ungroupSelectedOnly" type="Bool">
++      <label>Ungroup takes only the clicked clips out of their group; the other clips stay grouped.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="removeMixClips" type="Bool">
++      <label>Mix Clips is hidden and a double click on a clip edge creates no mix (overlapping clips makes the crossfades); U ungroups (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="vegasShortcuts" type="Bool">
++      <label>Vegas shortcuts: M adds a timeline marker, G groups, Ctrl+L toggles Auto Ripple (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="hwDecodingAutoChecked" type="Bool">
++      <label>Catavan: hardware decoding was already turned on once because an NVIDIA encoder was found (turning it off afterwards is kept).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="dragSetsZone" type="Bool">
++      <label>Dragging in an empty part of the timeline sets the zone (in point where the drag starts, out point where it ends), as in Vegas.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="vegasSelection" type="Bool">
++      <label>Ctrl+click adds or removes a clip from the selection and Shift+click selects the clips between the last clicked one and the clicked one, as in Vegas.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="shareSpeedProducers" type="Bool">
++      <label>Clips with the same speed on a track share one decoder instead of one each.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="groupTracksIndependent" type="Bool">
++      <label>Moving a grouped clip to another track moves the clips of the same kind (video or audio) only; the others keep their tracks.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="transformMirror" type="Bool">
++      <label>In the Transform effect, a negative width or height mirrors the image in place.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="clipHighlight" type="Bool">
++      <label>A clip under the mouse is lighter; among the selected clips, the clicked one keeps the bright selection border and the others get a darker one.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="overlapCrossfade" type="Bool">
++      <label>Dragging a clip over the edge of another clip on the same track creates a crossfade in the overlap.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="monitorSpeedSlider" type="Bool">
++      <label>Playback speed slider in the status bar, with audio at speeds up to 4x (needs restart).</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="monitorPlaybackSpeed" type="Double">
++      <label>Speed used when playing the monitors.</label>
++      <default>1.0</default>
++    </entry>
++
++    <entry name="monitorSpeedPreservePitch" type="Bool">
++      <label>Keep the pitch of the audio played at a speed other than 1 (WSOLA, more processing).</label>
++      <default>false</default>
++    </entry>
++
++    <entry name="markersKeepPlayhead" type="Bool">
++      <label>Right clicking the timeline ruler or a marker opens the menu without moving the playhead, and creating a marker does not move the playhead to it.</label>
++      <default>true</default>
++    </entry>
++
++    <entry name="trimEdgePreview" type="Bool">
++      <label>While trimming, the project monitor displays the frame at the dragged clip edge instead of the video (audio keeps playing).</label>
++      <default>true</default>
++    </entry>
++
+     <entry name="normalizechannels" type="Bool">
+       <label>Normalize audio channels in thumbnails.</label>
+       <default>true</default>
+@@ -451,7 +597,8 @@
+ 
+     <entry name="pauseonseek" type="Bool">
+       <label>Pause playback when seeking.</label>
+-      <default>true</default>
++      <!-- Catavan: the playback goes on when seeking (clicking the ruler) -->
++      <default>false</default>
+     </entry>
+ 
+     <entry name="rewindOnStop" type="Bool">
+@@ -672,7 +819,7 @@
+     </entry>
+ 
+     <entry name="kdenliverendererpath" type="Path">
+-      <label>Kdenlive renderer install path.</label>
++      <label>Catavan renderer install path.</label>
+       <default></default>
+     </entry>
+ 
+@@ -723,13 +870,14 @@
+     </entry>
+ 
+     <entry name="maxcachesize" type="Int">
+-      <label>Kdenlive will periodically check if the cached data exceeds this limit. Data is in Mb</label>
++      <label>Catavan will periodically check if the cached data exceeds this limit. Data is in Mb</label>
+       <default>1024</default>
+     </entry>
+ 
+     <entry name="checkForUpdate" type="Bool">
+       <label>Automatically check for updates</label>
+-      <default>true</default>
++      <!-- Catavan: off, the reminder compares the Kdenlive base version and sends to the Kdenlive download page -->
++      <default>false</default>
+     </entry>
+ 
+     <entry name="usePowerManagement" type="Bool">
+@@ -738,7 +886,7 @@
+     </entry>
+ 
+     <entry name="lastCacheCheck" type="DateTime">
+-      <label>Kdenlive will check every 2 weeks on startup if the cached data exceeds the defined maxcachesize. This is the last checked date</label>
++      <label>Catavan will check every 2 weeks on startup if the cached data exceeds the defined maxcachesize. This is the last checked date</label>
+       <default></default>
+     </entry>
+ 
+@@ -1109,7 +1257,8 @@
+ 
+     <entry name="timelinemousezoomonplayhead" type="Bool">
+       <label>Mouse zoom on timeline based on playhead position, not mouse position.</label>
+-      <default>false</default>
++      <!-- Catavan: on by default, shown in the timeline settings; centers on the action cursor when there is one -->
++      <default>true</default>
+     </entry>
+ 
+     <entry name="transitionfollowcursor" type="Bool">
+@@ -1480,15 +1629,15 @@
+       <default>true</default>
+     </entry>
+     <entry name="lastSeenVersionMajor" type="Int">
+-      <label>Last used version of Kdenlive - major.</label>
++      <label>Last used version of Catavan - major.</label>
+       <default>0</default>
+     </entry>
+     <entry name="lastSeenVersionMinor" type="Int">
+-      <label>Last used version of Kdenlive - minor.</label>
++      <label>Last used version of Catavan - minor.</label>
+       <default>0</default>
+     </entry>
+     <entry name="lastSeenVersionMicro" type="Int">
+-      <label>Last used version of Kdenlive - micro.</label>
++      <label>Last used version of Catavan - micro.</label>
+       <default>0</default>
+     </entry>
+ 

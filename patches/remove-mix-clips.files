@@ -1,0 +1,7 @@
+# Catavan: Mix Clips is hidden and a double click on a clip edge creates no mix (overlapCrossfade makes the
+# crossfades); U ungroups, besides Ctrl+Shift+G. Option removeMixClips (needs restart).
+kdenlive-26.08.2/src/kdenlivesettings.kcfg
+kdenlive-26.08.2/src/ui/configtimeline_ui.ui
+kdenlive-26.08.2/src/mainwindow.cpp
+kdenlive-26.08.2/src/timeline2/view/qml/Clip.qml
+kdenlive-26.08.2/po/pt_BR/kdenlive.po
