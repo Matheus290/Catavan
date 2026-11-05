@@ -1,5 +1,5 @@
 # Catavan: own name and identity, apart from an installed Kdenlive.
-# - Application name, About dialog (version 0.1.0, Kdenlive as a component, unofficial fork notice), interface strings
+# - Application name, About dialog (version, Kdenlive as a component, unofficial fork notice), interface strings
 #   naming the application ("Catavan must be restarted"), in all translations.
 # - Internal name catavan: catavanrc config, data in share/catavan and ~/.local/share/catavan, catavan.mo translations
 #   (sources stay po/<lang>/kdenlive.po), catavan and catavan_render executables, catavanlock, own knsrc files.

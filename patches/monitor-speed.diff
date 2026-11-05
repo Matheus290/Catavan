@@ -1517,7 +1517,7 @@
      </entry>
  
      <entry name="renderInterp" type="String">
-@@ -427,6 +428,151 @@
+@@ -427,6 +428,156 @@
        <default>true</default>
      </entry>
  
@@ -1641,6 +1641,11 @@
 +      <default>true</default>
 +    </entry>
 +
++    <entry name="crossfadeOverlapMark" type="Int">
++      <label>While dragging, an X marks the overlap of the clips: 0 never, 1 only on a new overlap, 2 always (also over a crossfade the clips already have).</label>
++      <default>2</default>
++    </entry>
++
 +    <entry name="monitorSpeedSlider" type="Bool">
 +      <label>Playback speed slider in the status bar, with audio at speeds up to 4x (needs restart).</label>
 +      <default>true</default>
@@ -1669,7 +1674,7 @@
      <entry name="normalizechannels" type="Bool">
        <label>Normalize audio channels in thumbnails.</label>
        <default>true</default>
-@@ -451,7 +597,8 @@
+@@ -451,7 +602,8 @@
  
      <entry name="pauseonseek" type="Bool">
        <label>Pause playback when seeking.</label>
@@ -1679,7 +1684,7 @@
      </entry>
  
      <entry name="rewindOnStop" type="Bool">
-@@ -672,7 +819,7 @@
+@@ -672,7 +824,7 @@
      </entry>
  
      <entry name="kdenliverendererpath" type="Path">
@@ -1688,7 +1693,7 @@
        <default></default>
      </entry>
  
-@@ -723,13 +870,14 @@
+@@ -723,13 +875,14 @@
      </entry>
  
      <entry name="maxcachesize" type="Int">
@@ -1705,7 +1710,7 @@
      </entry>
  
      <entry name="usePowerManagement" type="Bool">
-@@ -738,7 +886,7 @@
+@@ -738,7 +891,7 @@
      </entry>
  
      <entry name="lastCacheCheck" type="DateTime">
@@ -1714,7 +1719,7 @@
        <default></default>
      </entry>
  
-@@ -1109,7 +1257,8 @@
+@@ -1109,7 +1262,8 @@
  
      <entry name="timelinemousezoomonplayhead" type="Bool">
        <label>Mouse zoom on timeline based on playhead position, not mouse position.</label>
@@ -1724,7 +1729,7 @@
      </entry>
  
      <entry name="transitionfollowcursor" type="Bool">
-@@ -1480,15 +1629,15 @@
+@@ -1480,15 +1634,15 @@
        <default>true</default>
      </entry>
      <entry name="lastSeenVersionMajor" type="Int">
@@ -1745,7 +1750,7 @@
  
 --- a/kdenlive-26.08.2/src/ui/configtimeline_ui.ui
 +++ b/kdenlive-26.08.2/src/ui/configtimeline_ui.ui
-@@ -234,6 +234,263 @@
+@@ -234,6 +234,310 @@
      </widget>
     </item>
     <item row="22" column="0">
@@ -1886,14 +1891,61 @@
 +    </widget>
 +   </item>
 +   <item row="35" column="1">
-+    <widget class="QCheckBox" name="kcfg_overlapCrossfade">
-+     <property name="toolTip">
-+      <string>Dragging a clip over the start or end of another clip on the same track overlaps them and creates a crossfade (mix) as long as the overlap; dragging it away removes the crossfade</string>
-+     </property>
-+     <property name="text">
-+      <string>Overlapping clips creates a crossfade</string>
-+     </property>
-+    </widget>
++    <layout class="QVBoxLayout" name="crossfadeLayout">
++     <item>
++      <widget class="QCheckBox" name="kcfg_overlapCrossfade">
++       <property name="toolTip">
++        <string>Dragging a clip over the start or end of another clip on the same track overlaps them and creates a crossfade (mix) as long as the overlap; dragging it away removes the crossfade</string>
++       </property>
++       <property name="text">
++        <string>Overlapping clips creates a crossfade</string>
++       </property>
++      </widget>
++     </item>
++     <item>
++      <layout class="QHBoxLayout" name="crossfadeMarkLayout">
++       <item>
++        <widget class="QLabel" name="crossfadeMarkLabel">
++         <property name="text">
++          <string>Show the X of the overlap while dragging:</string>
++         </property>
++         <property name="buddy">
++          <cstring>kcfg_crossfadeOverlapMark</cstring>
++         </property>
++        </widget>
++       </item>
++       <item>
++        <widget class="QComboBox" name="kcfg_crossfadeOverlapMark">
++         <property name="toolTip">
++          <string>While a clip is dragged, an X (the clip before fades out, the dragged one fades in) marks where the clips overlap. "When an overlap starts" shows it only on a new overlap; "Always" shows it over the crossfades the clips already have too</string>
++         </property>
++         <item>
++          <property name="text">
++           <string>Never</string>
++          </property>
++         </item>
++         <item>
++          <property name="text">
++           <string>When an overlap starts</string>
++          </property>
++         </item>
++         <item>
++          <property name="text">
++           <string>Always</string>
++          </property>
++         </item>
++        </widget>
++       </item>
++       <item>
++        <spacer name="crossfadeMarkSpacer">
++         <property name="orientation">
++          <enum>Qt::Orientation::Horizontal</enum>
++         </property>
++        </spacer>
++       </item>
++      </layout>
++     </item>
++    </layout>
 +   </item>
 +   <item row="36" column="1">
 +    <widget class="QCheckBox" name="kcfg_timelinemousezoomonplayhead">
@@ -2009,7 +2061,7 @@
      <spacer name="verticalSpacer">
       <property name="orientation">
        <enum>Qt::Orientation::Vertical</enum>
-@@ -304,6 +561,31 @@
+@@ -304,6 +608,32 @@
    <tabstop>kcfg_multistream</tabstop>
    <tabstop>kcfg_multistream_checktrack</tabstop>
    <tabstop>kcfg_uiDebugMode</tabstop>
@@ -2027,6 +2079,7 @@
 +  <tabstop>kcfg_groupTrimPush</tabstop>
 +  <tabstop>kcfg_wheelZoomsTimeline</tabstop>
 +  <tabstop>kcfg_overlapCrossfade</tabstop>
++  <tabstop>kcfg_crossfadeOverlapMark</tabstop>
 +  <tabstop>kcfg_timelinemousezoomonplayhead</tabstop>
 +  <tabstop>kcfg_scrollReleasesPlayhead</tabstop>
 +  <tabstop>kcfg_ungroupSelectedOnly</tabstop>
@@ -3263,7 +3316,7 @@
  "Apenas para usuários avançados, pois você terá que configurar tudo "
  "corretamente por conta própria."
  
-@@ -47932,3 +47932,508 @@
+@@ -47932,3 +47932,541 @@
  #~ msgctxt "@action:button"
  #~ msgid "Confirm"
  #~ msgstr "Confirmar"
@@ -3334,6 +3387,39 @@
 +#: src/ui/configtimeline_ui.ui
 +msgid "Overlapping clips creates a crossfade"
 +msgstr "Sobrepor clipes cria uma transição (crossfade)"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Show the X of the overlap while dragging:"
++msgstr "Mostrar o X da sobreposição ao arrastar:"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"While a clip is dragged, an X (the clip before fades out, the dragged one "
++"fades in) marks where the clips overlap. \"When an overlap starts\" shows it "
++"only on a new overlap; \"Always\" shows it over the crossfades the clips "
++"already have too"
++msgstr ""
++"Enquanto um clipe é arrastado, um X (o clipe anterior some, o arrastado "
++"aparece) marca onde os clipes se sobrepõem. \"Ao iniciar uma sobreposição\" "
++"mostra o X só numa sobreposição nova; \"Sempre\" mostra também sobre os "
++"crossfades que os clipes já têm"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "When an overlap starts"
++msgstr "Ao iniciar uma sobreposição"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Never"
++msgstr "Nunca"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Always"
++msgstr "Sempre"
 +
 +#. Catavan
 +#: src/ui/configtimeline_ui.ui
@@ -3772,3 +3858,29 @@
 +msgstr ""
 +"Arrastar numa parte vazia da timeline define a zona (entrada onde o arraste "
 +"começa, saída onde termina), como no Vegas."
+--- a/mlt-7.42.0/src/framework/mlt_service.c
++++ b/mlt-7.42.0/src/framework/mlt_service.c
+@@ -607,6 +607,12 @@
+                 && mlt_properties_get_int(MLT_SERVICE_PROPERTIES(self), "_need_previous_next")) {
+                 // Save the new position from self->get_frame
+                 mlt_position new_position = mlt_producer_position(MLT_PRODUCER(self));
++                // and the fractional position kept by mlt_producer_prepare_next(), which the
++                // extra frames below would overwrite
++                mlt_properties producer_properties = MLT_SERVICE_PROPERTIES(self);
++                double fraction = mlt_properties_get_double(producer_properties, "_fraction");
++                mlt_position fraction_position = mlt_properties_get_position(producer_properties,
++                                                                             "_fraction_position");
+ 
+                 // Get the preceding frame, unfiltered
+                 mlt_frame previous_frame;
+@@ -635,6 +641,10 @@
+ 
+                 // Restore the new position
+                 mlt_producer_seek(MLT_PRODUCER(self), new_position);
++                mlt_properties_set_double(producer_properties, "_fraction", fraction);
++                mlt_properties_set_position(producer_properties,
++                                            "_fraction_position",
++                                            fraction_position);
+             }
+         }
+     }

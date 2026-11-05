@@ -2,7 +2,7 @@
 
 **An open source video editor based on [Kdenlive](https://kdenlive.org), with an editing workflow inspired by VEGAS Pro.**
 
-> **Version 0.1.0**, the first release. As with any new editor, keep backups of your projects.
+> **Version 0.2.0**. As with any new editor, keep backups of your projects.
 
 ## Why
 
@@ -205,9 +205,9 @@ DEVELOPMENT.md  how each feature works, decisions, tests
 
 ## Known issues
 
-- **Auto Ripple near the start of the timeline:** dragging grouped clips (audio and video) to the left until they hit
-  the start of the timeline can move the parts out of line with each other. Leave some space before the first clip
-  when using Auto Ripple. Fix planned for the next version.
+- **Grouped clips at the start of the timeline:** fixed in 0.2.0 for the normal drag (the group stops at the start
+  and keeps its parts in line). With Auto Ripple on, this case is not covered by the automatic tests yet: if the parts
+  of a group go out of line, undo (Ctrl+Z) and please report it.
 - **Cutting inside a crossfade** (also in Kdenlive) can leave the track in a broken state. Cut outside the crossfade.
 
 ## Reporting bugs

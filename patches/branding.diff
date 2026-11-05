@@ -25,7 +25,7 @@
  # Get current version.
  set(KDENLIVE_VERSION_STRING "${KDENLIVE_VERSION}")
 +# Catavan: version of the fork
-+set(CATAVAN_VERSION "0.1.0")
++set(CATAVAN_VERSION "0.2.0")
 +# Catavan: application ID (desktop file, metainfo, Wayland app id); also written in data/catavan.notifyrc,
 +# data/org.kde.kdenlive.desktop (X-DBUS-ServiceName) and data/org.kde.kdenlive.appdata.xml
 +set(CATAVAN_APP_ID "com.hexoby.Catavan")
@@ -649,7 +649,7 @@
      </entry>
  
      <entry name="renderInterp" type="String">
-@@ -427,6 +428,151 @@
+@@ -427,6 +428,156 @@
        <default>true</default>
      </entry>
  
@@ -773,6 +773,11 @@
 +      <default>true</default>
 +    </entry>
 +
++    <entry name="crossfadeOverlapMark" type="Int">
++      <label>While dragging, an X marks the overlap of the clips: 0 never, 1 only on a new overlap, 2 always (also over a crossfade the clips already have).</label>
++      <default>2</default>
++    </entry>
++
 +    <entry name="monitorSpeedSlider" type="Bool">
 +      <label>Playback speed slider in the status bar, with audio at speeds up to 4x (needs restart).</label>
 +      <default>true</default>
@@ -801,7 +806,7 @@
      <entry name="normalizechannels" type="Bool">
        <label>Normalize audio channels in thumbnails.</label>
        <default>true</default>
-@@ -451,7 +597,8 @@
+@@ -451,7 +602,8 @@
  
      <entry name="pauseonseek" type="Bool">
        <label>Pause playback when seeking.</label>
@@ -811,7 +816,7 @@
      </entry>
  
      <entry name="rewindOnStop" type="Bool">
-@@ -672,7 +819,7 @@
+@@ -672,7 +824,7 @@
      </entry>
  
      <entry name="kdenliverendererpath" type="Path">
@@ -820,7 +825,7 @@
        <default></default>
      </entry>
  
-@@ -723,13 +870,14 @@
+@@ -723,13 +875,14 @@
      </entry>
  
      <entry name="maxcachesize" type="Int">
@@ -837,7 +842,7 @@
      </entry>
  
      <entry name="usePowerManagement" type="Bool">
-@@ -738,7 +886,7 @@
+@@ -738,7 +891,7 @@
      </entry>
  
      <entry name="lastCacheCheck" type="DateTime">
@@ -846,7 +851,7 @@
        <default></default>
      </entry>
  
-@@ -1109,7 +1257,8 @@
+@@ -1109,7 +1262,8 @@
  
      <entry name="timelinemousezoomonplayhead" type="Bool">
        <label>Mouse zoom on timeline based on playhead position, not mouse position.</label>
@@ -856,7 +861,7 @@
      </entry>
  
      <entry name="transitionfollowcursor" type="Bool">
-@@ -1480,15 +1629,15 @@
+@@ -1480,15 +1634,15 @@
        <default>true</default>
      </entry>
      <entry name="lastSeenVersionMajor" type="Int">
@@ -1555,7 +1560,7 @@
 +install(FILES kdenlive_render.1 DESTINATION ${KDE_INSTALL_MANDIR}/man1 RENAME catavan_render.1)
 --- a/kdenlive-26.08.2/data/org.kde.kdenlive.appdata.xml
 +++ b/kdenlive-26.08.2/data/org.kde.kdenlive.appdata.xml
-@@ -1,1121 +1,37 @@
+@@ -1,1121 +1,43 @@
  <?xml version="1.0" encoding="utf-8"?>
 +<!-- Catavan: own metainfo (the Kdenlive one describes the official KDE application) -->
  <component type="desktop-application">
@@ -1964,7 +1969,7 @@
 -    <release version="26.08.1" date="2026-09-10"/>
 -    <release version="26.08.0" date="2026-08-20">
 -      <url>https://kdenlive.org/news/releases/26.08.0/</url>
-+    <release version="0.1.0" date="2026-10-22">
++    <release version="0.2.0" date="2026-11-05">
        <description>
 -        <p>Mostly a bugfix and usability release, here are some of the improvements</p>
 -        <p xml:lang="ar">يُعد هذا الإصدار في الأساس إصدارًا لإصلاح الأخطاء وتحسين سهولة الاستخدام، وفيما يلي بعض التحسينات</p>
@@ -2224,7 +2229,8 @@
 -          <li xml:lang="tr">Başlıkçı: Bir zaman akışı başlığını düzenlerken, yalnızca bunda değişiklik yapabilmek için onu yeni bir kova başlığı olarak kaydetmeye olanak tanı</li>
 -          <li xml:lang="uk">Титрування: при редагуванні титрів на монтажному столі уможливлено зберігання титрів як новий титр контейнера для спрощення внесення змін саме до нього</li>
 -        </ul>
-+        <p>First version, based on Kdenlive 26.08.2 and MLT 7.42.0.</p>
++        <p>Timeline fixes for grouped clips and crossfades, crossfades that follow the drag while clips are moved,
++          and a fix for fractional playback speeds with deinterlaced clips.</p>
        </description>
      </release>
 -    <release version="26.04.3" date="2026-07-02"/>
@@ -2298,7 +2304,8 @@
 -      <url>https://kdenlive.org/news/releases/24.02.2/</url>
 -    </release>
 -    <release version="24.02.1" date="2024-03-21">
--      <description>
++    <release version="0.1.0" date="2026-10-22">
+       <description>
 -        <p>This is the first bugfix release for the 24.02 version. Some of the most noteworthy fixes:</p>
 -        <p xml:lang="ar">هذا هو الإصدار الأول لإصلاح العيوب للإصدار 24.02. بعض أبرز الإصلاحات:</p>
 -        <p xml:lang="ca">Aquesta és la primera versió de correcció d'errors de la versió 24.02. Algunes de les esmenes més destacades:</p>
@@ -2448,7 +2455,8 @@
 -          <li xml:lang="uk">Виправлено кілька проблем із субтитрами (кілька доріжок субтитрів неправильно зберігалися або показувалися)</li>
 -          <li xml:lang="zh-CN">修复字幕相关的多个问题 (多条字幕轨道未正确保存或显示) </li>
 -        </ul>
--      </description>
++        <p>First version, based on Kdenlive 26.08.2 and MLT 7.42.0.</p>
+       </description>
 -      <url>https://kdenlive.org/news/releases/24.02.1/</url>
 -    </release>
 -    <release version="24.02.0" date="2024-02-28">
@@ -2456,7 +2464,7 @@
 -    </release>
 -    <release version="23.08.5" date="2024-02-15">
 -      <url>https://kdenlive.org/news/releases/23.08.5/</url>
--    </release>
+     </release>
    </releases>
 -  <url type="homepage">https://kdenlive.org/?mtm_campaign=appstream_data&amp;mtm_kwd=homepage</url>
 -  <url type="bugtracker">https://bugs.kde.org/enter_bug.cgi?product=kdenlive</url>
@@ -21200,7 +21208,7 @@
  "Apenas para usuários avançados, pois você terá que configurar tudo "
  "corretamente por conta própria."
  
-@@ -47932,3 +47932,508 @@
+@@ -47932,3 +47932,541 @@
  #~ msgctxt "@action:button"
  #~ msgid "Confirm"
  #~ msgstr "Confirmar"
@@ -21271,6 +21279,39 @@
 +#: src/ui/configtimeline_ui.ui
 +msgid "Overlapping clips creates a crossfade"
 +msgstr "Sobrepor clipes cria uma transição (crossfade)"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Show the X of the overlap while dragging:"
++msgstr "Mostrar o X da sobreposição ao arrastar:"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"While a clip is dragged, an X (the clip before fades out, the dragged one "
++"fades in) marks where the clips overlap. \"When an overlap starts\" shows it "
++"only on a new overlap; \"Always\" shows it over the crossfades the clips "
++"already have too"
++msgstr ""
++"Enquanto um clipe é arrastado, um X (o clipe anterior some, o arrastado "
++"aparece) marca onde os clipes se sobrepõem. \"Ao iniciar uma sobreposição\" "
++"mostra o X só numa sobreposição nova; \"Sempre\" mostra também sobre os "
++"crossfades que os clipes já têm"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "When an overlap starts"
++msgstr "Ao iniciar uma sobreposição"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Never"
++msgstr "Nunca"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Always"
++msgstr "Sempre"
 +
 +#. Catavan
 +#: src/ui/configtimeline_ui.ui

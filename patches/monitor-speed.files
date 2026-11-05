@@ -25,3 +25,4 @@ kdenlive-26.08.2/src/monitor/monitor.h
 kdenlive-26.08.2/src/monitor/monitor.cpp
 kdenlive-26.08.2/src/monitor/monitormanager.cpp
 kdenlive-26.08.2/po/pt_BR/kdenlive.po
+mlt-7.42.0/src/framework/mlt_service.c

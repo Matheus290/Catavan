@@ -330,7 +330,15 @@ How each feature works, the decisions behind it and how it was tested. For users
   `getClipItemById`) and the mixes of their partners (`Clip.previewMix`), so the first clip and its grouped clips
   follow the handle; everything gets its model width back on release.
 - Live preview: `crossfadePreview(clipId)` → `root.crossfadePreviews`; `Timeline.qml` draws the overlap with both
-  ramps (the clip before fades out, the dragged one fades in) and the duration.
+  ramps (the clip before fades out, the dragged one fades in) and the duration. A mix the dragged clips already have
+  with a clip that stays comes as `{mixClip, trackId, length}` instead: `onCrossfadePreviewsChanged` resizes the mix
+  indicator of that clip (`Clip.previewMix`, 0 hides it) to the overlap left, so the mix shrinks while the clip is
+  dragged out instead of being carried along until the release; the thumbnails of the first clip (`mixFirst`) stop at
+  the overlap left (`Clip.previewMixEnd`), so its end no longer shows a bare strip. `MixShape` (and its loader) are not
+  asynchronous: the async shape was redrawn well behind the drag. The right mix handle (`trimInMixArea`, whose
+  `mixOut` line marks the end of the clip before) sits at `mixPreviewFrames` while a preview is drawn.
+- The X of the drag preview (option `crossfadeOverlapMark`, Timeline settings, default 2): 0 never, 1 only on a new
+  overlap, 2 always, also over a crossfade the dragged clips already have (the `mixClip` entries carry `start` for it).
 - The transition type and parameters of a mix removed by the drag go to the mix rebuilt between the same clips (or on
   the same side of the moved clip): `TrackModel::setMixAsset` (like `switchMix`, with the parameters; keeps position,
   cut and A/B direction). Audio only has `mix`.
@@ -343,13 +351,35 @@ How each feature works, the decisions behind it and how it was tested. For users
   track: `getItemMovingTrack` ignores it in the Normal mode, so the clip used to stay on its track in the model while
   the view showed it on the other one. `suggestClipMove` takes the real track as the source of the first crossfade
   step (no fake track yet; -1 sent the group fallback to `requestClipMove` on track -1).
-- Tests: `tests/vegascrossfadetest.cpp` (includes Auto Ripple, internal group mixes, drags to another track and edge drags). Upstream `mixtest` fails at
+- The drag stops where the first item of the group reaches frame 0 (`suggestClipMove`): fake group moves are not checked
+  by the tracks, and a negative fake position means "no fake position", so a misaligned group dragged by a later clip
+  sent its first item back to its real position while the others went on.
+- With the option on, a mix shows no cut line (`mixCutPos` hidden, no "Cut at" in the tooltip): the crossfade is the
+  overlap. The cut stays in the model, in the middle of the overlap (upstream needs it, and the project format too).
+- A trim never leaves a clip covered by the clip it crossfades with at its other edge: `requestItemResizeInfo`, the
+  group members in `requestItemResize` and `crossfadeTrimPreview`.
+- Mixes in the moves and trims (the fuzz test below found these):
+  `adjustEdges` passes `hasMix` to `requestResize` (without it the track refused the undo, or the growth back);
+  `endFakeGroupMove` now syncs the mixes on undo too (upstream only used it in the Overwrite/Insert modes), and leaves
+  alone the mixes of the clips that keep their track; `requestGroupMove` syncs those too (`groupTracksIndependent`);
+  `requestItemResize` undoes its mix update if the resize is refused or the group resize aborts; `restoreItemsData`
+  syncs the mixes; `syncronizeMixes` moves back to the middle a cut left at or past the end of a shrunk mix; the crossfade
+  trim preview keeps two frames of the mix.
+- `TimelineModel::checkConsistency` stops at the multitrack: past it the chain goes into the top track, whose mixes were
+  reported as unknown compositions. `TimelineController` can be built without a window (tests).
+- Tests: `tests/vegascrossfadetest.cpp` (includes Auto Ripple, internal group mixes, drags to another track and edge drags) and
+  `tests/vegasdragtest.cpp`, which replays the gestures of `Timeline.qml` and `Track.qml` (suggest on every mouse move,
+  `endFakeMove` on release, live trim and preview, with a real `TimelineController`): 150 random sequences of grouping,
+  ungrouping and drags, with and without edge drags, checking at each step the distances in the group, what the drop does,
+  the clips left alone, overlaps = mixes, undo and redo. Upstream `mixtest` fails at
   one point only with `groupTrimPush` on (it passes with it off); `spacertest` and the others pass.
 
 ### Monitor playback speed (patch `monitor-speed`)
 
 - MLT `mlt_producer_prepare_next` keeps the fractional part of the position (`_fraction`); otherwise 1.5x played at
   1x and 0.5x never moved (positions are integers). Integer speeds and rendering are unchanged.
+  `mlt_service_get_frame` keeps that fraction across the previous and next frames fetched for `_need_previous_next`
+  (yadif deinterlacer): each fetch ran `prepare_next` again and truncated 0.5x/1.5x (found by the MLT CI, PR #1358).
 - MLT filter `monitorspeed` (wsola module), attached to the monitor's FilteredConsumer: with `_speed` between 0 and
   `max_speed` (4) and ≠ 1, it fetches the audio of the source frames the video went through and squeezes it into one
   frame: linear resampling (the pitch follows) or WSOLA (`preserve_pitch`). For avformat to deliver the audio of k

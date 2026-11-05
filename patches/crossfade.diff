@@ -10,7 +10,7 @@
      </entry>
  
      <entry name="renderInterp" type="String">
-@@ -427,6 +428,151 @@
+@@ -427,6 +428,156 @@
        <default>true</default>
      </entry>
  
@@ -134,6 +134,11 @@
 +      <default>true</default>
 +    </entry>
 +
++    <entry name="crossfadeOverlapMark" type="Int">
++      <label>While dragging, an X marks the overlap of the clips: 0 never, 1 only on a new overlap, 2 always (also over a crossfade the clips already have).</label>
++      <default>2</default>
++    </entry>
++
 +    <entry name="monitorSpeedSlider" type="Bool">
 +      <label>Playback speed slider in the status bar, with audio at speeds up to 4x (needs restart).</label>
 +      <default>true</default>
@@ -162,7 +167,7 @@
      <entry name="normalizechannels" type="Bool">
        <label>Normalize audio channels in thumbnails.</label>
        <default>true</default>
-@@ -451,7 +597,8 @@
+@@ -451,7 +602,8 @@
  
      <entry name="pauseonseek" type="Bool">
        <label>Pause playback when seeking.</label>
@@ -172,7 +177,7 @@
      </entry>
  
      <entry name="rewindOnStop" type="Bool">
-@@ -672,7 +819,7 @@
+@@ -672,7 +824,7 @@
      </entry>
  
      <entry name="kdenliverendererpath" type="Path">
@@ -181,7 +186,7 @@
        <default></default>
      </entry>
  
-@@ -723,13 +870,14 @@
+@@ -723,13 +875,14 @@
      </entry>
  
      <entry name="maxcachesize" type="Int">
@@ -198,7 +203,7 @@
      </entry>
  
      <entry name="usePowerManagement" type="Bool">
-@@ -738,7 +886,7 @@
+@@ -738,7 +891,7 @@
      </entry>
  
      <entry name="lastCacheCheck" type="DateTime">
@@ -207,7 +212,7 @@
        <default></default>
      </entry>
  
-@@ -1109,7 +1257,8 @@
+@@ -1109,7 +1262,8 @@
  
      <entry name="timelinemousezoomonplayhead" type="Bool">
        <label>Mouse zoom on timeline based on playhead position, not mouse position.</label>
@@ -217,7 +222,7 @@
      </entry>
  
      <entry name="transitionfollowcursor" type="Bool">
-@@ -1480,15 +1629,15 @@
+@@ -1480,15 +1634,15 @@
        <default>true</default>
      </entry>
      <entry name="lastSeenVersionMajor" type="Int">
@@ -238,7 +243,7 @@
  
 --- a/kdenlive-26.08.2/src/ui/configtimeline_ui.ui
 +++ b/kdenlive-26.08.2/src/ui/configtimeline_ui.ui
-@@ -234,6 +234,263 @@
+@@ -234,6 +234,310 @@
      </widget>
     </item>
     <item row="22" column="0">
@@ -379,14 +384,61 @@
 +    </widget>
 +   </item>
 +   <item row="35" column="1">
-+    <widget class="QCheckBox" name="kcfg_overlapCrossfade">
-+     <property name="toolTip">
-+      <string>Dragging a clip over the start or end of another clip on the same track overlaps them and creates a crossfade (mix) as long as the overlap; dragging it away removes the crossfade</string>
-+     </property>
-+     <property name="text">
-+      <string>Overlapping clips creates a crossfade</string>
-+     </property>
-+    </widget>
++    <layout class="QVBoxLayout" name="crossfadeLayout">
++     <item>
++      <widget class="QCheckBox" name="kcfg_overlapCrossfade">
++       <property name="toolTip">
++        <string>Dragging a clip over the start or end of another clip on the same track overlaps them and creates a crossfade (mix) as long as the overlap; dragging it away removes the crossfade</string>
++       </property>
++       <property name="text">
++        <string>Overlapping clips creates a crossfade</string>
++       </property>
++      </widget>
++     </item>
++     <item>
++      <layout class="QHBoxLayout" name="crossfadeMarkLayout">
++       <item>
++        <widget class="QLabel" name="crossfadeMarkLabel">
++         <property name="text">
++          <string>Show the X of the overlap while dragging:</string>
++         </property>
++         <property name="buddy">
++          <cstring>kcfg_crossfadeOverlapMark</cstring>
++         </property>
++        </widget>
++       </item>
++       <item>
++        <widget class="QComboBox" name="kcfg_crossfadeOverlapMark">
++         <property name="toolTip">
++          <string>While a clip is dragged, an X (the clip before fades out, the dragged one fades in) marks where the clips overlap. "When an overlap starts" shows it only on a new overlap; "Always" shows it over the crossfades the clips already have too</string>
++         </property>
++         <item>
++          <property name="text">
++           <string>Never</string>
++          </property>
++         </item>
++         <item>
++          <property name="text">
++           <string>When an overlap starts</string>
++          </property>
++         </item>
++         <item>
++          <property name="text">
++           <string>Always</string>
++          </property>
++         </item>
++        </widget>
++       </item>
++       <item>
++        <spacer name="crossfadeMarkSpacer">
++         <property name="orientation">
++          <enum>Qt::Orientation::Horizontal</enum>
++         </property>
++        </spacer>
++       </item>
++      </layout>
++     </item>
++    </layout>
 +   </item>
 +   <item row="36" column="1">
 +    <widget class="QCheckBox" name="kcfg_timelinemousezoomonplayhead">
@@ -502,7 +554,7 @@
      <spacer name="verticalSpacer">
       <property name="orientation">
        <enum>Qt::Orientation::Vertical</enum>
-@@ -304,6 +561,31 @@
+@@ -304,6 +608,32 @@
    <tabstop>kcfg_multistream</tabstop>
    <tabstop>kcfg_multistream_checktrack</tabstop>
    <tabstop>kcfg_uiDebugMode</tabstop>
@@ -520,6 +572,7 @@
 +  <tabstop>kcfg_groupTrimPush</tabstop>
 +  <tabstop>kcfg_wheelZoomsTimeline</tabstop>
 +  <tabstop>kcfg_overlapCrossfade</tabstop>
++  <tabstop>kcfg_crossfadeOverlapMark</tabstop>
 +  <tabstop>kcfg_timelinemousezoomonplayhead</tabstop>
 +  <tabstop>kcfg_scrollReleasesPlayhead</tabstop>
 +  <tabstop>kcfg_ungroupSelectedOnly</tabstop>
@@ -590,7 +643,7 @@
      bool requestClipTimeRemap(int clipId, bool enable = true);
      bool requestClipTimeRemap(int clipId, bool enable, Fun &undo, Fun &redo);
      std::shared_ptr<Mlt::Producer> getClipProducer(int clipId);
-@@ -953,6 +964,46 @@
+@@ -953,6 +964,49 @@
      void importMasterEffects(std::weak_ptr<Mlt::Service> service);
      /** @brief Create a mix selection with currently selected clip. If delta = -1, mix with previous clip, +1 with next clip and 0 will check cursor position*/
      bool mixClip(int idToMove = -1, const QString &mixId = QStringLiteral("luma"), int delta = 0);
@@ -617,7 +670,10 @@
 +    int requestCrossfadeMove(int clipId, bool logUndo);
 +    int requestCrossfadeMove(int clipId, Fun &undo, Fun &redo);
 +    /** @brief Catavan: the crossfades the drag of clipId would create where it is now (fake position), as maps
-+     *  {trackId, start, length}, to draw them while dragging */
++     *  {trackId, start, length}, to draw them while dragging. A mix the moved clips already have with a clip that stays
++     *  comes as {mixClip, trackId, mixFirst, firstTrackId, start, length} instead (mixClip/mixFirst: its second/first clip,
++     *  with their real tracks; length: what is left of the overlap, 0 when the clips no longer overlap), drawn by the
++     *  mix indicator of the second clip */
 +    Q_INVOKABLE QVariantList crossfadePreview(int clipId) const;
 +    /** @brief Catavan (overlapCrossfade): an edge drag of clipId starts, remembers the clip and the grouped items as
 +     *  they are (the drag then uses the normal trim, which stops at the clips in the way) */
@@ -637,7 +693,7 @@
      Q_INVOKABLE bool resizeStartMix(int cid, int duration, bool singleResize);
      void requestResizeMix(int cid, int duration, MixAlignment align, int leftFrames = -1);
      /** @brief Get Mix cut pos (the duration of the mix on the right clip) */
-@@ -1157,6 +1208,31 @@
+@@ -1157,6 +1211,31 @@
      QString m_visibleSequenceName;
      /** @brief True if we are selecting a single item in a group */
      bool m_singleSelectionMode{false};
@@ -691,7 +747,21 @@
      if (sourceTrackId > -1 && getTrackById_const(trackId)->isAudioTrack() != getTrackById_const(sourceTrackId)->isAudioTrack()) {
          // Trying move on incompatible track type, stay on same track
          trackId = sourceTrackId;
-@@ -1671,7 +1675,9 @@
+@@ -1666,12 +1670,23 @@
+         }
+     }
+     position = qMax(0, position);
++    if (fakeMove) {
++        // Catavan: a fake group move isn't checked by the tracks, stop where the first item of the group reaches frame 0
++        // (a negative fake position means no fake position: that item would go back to its real one)
++        int firstItem = getClipPosition(clipId);
++        for (int item : crossfadeMovingItems(clipId)) {
++            firstItem = qMin(firstItem, getItemPosition(item));
++        }
++        position = qMax(position, getClipPosition(clipId) - firstItem);
++    }
+     if (currentPos == position && sourceTrackId == trackId) {
+         TRACE_RES(position);
          return {position, trackId};
      }
      bool isInGroup = m_groups->isInGroup(clipId);
@@ -702,7 +772,7 @@
          // Same track move, check if there is a mix and limit move
          std::pair<MixInfo, MixInfo> mixData = getTrackById_const(trackId)->getMixInfo(clipId);
          if (mixData.first.firstClipId > -1) {
-@@ -1715,6 +1721,26 @@
+@@ -1715,6 +1730,26 @@
      // we check if move is possible
      bool possible = fakeMove ? requestFakeClipMove(clipId, trackId, position, true, false, false)
                               : requestClipMove(clipId, trackId, position, moveMirrorTracks, true, false, false);
@@ -729,7 +799,7 @@
      if (possible) {
          TRACE_RES(position);
          if (fakeMove) {
-@@ -1905,7 +1931,7 @@
+@@ -1905,7 +1940,7 @@
      return {currentPos, currentTrack};
  }
  
@@ -738,7 +808,7 @@
                                          Fun &undo, Fun &redo)
  {
      QString bid = binClipId;
-@@ -2822,6 +2848,42 @@
+@@ -2822,6 +2857,42 @@
      return false;
  }
  
@@ -781,7 +851,7 @@
  std::unordered_set<int> TimelineModel::getItemsInRange(int trackId, int start, int end, bool listCompositions)
  {
      Q_UNUSED(listCompositions)
-@@ -2942,15 +3004,17 @@
+@@ -2942,15 +3013,17 @@
      audio_delta = video_delta = delta_track;
  
      if (delta_track != 0) {
@@ -801,7 +871,7 @@
                  audio_delta = -delta_track;
              } else {
                  audio_delta = 0;
-@@ -3332,7 +3396,8 @@
+@@ -3332,7 +3405,8 @@
              if (!upperTrackIsAudio) {
                  // Dragging an audio clip up, check that upper video clip has an available video track
                  int targetPos = upperTrack - delta_track;
@@ -811,7 +881,7 @@
                      delta_track = 0;
                  }
              } else {
-@@ -3349,13 +3414,14 @@
+@@ -3349,13 +3423,14 @@
          for (const std::pair<int, int> &item : sorted_clips) {
              int currentTrack = getClipTrackId(item.first);
              int trackOffset = delta_track;
@@ -829,7 +899,7 @@
              }
              int newTrackPosition = getTrackPosition(currentTrack) + trackOffset;
              if (newTrackPosition < 0 || newTrackPosition >= int(m_allTracks.size())) {
-@@ -3479,11 +3545,13 @@
+@@ -3479,14 +3554,25 @@
                  old_forced_track[item.first] = m_allCompositions[item.first]->getForcedTrack();
              }
          }
@@ -845,7 +915,19 @@
          }
      }
  
-@@ -3965,7 +4033,7 @@
++    if (delta_track != 0) {
++        // Catavan (groupTracksIndependent): the clips that keep their track take their mixes along, as on a same track move
++        for (auto it = clipsByTrack.cbegin(); it != clipsByTrack.cend(); ++it) {
++            const int d = getTrackById_const(it.key())->isAudioTrack() ? audio_delta : video_delta;
++            if ((d == 0 || !moveMirrorTracks) && !tracksWithMix.contains(it.key())) {
++                tracksWithMix << it.key();
++            }
++        }
++    }
+     Fun sync_mix = [this, tracksWithMix, finalMove]() {
+         if (!finalMove) {
+             return true;
+@@ -3965,7 +4051,7 @@
          }
          int trackDuration = getTrackById_const(tid)->trackDuration();
          result = getTrackById(tid)->requestClipDeletion(id, true, false, undo, redo, false, false);
@@ -854,7 +936,23 @@
          result = result && requestClipTimeWarp(id, speed, pitchCompensate, true, undo, redo);
          result = result && requestItemResize(id, itemSize, true, true, undo, redo);
          result = result && getTrackById(tid)->requestClipInsertion(id, pos, true, false, undo, redo, false, false);
-@@ -4384,6 +4452,10 @@
+@@ -4034,6 +4120,15 @@
+     Fun temp_redo = []() { return true; };
+     bool skipSnaps = snapDistance <= 0;
+     bool sizeUpdated = false;
++    if (checkMix && isClip(itemId) && KdenliveSettings::overlapCrossfade()) {
++        // Catavan: a clip never ends up covered by the clip it crossfades with, its other edge stops before that
++        std::pair<MixInfo, MixInfo> mixData = getTrackById_const(trackId)->getMixInfo(itemId);
++        if (right && mixData.first.firstClipId > -1) {
++            requestedSize = qMax(requestedSize, mixData.first.firstClipInOut.second - currentIn + 1);
++        } else if (!right && mixData.second.secondClipId > -1) {
++            requestedSize = qMax(requestedSize, currentOut - mixData.second.secondClipInOut.first + 1);
++        }
++    }
+     if (checkMix && right && (requestedSize > currentOut - currentIn) && isClip(itemId)) {
+         int playlist = -1;
+         if (getTrackById_const(trackId)->hasEndMix(itemId)) {
+@@ -4384,6 +4479,10 @@
              // Only resize group elements if it is an avsplit
              items = m_groups->getLeaves(groupId);
          }*/
@@ -865,7 +963,7 @@
          for (int id : items) {
              if (id == itemId) {
                  continue;
-@@ -4392,11 +4464,12 @@
+@@ -4392,11 +4491,12 @@
              int end = start + getItemPlaytime(id);
              bool resizeMix = false;
              if (right) {
@@ -880,10 +978,19 @@
                  all_items.insert(id);
                  resizeMix = true;
              }
-@@ -4478,6 +4551,26 @@
+@@ -4478,6 +4578,35 @@
                  }
              }
          }
++        if (id != itemId && isClip(id) && trackId > -1 && KdenliveSettings::overlapCrossfade()) {
++            // Catavan: as in requestItemResizeInfo, a grouped clip is not left covered by the clip it crossfades with
++            std::pair<MixInfo, MixInfo> mixData = getTrackById_const(trackId)->getMixInfo(id);
++            if (right && mixData.first.firstClipId > -1) {
++                finalSize = qMax(finalSize, mixData.first.firstClipInOut.second - getItemPosition(id) + 1);
++            } else if (!right && mixData.second.secondClipId > -1) {
++                finalSize = qMax(finalSize, getItemPosition(id) + getItemPlaytime(id) - mixData.second.secondClipInOut.first + 1);
++            }
++        }
 +        if (KdenliveSettings::groupTrimPush() && id != itemId && isClip(id)) {
 +            // Catavan: a grouped clip that follows the edge stops at the end of its own material, the dragged clip goes on
 +            int currentDuration = getItemPlaytime(id);
@@ -907,19 +1014,51 @@
          if (finalSize < 1) {
              // Abort resize
              result = false;
-@@ -4525,7 +4618,10 @@
+@@ -4518,6 +4647,7 @@
+     Fun local_undo = []() { return true; };
+     Fun local_redo = []() { return true; };
+     bool result = false;
++    Fun restore_mix = []() { return true; };
+     if (isClip(itemId)) {
+         bool hasMix = false;
+         int tid = m_allClips[itemId]->getCurrentTrackId();
+@@ -4525,7 +4655,11 @@
              std::pair<MixInfo, MixInfo> mixData = getTrackById_const(tid)->getMixInfo(itemId);
              if (right && mixData.second.firstClipId > -1) {
                  hasMix = true;
 -                if (mixData.second.firstClipInOut.first + size < mixData.second.secondClipInOut.first) {
 +                if (mixData.second.firstClipInOut.first + size < mixData.second.secondClipInOut.first && !logUndo && m_crossfadeTrim.clipId > -1) {
-+                    // Catavan: the preview of a crossfade trim keeps the mix (requestCrossfadeTrim removes it)
-+                    size = mixData.second.secondClipInOut.first - mixData.second.firstClipInOut.first + 1;
++                    // Catavan: the preview of a crossfade trim keeps the mix (requestCrossfadeTrim removes it), with a frame
++                    // on each side of its cut
++                    size = mixData.second.secondClipInOut.first - mixData.second.firstClipInOut.first + 2;
 +                } else if (mixData.second.firstClipInOut.first + size < mixData.second.secondClipInOut.first) {
                      // Resize is outside mix zone, remove mix
                      removeMixWithUndo(mixData.second.secondClipId, undo, redo);
                  } else {
-@@ -5138,6 +5234,83 @@
+@@ -4557,9 +4691,9 @@
+                     return true;
+                 };
+                 local_update();
+-                if (logUndo) {
+-                    UPDATE_UNDO_REDO(local_update, local_update_undo, local_undo, local_redo);
+-                }
++                restore_mix = local_update_undo;
++                // Catavan: without logUndo too, a group resize that aborts undoes the members already resized
++                UPDATE_UNDO_REDO(local_update, local_update_undo, local_undo, local_redo);
+             } else {
+                 hasMix = mixData.second.firstClipId > -1 || mixData.first.firstClipId > -1;
+             }
+@@ -4572,6 +4706,9 @@
+     }
+     if (result) {
+         UPDATE_UNDO_REDO(local_redo, local_undo, undo, redo);
++    } else {
++        // Catavan: a refused resize (no more material) must not change the mix
++        restore_mix();
+     }
+     return result;
+ }
+@@ -5138,6 +5275,83 @@
      return result;
  }
  
@@ -1003,7 +1142,17 @@
  bool TimelineModel::requestClipUngroup(int itemId, bool logUndo)
  {
      QWriteLocker locker(&m_lock);
-@@ -7083,11 +7256,11 @@
+@@ -6848,7 +7062,8 @@
+ 
+     mlt_service nextservice = mlt_service_get_producer(field->get_service());
+     mlt_service_type mlt_type = mlt_service_identify(nextservice);
+-    while (nextservice != nullptr) {
++    // Catavan: past the multitrack the chain goes into the top track, whose mixes are not compositions
++    while (nextservice != nullptr && mlt_service_identify(nextservice) != mlt_service_multitrack_type) {
+         if (mlt_type == mlt_service_transition_type) {
+             auto tr = mlt_transition(nextservice);
+             if (mlt_properties_get_int(MLT_TRANSITION_PROPERTIES(tr), "internal_added") > 0) {
+@@ -7083,11 +7298,11 @@
      int oldOut = oldIn + getClipPlaytime(clipId);
      int currentSubplaylist = m_allClips[clipId]->getSubPlaylistIndex();
      int maxDuration = m_allClips[clipId]->getMaxDuration();
@@ -1017,7 +1166,7 @@
      }
      int audioStream = m_allClips[clipId]->getIntProperty(QStringLiteral("audio_index"));
      bool timeremap = m_allClips[clipId]->hasTimeRemap();
-@@ -7183,7 +7356,7 @@
+@@ -7183,7 +7398,7 @@
      notifyChange(modelIndex, modelIndex, roles);
  }
  
@@ -1026,7 +1175,7 @@
  {
      QWriteLocker locker(&m_lock);
      Fun local_undo = []() { return true; };
-@@ -7271,10 +7444,10 @@
+@@ -7271,10 +7486,10 @@
      return success;
  }
  
@@ -1039,7 +1188,7 @@
          return true;
      }
      TRACE(clipId, speed);
-@@ -8494,3 +8667,626 @@
+@@ -8494,3 +8709,675 @@
      }
      return {};
  }
@@ -1173,7 +1322,44 @@
 +    QVariantList result;
 +    std::vector<CrossfadeOverlap> overlaps;
 +    if (canCrossfadeDrag(clipId) && planCrossfadeMove(clipId, 0, &overlaps)) {
-+        for (const auto &overlap : overlaps) {
++        // The mixes of the moved clips with clips that stay follow the overlap that is left (none: hidden)
++        const std::unordered_set<int> items = crossfadeMovingItems(clipId);
++        std::vector<bool> mixOverlap(overlaps.size(), false);
++        auto addMix = [this, &result, &overlaps, &mixOverlap](int firstId, int secondId) {
++            int length = 0;
++            int start = 0;
++            for (size_t i = 0; i < overlaps.size(); i++) {
++                if (overlaps[i].firstId == firstId && overlaps[i].secondId == secondId) {
++                    length = overlaps[i].length;
++                    start = overlaps[i].start;
++                    mixOverlap[i] = true;
++                    break;
++                }
++            }
++            result << QVariant(QVariantMap{{QStringLiteral("mixClip"), secondId},
++                                           {QStringLiteral("trackId"), getClipTrackId(secondId)},
++                                           {QStringLiteral("mixFirst"), firstId},
++                                           {QStringLiteral("firstTrackId"), getClipTrackId(firstId)},
++                                           {QStringLiteral("start"), start},
++                                           {QStringLiteral("length"), length}});
++        };
++        for (int item : items) {
++            if (!isClip(item) || getClipTrackId(item) == -1) {
++                continue;
++            }
++            std::pair<MixInfo, MixInfo> mixData = getTrackById_const(getClipTrackId(item))->getMixInfo(item);
++            if (mixData.first.firstClipId > -1 && items.count(mixData.first.firstClipId) == 0) {
++                addMix(mixData.first.firstClipId, item);
++            }
++            if (mixData.second.secondClipId > -1 && items.count(mixData.second.secondClipId) == 0) {
++                addMix(item, mixData.second.secondClipId);
++            }
++        }
++        for (size_t i = 0; i < overlaps.size(); i++) {
++            if (mixOverlap[i]) {
++                continue;
++            }
++            const auto &overlap = overlaps[i];
 +            result << QVariant(QVariantMap{{QStringLiteral("trackId"), overlap.trackId},
 +                                           {QStringLiteral("start"), overlap.start},
 +                                           {QStringLiteral("length"), overlap.length}});
@@ -1282,15 +1468,17 @@
 +    auto adjustEdges = [this, &edges, &local_undo, &local_redo](bool shrink) {
 +        for (const auto &e : edges) {
 +            const std::shared_ptr<ClipModel> &clip = m_allClips[e.first];
++            // With a mix left on the clip it overlaps the other playlist: the resize (and its undo) must know
++            const bool hasMix = getTrackById_const(clip->getCurrentTrackId())->hasMix(e.first);
 +            int head = clip->getIn() - e.second.fullIn;
 +            if (shrink ? head < e.second.head : head > e.second.head) {
-+                if (!clip->requestResize(clip->getPlaytime() + head - e.second.head, false, local_undo, local_redo)) {
++                if (!clip->requestResize(clip->getPlaytime() + head - e.second.head, false, local_undo, local_redo, true, hasMix)) {
 +                    return false;
 +                }
 +            }
 +            int tail = e.second.fullOut - clip->getOut();
 +            if (shrink ? tail < e.second.tail : tail > e.second.tail) {
-+                if (!clip->requestResize(clip->getPlaytime() + tail - e.second.tail, true, local_undo, local_redo)) {
++                if (!clip->requestResize(clip->getPlaytime() + tail - e.second.tail, true, local_undo, local_redo, true, hasMix)) {
 +                    return false;
 +                }
 +            }
@@ -1456,13 +1644,23 @@
 +        if (!follows || item.mixPartner == -2) {
 +            continue;
 +        }
-+        const bool growing = right ? edge > item.end : edge < item.start;
++        // As in requestItemResizeInfo: the clip is not left covered by the clip it crossfades with at its other end
++        int itemEdge = edge;
++        if (isClip(item.id)) {
++            std::pair<MixInfo, MixInfo> mixData = getTrackById_const(item.trackId)->getMixInfo(item.id);
++            if (right && mixData.first.firstClipId > -1) {
++                itemEdge = qMax(itemEdge, mixData.first.firstClipInOut.second + 1);
++            } else if (!right && mixData.second.secondClipId > -1) {
++                itemEdge = qMin(itemEdge, mixData.second.secondClipInOut.first - 1);
++            }
++        }
++        const bool growing = right ? itemEdge > item.end : itemEdge < item.start;
 +        if (item.mixPartner == -1 && !growing) {
 +            // Shrinking an edge without crossfade
-+            item.target = edge;
++            item.target = itemEdge;
 +            continue;
 +        }
-+        int target = edge;
++        int target = itemEdge;
 +        if (!isClip(item.id)) {
 +            item.target = target;
 +            continue;
@@ -2357,7 +2555,22 @@
      /** @brief Returns the number of same track transitions (mix) in this track */
 --- a/kdenlive-26.08.2/src/timeline2/model/trackmodel.cpp
 +++ b/kdenlive-26.08.2/src/timeline2/model/trackmodel.cpp
-@@ -2852,6 +2852,65 @@
+@@ -2557,7 +2557,13 @@
+             transition.set_in_and_out(mixIn, mixOut);
+         }
+         if (auto ptr = m_parent.lock()) {
+-            ptr->getClipPtr(secondClipId)->setMixDuration(mixOut - mixIn);
++            std::shared_ptr<ClipModel> secondClip = ptr->getClipPtr(secondClipId);
++            if (mixOut > mixIn && secondClip->getMixCutPosition() >= mixOut - mixIn) {
++                // Catavan: the mix shrank past its cut, back in the middle
++                setMixDuration(secondClipId, mixOut - mixIn, (mixOut - mixIn) / 2);
++            } else {
++                secondClip->setMixDuration(mixOut - mixIn);
++            }
+             QModelIndex ix = ptr->makeClipIndexFromID(secondClipId);
+             Q_EMIT ptr->dataChanged(ix, ix, {TimelineModel::MixRole, TimelineModel::MixCutRole});
+             QModelIndex ix2 = ptr->makeClipIndexFromID(firstClip);
+@@ -2852,6 +2858,65 @@
      UPDATE_UNDO_REDO(local_redo, local_undo, undo, redo);
  }
  
@@ -2523,8 +2736,12 @@
      int m_duration;
      QQuickItem *m_root;
      KActionCollection *m_actionCollection;
-@@ -849,6 +903,8 @@
-     QAction *m_disablePreview;
+@@ -846,9 +900,11 @@
+     QPoint m_zone;
+     int m_activeTrack;
+     double m_scale;
+-    QAction *m_disablePreview;
++    QAction *m_disablePreview{nullptr};
      std::shared_ptr<AudioCorrelation> m_audioCorrelator;
      QMutex m_metaMutex;
 +    /** @brief Catavan: regions crossing the Auto Ripple drag point, {marker id: duration in frames before the drag} */
@@ -2550,7 +2767,23 @@
  
  #include <memory>
  
-@@ -746,6 +748,9 @@
+@@ -73,9 +75,12 @@
+     , m_effectZone({0, 0})
+     , m_autotrackHeight(KdenliveSettings::autotrackheight())
+ {
+-    m_disablePreview = pCore->currentDoc()->getAction(QStringLiteral("disable_preview"));
+-    connect(m_disablePreview, &QAction::triggered, this, &TimelineController::disablePreview);
+-    m_disablePreview->setEnabled(false);
++    // Catavan: no window in the tests that drive the controller
++    if (pCore->window()) {
++        m_disablePreview = pCore->currentDoc()->getAction(QStringLiteral("disable_preview"));
++        connect(m_disablePreview, &QAction::triggered, this, &TimelineController::disablePreview);
++        m_disablePreview->setEnabled(false);
++    }
+     connect(pCore.get(), &Core::autoScrollChanged, this, &TimelineController::autoScrollChanged);
+     connect(pCore.get(), &Core::refreshActiveGuides, this, [this]() { m_activeSnaps.clear(); });
+     connect(pCore.get(), &Core::autoTrackHeight, this, [this](bool enable) {
+@@ -746,6 +751,9 @@
          pCore->displayMessage(i18n("Cannot perform operation while dragging in timeline"), ErrorMessage);
          return;
      }
@@ -2560,7 +2793,7 @@
      auto sel = m_model->getCurrentSelection();
      // Check if we are operating on a locked track
      std::unordered_set<int> trackIds;
-@@ -1240,6 +1245,34 @@
+@@ -1240,6 +1248,34 @@
          return;
      }
      auto ids = m_model->getCurrentSelection();
@@ -2595,7 +2828,7 @@
      // ask to unselect if needed
      m_model->requestClearSelection();
      if (cid > -1) {
-@@ -1250,6 +1283,36 @@
+@@ -1250,6 +1286,36 @@
      }
  }
  
@@ -2632,7 +2865,7 @@
  bool TimelineController::trimmingActive()
  {
      ToolType::ProjectTool tool = pCore->activeTool();
-@@ -1801,6 +1864,10 @@
+@@ -1801,6 +1867,10 @@
  
  bool TimelineController::moveGuidesInRange(int start, int end, int offset, Fun &undo, Fun &redo)
  {
@@ -2643,7 +2876,7 @@
      GenTime fromPos(start, pCore->getCurrentFps());
      GenTime toPos(start + offset, pCore->getCurrentFps());
      QList<CommentedTime> guides = m_model->getGuideModel()->getMarkersInRange(start, end);
-@@ -2246,6 +2313,173 @@
+@@ -2246,6 +2316,182 @@
      }
  }
  
@@ -2762,12 +2995,21 @@
 +
 +void TimelineController::restoreItemsData(const QVariantList &data, bool right)
 +{
++    QVector<int> tracks;
 +    for (int i = 0; i + 2 < data.size(); i += 3) {
 +        int id = data.at(i).toInt();
 +        int duration = data.at(i + 2).toInt();
 +        if (m_model->isItem(id) && m_model->getItemPlaytime(id) != duration) {
 +            m_model->requestItemResize(id, duration, right, false, -1, true);
++            int tid = m_model->getItemTrackId(id);
++            if (m_model->isTrack(tid) && !tracks.contains(tid)) {
++                tracks << tid;
++            }
 +        }
++    }
++    // The transitions of the mixes come back with their clips
++    for (int tid : std::as_const(tracks)) {
++        m_model->getTrackById_const(tid)->syncronizeMixes(false);
 +    }
 +}
 +
@@ -2817,7 +3059,7 @@
  void TimelineController::cutAllClipsUnderCursor(int position)
  {
      if (position == -1) {
-@@ -2255,10 +2489,10 @@
+@@ -2255,10 +2501,10 @@
      TimelineFunctions::requestClipCutAll(m_model, position);
  }
  
@@ -2830,7 +3072,7 @@
      int itemId = spacerOp.first;
      return itemId;
  }
-@@ -2278,6 +2512,31 @@
+@@ -2278,6 +2524,31 @@
      m_model->getGuideModel()->moveMarkersWithoutUndo(ids, offset);
  }
  
@@ -2862,7 +3104,7 @@
  QVector<int> TimelineController::spacerSelection(int startFrame)
  {
      return m_model->getGuideModel()->getMarkersIdInRange(startFrame, -1);
-@@ -2299,7 +2558,8 @@
+@@ -2299,7 +2570,8 @@
          // Move guides back to original position
          m_model->getGuideModel()->moveMarkersWithoutUndo(selectedGuides, startPosition - endPosition, false);
      }
@@ -2872,7 +3114,7 @@
      return result;
  }
  
-@@ -2637,6 +2897,37 @@
+@@ -2637,6 +2909,37 @@
      pCore->monitorManager()->projectMonitor()->slotTrimmingPos(pos + 1, delta, right ? mainClip->getIn() : pos, right ? pos : mainClip->getOut());
  }
  
@@ -2910,7 +3152,7 @@
  bool TimelineController::slipProcessSelection(int mainClipId, bool addToSelection)
  {
      std::unordered_set<int> sel = m_model->getCurrentSelection();
-@@ -3239,7 +3530,7 @@
+@@ -3239,7 +3542,7 @@
      }
  
      bool isSingleOrPartnerClip = false;
@@ -2919,7 +3161,7 @@
      int duration = 0;
      if (sel.size() > 2) {
          speed = 100.;
-@@ -3258,7 +3549,7 @@
+@@ -3258,7 +3561,7 @@
          }
          if (isSingleOrPartnerClip) {
              duration = m_model->getItemPlaytime(mainClipId);
@@ -2928,7 +3170,7 @@
              // single or partner clip selected and speed is provided by argument, if not provided get it from mainClip
              if (!qFuzzyCompare(speed, -1)) {
                  qDebug() << "Requesting speed " << speed << " for clip " << mainClipId;
-@@ -3283,7 +3574,7 @@
+@@ -3283,7 +3586,7 @@
      double firstSpeed = 0.;
      int firstOriginalDuration = 0;
      int firstDuration = 0;
@@ -2937,7 +3179,7 @@
      bool isCommonSpeed = true;
      bool isCommonPitchCompensate = true;
      bool isCommonOriginalDuration = true;
-@@ -3291,7 +3582,7 @@
+@@ -3291,7 +3594,7 @@
      for (int cid : sel) {
          double clipDuration = m_model->getItemPlaytime(cid);
          double clipSpeed = 100. * m_model->getClipSpeed(cid);
@@ -2946,7 +3188,7 @@
          int clipOriginalDuration = int(clipDuration * qAbs(clipSpeed) / 100.0);
          if (!haveFirstClipStats) {
              firstSpeed = clipSpeed;
-@@ -4805,7 +5096,36 @@
+@@ -4805,7 +5108,36 @@
  
  bool TimelineController::endFakeMove(int clipId, int position, bool updateView, bool logUndo, bool invalidateTimeline)
  {
@@ -2984,7 +3226,7 @@
      int subLayer = -1;
      if (m_model->isSubTitle(clipId)) {
          subLayer = m_model->getSubtitleLayer(clipId);
-@@ -4957,11 +5277,13 @@
+@@ -4957,11 +5289,13 @@
      int audio_delta, video_delta;
      audio_delta = video_delta = delta_track;
      int master_trackId = m_model->getItemTrackId(clipId);
@@ -3000,6 +3242,49 @@
      }
      int min = -1;
      int max = -1;
+@@ -5077,15 +5411,24 @@
+         }
+     }
+ 
++    // Catavan (groupTracksIndependent): the clips that keep their track take their mixes along, even when others change track
++    std::vector<int> sameTrackIds;
++    for (int t : affected_trackIds) {
++        if (delta_track == 0 || (m_model->getTrackById_const(t)->isAudioTrack() ? audio_delta : video_delta) == 0) {
++            sameTrackIds.push_back(t);
++        }
++    }
++    Fun sync_mix = [this, sameTrackIds, finalMove]() {
++        for (int t : sameTrackIds) {
++            m_model->getTrackById_const(t)->syncronizeMixes(finalMove);
++        }
++        return true;
++    };
++    sync_mix();
++    PUSH_LAMBDA(sync_mix, redo);
++    // Catavan: the undo too, this runs in the Normal mode with overlapCrossfade (a mix inside the group stayed behind)
++    PUSH_LAMBDA(sync_mix, undo);
+     if (delta_track == 0) {
+-        Fun sync_mix = [this, affected_trackIds, finalMove]() {
+-            for (int t : affected_trackIds) {
+-                m_model->getTrackById_const(t)->syncronizeMixes(finalMove);
+-            }
+-            return true;
+-        };
+-        sync_mix();
+-        PUSH_LAMBDA(sync_mix, redo);
+         return true;
+     }
+     for (int item : sorted_clips) {
+@@ -5094,6 +5437,9 @@
+         }
+         int trackId = new_track_ids[item];
+         int previous_track = old_track_ids[item];
++        if (trackId == previous_track) {
++            continue;
++        }
+         MixInfo mixData = mixInfoToMove[item];
+         std::pair<int, int> mixTracks = mixTracksToMove[item];
+         std::pair<QString, QVector<QPair<QString, QVariant>>> mixParams = mixToMove[item];
 --- a/kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml
 +++ b/kdenlive-26.08.2/src/timeline2/view/qml/Timeline.qml
 @@ -11,6 +11,7 @@
@@ -3099,7 +3384,7 @@
      property int clipBeingDroppedId: -1
      property string clipBeingDroppedData
      property int droppedPosition: -1
-@@ -545,6 +592,120 @@
+@@ -545,6 +592,150 @@
      property int clipBeingMovedId: -1
      property int consumerPosition: proxy ? proxy.position : -1
      property int spacerGroup: -1
@@ -3215,12 +3500,42 @@
 +    }
 +    /** Catavan (overlapCrossfade): the Auto Ripple drag may overlap the clips before it, with crossfades */
 +    property bool rippleCrossfade: false
-+    /** Catavan (overlapCrossfade): crossfades of the clip being dragged, {trackId, start, length} */
++    /** Catavan (overlapCrossfade): crossfades of the clip being dragged, {trackId, start, length}, and what is left of
++     *  its mixes with clips that stay, {mixClip, trackId, mixFirst, firstTrackId, length} (drawn by the mix indicator of
++     *  mixClip, the thumbnails of mixFirst stop there) */
 +    property var crossfadePreviews: []
++    /** Catavan (overlapCrossfade): clip items whose mix indicator follows the drag */
++    property var crossfadePreviewMixes: []
++    onCrossfadePreviewsChanged: {
++        let drawn = []
++        for (let i = 0; i < root.crossfadePreviews.length; i++) {
++            let data = root.crossfadePreviews[i]
++            if (data.mixClip === undefined) {
++                continue
++            }
++            let mixItem = root.getClipItemById(data.trackId, data.mixClip)
++            if (mixItem) {
++                mixItem.previewMix(data.length)
++                drawn.push(mixItem)
++            }
++            let firstItem = root.getClipItemById(data.firstTrackId, data.mixFirst)
++            if (firstItem) {
++                firstItem.previewMixEnd(data.length)
++                drawn.push(firstItem)
++            }
++        }
++        for (let i = 0; i < root.crossfadePreviewMixes.length; i++) {
++            if (drawn.indexOf(root.crossfadePreviewMixes[i]) < 0) {
++                root.crossfadePreviewMixes[i].previewMix(-1)
++                root.crossfadePreviewMixes[i].previewMixEnd(-1)
++            }
++        }
++        root.crossfadePreviewMixes = drawn
++    }
      property int spacerTrack: -1
      property int spacerFrame: -1
      property int finalSpacerFrame: -1
-@@ -627,7 +788,9 @@
+@@ -627,7 +818,9 @@
          } else if (root.zoomOnBar) {
              root.zoomOnBar = false
          } else {
@@ -3231,7 +3546,7 @@
          }
          ruler.adjustStepSize()
          if (dragProxy.draggedItem > -1 && dragProxy.masterObject) {
-@@ -638,7 +801,7 @@
+@@ -638,7 +831,7 @@
      }
  
      onConsumerPositionChanged: {
@@ -3240,7 +3555,7 @@
              if (K.KdenliveSettings.centeredplayhead) {
                  scrollView.contentX = Math.max(0, root.consumerPosition * root.timeScale - (scrollView.width / 2))
              } else if (root.timeline.autoScroll) {
-@@ -884,10 +1047,10 @@
+@@ -884,10 +1077,10 @@
                          root.clipBeingDroppedId = -1
                          root.timeline.activeTrack = targetTrack
  
@@ -3253,7 +3568,7 @@
                              root.clipBeingDroppedId = insertAndMaybeGroup(targetTrack, root.timeline.fullDuration, root.clipBeingDroppedData)
                          }
                          root.lastDropTrack = targetTrack
-@@ -922,11 +1085,11 @@
+@@ -922,11 +1115,11 @@
                      else {
                          bubbleHelp.hide()
                      }
@@ -3267,7 +3582,7 @@
                          root.controller.requestFakeClipMove(root.clipBeingDroppedId, fakeTrack, fakeFrame, true, false, false)
                      }
                      root.continuousScrolling(drag.x + scrollView.contentX, drag.y + scrollView.contentY, upMove)
-@@ -947,10 +1110,21 @@
+@@ -947,10 +1140,21 @@
                  root.clearDropData()
                  var frame = root.controller.getClipPosition(cid)
                  var track = root.controller.getClipTrackId(cid)
@@ -3290,7 +3605,7 @@
                  /* We simulate insertion at the final position so that stored undo has correct value
                   * NOTE: even if dropping multiple clips, requesting the deletion of the first one is
                   * enough as internally it will request the group deletion
-@@ -1005,7 +1179,7 @@
+@@ -1005,7 +1209,7 @@
                      root.droppedPosition = frame
                      root.timeline.activeTrack = (tracksRepeater.itemAt(track) as Track).trackInternalId
                      root.lastDropTrack = root.timeline.activeTrack
@@ -3299,7 +3614,7 @@
                          root.clipBeingDroppedId = insertAndMaybeGroup(root.timeline.activeTrack, frame, root.clipBeingDroppedData)
                          if (root.clipBeingDroppedId > -1) {
                              drag.accepted=true
-@@ -1017,7 +1191,7 @@
+@@ -1017,7 +1221,7 @@
                          // we want insert/overwrite mode, make a fake insert at end of timeline, then move to position
                          root.clipBeingDroppedId = insertAndMaybeGroup(root.timeline.activeTrack, root.timeline.fullDuration, root.clipBeingDroppedData)
                          if (root.clipBeingDroppedId > -1) {
@@ -3308,7 +3623,7 @@
                              fakeFrame = moveData[0]
                              fakeTrack = moveData[1]
                              drag.accepted=true
-@@ -1042,7 +1216,7 @@
+@@ -1042,7 +1246,7 @@
                  root.clearDropData()
              } else if (root.clipBeingDroppedId > -1 && fakeTrack > -1) {
                  // Clip is dropped
@@ -3317,7 +3632,7 @@
                  fakeFrame = moveData[0]
                  fakeTrack = moveData[1]
                  root.timeline.activeTrack = fakeTrack
-@@ -1356,6 +1530,9 @@
+@@ -1356,6 +1560,9 @@
              height: root.height
              x: root.headerWidth
              property bool shiftPress: false
@@ -3327,7 +3642,7 @@
              // This provides continuous scrubbing and scimming at the left/right edges.
              hoverEnabled: true
              preventStealing: true
-@@ -1377,7 +1554,7 @@
+@@ -1377,7 +1584,7 @@
                  }
              }
              onWheel: wheel => {
@@ -3336,7 +3651,7 @@
                      root.zoomByWheel(wheel)
                  } else if (K.Core.activeTool !== K.ToolType.SlipTool) {
                      var delta = wheel.modifiers & Qt.ShiftModifier ? K.Core.getCurrentFps() : 1
-@@ -1388,12 +1565,19 @@
+@@ -1388,12 +1595,19 @@
                  focus = true
                  shiftPress = (mouse.modifiers & Qt.ShiftModifier) && (mouse.y > ruler.height) && !(mouse.modifiers & Qt.AltModifier)
                  let selectLikeTool = K.Core.activeTool === K.ToolType.SelectTool || K.Core.activeTool === K.ToolType.RippleTool
@@ -3356,7 +3671,7 @@
                      root.timeline.hideCursor(true)
                      isCursorHidden = true
                      return
-@@ -1434,6 +1618,17 @@
+@@ -1434,6 +1648,17 @@
                              root.endDrag()
                          }
                      }
@@ -3374,7 +3689,7 @@
                      if (dragProxy.draggedItem > -1 && mouse.y > ruler.height) {
                          // Check if the mouse exit event was not correctly triggered on the draggeditem
                          root.regainFocus(tracksArea.mapToItem(root,mouseX, mouseY))
-@@ -1492,7 +1687,18 @@
+@@ -1492,7 +1717,18 @@
                      } else if (selectLikeTool || mouse.y <= ruler.height) {
                          if (mouse.y > ruler.height) {
                              root.controller.requestClearSelection();
@@ -3394,7 +3709,7 @@
                          } else if (mouse.y > ruler.guideLabelHeight) {
                              root.proxy.position = Math.min((scrollView.contentX + mouse.x) / root.timeScale, root.timeline.fullDuration - 1)
                          }
-@@ -1512,7 +1718,10 @@
+@@ -1512,7 +1748,10 @@
                          root.showTimelineMenu()
                      } else {
                          // ruler menu
@@ -3406,7 +3721,7 @@
                          root.showRulerMenu()
                      }
                  }
-@@ -1548,6 +1757,14 @@
+@@ -1548,6 +1787,14 @@
                  let selectLikeTool = K.Core.activeTool === K.ToolType.SelectTool || K.Core.activeTool === K.ToolType.RippleTool
                  if (pressed && ((mouse.buttons === Qt.MiddleButton) || (mouse.buttons === Qt.LeftButton && selectLikeTool && (mouse.modifiers & Qt.ControlModifier) && !shiftPress))) {
                      // Pan view
@@ -3421,7 +3736,7 @@
                      if (!isCursorHidden) {
                          root.timeline.hideCursor(true)
                          isCursorHidden = true
-@@ -1575,6 +1792,9 @@
+@@ -1575,6 +1822,9 @@
                      var maxScrollX = root.timeline.fullDuration * root.timeScale - scrollView.width
                      var maxScrollY = trackHeaders.height + subtitleTrackHeader.height - scrollView.height + horZoomBar.height
                      
@@ -3431,7 +3746,7 @@
                      scrollView.contentX = Math.max(0, Math.min(scrollView.contentX - deltaX, maxScrollX))
                      scrollView.contentY = Math.max(0, Math.min(scrollView.contentY - deltaY, maxScrollY))
                      
-@@ -1639,10 +1859,52 @@
+@@ -1639,10 +1889,52 @@
                      }
                      root.continuousScrolling(newX, newY)
                  } else if ((pressedButtons & Qt.LeftButton) && (!shiftPress || root.spacerGuides)) {
@@ -3488,7 +3803,7 @@
                          var track = root.controller.getItemTrackId(root.spacerGroup)
                          var lastPos = 0;
                          if (root.spacerGuides) {
-@@ -1652,13 +1914,23 @@
+@@ -1652,13 +1944,23 @@
                              }
                          }
                          var frame = Math.round((mouse.x + scrollView.contentX) / root.timeScale) + root.spacerFrame - root.spacerClickFrame
@@ -3514,7 +3829,7 @@
                          }
                          root.continuousScrolling(mouse.x + scrollView.contentX, mouse.y + scrollView.contentY - ruler.height)
                      } else if (root.spacerGuides) {
-@@ -1674,6 +1946,13 @@
+@@ -1674,6 +1976,13 @@
                  }
              }
              onCanceled: {
@@ -3528,7 +3843,7 @@
                  if (isCursorHidden) {
                      root.timeline.hideCursor(false)
                      isCursorHidden = false
-@@ -1682,11 +1961,38 @@
+@@ -1682,11 +1991,38 @@
              }
              onReleased: mouse => {
                  tracksArea.isWarping = false
@@ -3567,7 +3882,7 @@
                  if((mouse.button & Qt.LeftButton) && K.Core.activeTool === K.ToolType.SlipTool) {
                      // slip tool
                      root.controller.requestSlipSelection(root.trimmingOffset, true)
-@@ -1734,10 +2040,20 @@
+@@ -1734,10 +2070,20 @@
                      if (K.Core.activeTool === K.ToolType.RazorTool) {
                          // Shift click, process seek
                          root.proxy.position = Math.min((scrollView.contentX + mouse.x) / root.timeScale, root.timeline.fullDuration - 1)
@@ -3588,7 +3903,7 @@
                          } else {
                              root.controller.requestRemoveFromSelection(dragProxy.draggedItem)
                          }
-@@ -1748,10 +2064,27 @@
+@@ -1748,10 +2094,27 @@
                      return
                  }
  
@@ -3617,7 +3932,7 @@
                      } else if (root.spacerGuides) {
                          // Move back guides to original pos
                          root.timeline.spacerMoveGuides(root.selectedGuides, root.spacerClickFrame - root.spacerFrame)
-@@ -1759,6 +2092,28 @@
+@@ -1759,6 +2122,28 @@
                      }
                  }
  
@@ -3646,7 +3961,7 @@
                  if (root.spacerGroup > -1 || root.spacerGuides) {
                      root.spacerClickFrame = -1
                      root.spacerFrame = -1
-@@ -1768,6 +2123,8 @@
+@@ -1768,6 +2153,8 @@
                      root.selectedGuides = []
                      root.spacerGuides = false
                  }
@@ -3655,7 +3970,7 @@
  
                  scim = false
              }
-@@ -1982,6 +2339,8 @@
+@@ -1982,6 +2369,8 @@
                                      property int dragFrame
                                      property int snapping: root.snapping
                                      property bool moveMirrorTracks: true
@@ -3664,7 +3979,7 @@
                                      property point dragStartGlobalPos
                                      cursorShape: {
                                          if (K.Core.activeTool === K.ToolType.SelectTool) {
-@@ -1998,6 +2357,11 @@
+@@ -1998,6 +2387,11 @@
                                              mouse.accepted = false
                                              return
                                          }
@@ -3676,7 +3991,7 @@
                                          dragStartGlobalPos = mapToGlobal(mouse.x, mouse.y)
                                          tracksArea.lastGlobalPos = dragStartGlobalPos
                                          if (!root.timeline.exists(dragProxy.draggedItem)) {
-@@ -2013,6 +2377,9 @@
+@@ -2013,6 +2407,9 @@
                                              doubleClickTimer.start()
                                              root.controller.requestAddToSelection(dragProxy.draggedItem, /*clear=*/ !(mouse.modifiers & Qt.ShiftModifier), /*single item selection */ singleSelection)
                                          }
@@ -3686,7 +4001,7 @@
                                          root.timeline.showAsset(dragProxy.draggedItem)
                                          root.blockAutoScroll = true
                                          root.clipBeingMovedId = dragProxy.draggedItem
-@@ -2053,6 +2420,8 @@
+@@ -2053,6 +2450,8 @@
                                              }
                                              if (clickAccepted && dragProxy.draggedItem != -1) {
                                                  focus = true;
@@ -3695,7 +4010,7 @@
                                                  root.mainItemId = dragProxy.draggedItem
                                                  dragProxy.masterObject.originalX = dragProxy.masterObject.x
                                                  dragProxy.masterObject.originalTrackId = dragProxy.masterObject.trackId
-@@ -2119,7 +2488,12 @@
+@@ -2119,7 +2518,12 @@
                                                  dragProxyArea.dragFrame = moveData[0]
                                                  root.timeline.activeTrack = moveData[1]
                                              } else {
@@ -3709,7 +4024,7 @@
                                                  dragProxyArea.dragFrame = moveData[0]
                                                  root.timeline.activeTrack = moveData[1]
                                                  if (!root.controller.normalEdit()) {
-@@ -2146,6 +2520,7 @@
+@@ -2146,6 +2550,7 @@
                                      onReleased: {
                                          root.clipBeingMovedId = -1
                                          root.blockAutoScroll = false
@@ -3717,7 +4032,7 @@
                                          var itemId = dragProxy.draggedItem
                                          var sourceTrack = dragProxy.sourceTrack
                                          var sourceFrame = dragProxy.sourceFrame
-@@ -2164,7 +2539,7 @@
+@@ -2164,7 +2569,7 @@
                                                      root.timeline.endFakeMove(itemId, dragFrame, true, true, true)
                                                  }
                                              } else {
@@ -3726,7 +4041,7 @@
                                                      // Move clip back to original position
                                                      root.controller.requestClipMove(itemId, sourceTrack, sourceFrame, moveMirrorTracks, true, false, false, true)
                                                      // Move clip to final pos
-@@ -2205,10 +2580,18 @@
+@@ -2205,10 +2610,18 @@
                                              }
                                          }
                                      }
@@ -3746,7 +4061,7 @@
                                      }
                                  }
                              }
-@@ -2227,6 +2610,59 @@
+@@ -2227,6 +2640,63 @@
                                  anchors.fill: tracksContainer
                                  z: 100
                              }
@@ -3760,7 +4075,11 @@
 +                                        id: crossfadePreview
 +                                        required property var modelData
 +                                        property var track: Logic.getTrackById(modelData.trackId)
-+                                        visible: track !== undefined && track !== null
++                                        // A mix that is already there is drawn by its clip (previewMix); the X over it only
++                                        // with crossfadeOverlapMark 2 (always), the X of a new overlap with 1 or 2
++                                        visible: track !== undefined && track !== null && modelData.length > 0
++                                                 && (K.KdenliveSettings.crossfadeOverlapMark === 2
++                                                     || (K.KdenliveSettings.crossfadeOverlapMark === 1 && modelData.mixClip === undefined))
 +                                        x: modelData.start * root.timeScale
 +                                        y: visible ? track.y : 0
 +                                        width: Math.max(1, modelData.length * root.timeScale)
@@ -3806,7 +4125,7 @@
                              Rectangle {
                                  id: sameTrackIndicator
                                  border.color: '#FFF'
-@@ -2332,6 +2768,15 @@
+@@ -2332,6 +2802,15 @@
                              height: tracksContainerArea.height
                              x: Math.round(root.consumerPosition * root.timeScale)
                          }
@@ -3822,7 +4141,7 @@
                      }
                      K.ZoomBar {
                          id: horZoomBar
-@@ -2350,7 +2795,10 @@
+@@ -2350,7 +2829,10 @@
                              root.zoomOnBar = true
                          }
                          contentPos: scrollView.contentX / scrollView.contentWidth
@@ -3834,7 +4153,7 @@
                          onZoomByWheel: wheel => root.zoomByWheel(wheel)
                          onFitZoom: {
                              root.timeline.scaleFactor = root.fitZoom()
-@@ -2539,6 +2987,21 @@
+@@ -2539,6 +3021,21 @@
          }
      }
  
@@ -3867,24 +4186,35 @@
      property bool isComposition: false
      property int slipOffset: boundValue(outPoint - maxDuration + 1, root.trimmingOffset, inPoint)
      visible: fakeTid > -1 || (scrollView.lastVisibleFrame > clipRoot.modelStart && scrollView.firstVisibleFrame <= (clipRoot.modelStart + clipRoot.clipDuration))
-@@ -172,6 +174,16 @@
+@@ -172,6 +174,27 @@
          }
      }
  
-+    // Catavan (overlapCrossfade): draw the mix with frames while the clip before is trimmed by its mix handle (-1: as
-+    // the model has it)
++    // Catavan (overlapCrossfade): draw the mix with frames while the clip before is trimmed by its mix handle or one of
++    // the two clips is dragged (-1: as the model has it, 0: hidden)
++    // Catavan (overlapCrossfade): the end of this clip under the clip it crossfades with, while one of the two is dragged
++    // (-1: as the model has it); the thumbnails stop there
++    property int mixEndPreview: -1
++    function previewMixEnd(frames) {
++        mixEndPreview = frames
++    }
++    // -1: no preview; else the mix frames drawn (the right mix handle, the end of the clip before, goes there too)
++    property int mixPreviewFrames: -1
 +    function previewMix(frames) {
++        mixPreviewFrames = frames < 0 ? -1 : frames
 +        if (frames < 0) {
 +            mixContainer.width = Qt.binding(() => clipRoot.mixDuration * clipRoot.timeScale)
++            mixContainer.visible = true
 +        } else {
 +            mixContainer.width = frames * clipRoot.timeScale
++            mixContainer.visible = frames > 0
 +        }
 +    }
 +
      onClipDurationChanged: {
          width = clipDuration * timeScale
          if (parentTrack && parentTrack.isAudio && thumbsLoader.item) {
-@@ -189,17 +201,31 @@
+@@ -189,17 +212,31 @@
          if (fakePosition > -1) {
              x = fakePosition * timeScale
              xIntegerOffset = Math.ceil(x) - x
@@ -3916,7 +4246,7 @@
              clipRoot.height = Qt.binding(function () {
                  return parentTrack.height
              })
-@@ -248,6 +274,15 @@
+@@ -248,6 +285,15 @@
          clipRoot.timeline.showToolTip(text)
      }
  
@@ -3932,7 +4262,7 @@
      function getColor() {
          if (clipRoot.clipState === K.PlaylistState.Disabled) {
              return '#888'
-@@ -321,6 +356,8 @@
+@@ -321,6 +367,8 @@
                  if (clipRoot.timeline.selection.indexOf(clipRoot.clipId) === -1) {
                      clipRoot.controller.requestAddToSelection(clipRoot.clipId, true)
                  }
@@ -3941,7 +4271,16 @@
                  root.clickFrame = Math.round(mouse.x / clipRoot.timeline.scaleFactor)
                  root.showClipMenu(clipRoot.clipId)
              }
-@@ -456,6 +493,10 @@
+@@ -422,7 +470,7 @@
+             id: thumbsLoader
+             anchors.fill: parent
+             anchors.leftMargin: clipRoot.parentTrack.isAudio ? clipRoot.xIntegerOffset : itemBorder.border.width + mixContainer.width
+-            anchors.rightMargin: clipRoot.parentTrack.isAudio ? clipRoot.width - Math.floor(clipRoot.width) : itemBorder.border.width + clipRoot.mixEndDuration * clipRoot.timeScale
++            anchors.rightMargin: clipRoot.parentTrack.isAudio ? clipRoot.width - Math.floor(clipRoot.width) : itemBorder.border.width + (clipRoot.mixEndPreview > -1 ? clipRoot.mixEndPreview : clipRoot.mixEndDuration) * clipRoot.timeScale
+             anchors.topMargin: itemBorder.border.width
+             anchors.bottomMargin: itemBorder.border.width
+ 
+@@ -456,6 +504,10 @@
                  }
  
                  if (clipRoot.selected) {
@@ -3952,7 +4291,43 @@
                      return clipRoot.timeline.selectionColor
                  }
  
-@@ -580,28 +621,76 @@
+@@ -528,7 +580,8 @@
+                     color: mixSelected ? Qt.rgba(clipRoot.timeline.selectionColor.r, clipRoot.timeline.selectionColor.g, clipRoot.timeline.selectionColor.b, 0.5) : "transparent"
+                     Loader {
+                         active: mixBackground.visible && container.handleVisible && mixContainer.width > 2 * K.UiUtils.baseSizeMedium
+-                        asynchronous: true
++                        // Catavan (overlapCrossfade): not async, the mix follows the drag
++                        asynchronous: false
+                         anchors.fill: mixBackground
+                         sourceComponent: MixShape {}
+                     }
+@@ -539,6 +592,8 @@
+                     radius: 3
+                     Rectangle {
+                         id: mixCutPos
++                        // Catavan (overlapCrossfade): the crossfade is the overlap, it has no visible cut
++                        visible: !K.KdenliveSettings.overlapCrossfade
+                         anchors.right: parent.right
+                         anchors.rightMargin: clipRoot.mixCut * clipRoot.timeScale
+                         anchors.top: parent.top
+@@ -566,7 +621,9 @@
+                             }
+                         }
+                         onEntered: {
+-                            var text = KI18n.i18n("Mix duration: %1, Cut at: %2".arg(clipRoot.timeline.simplifiedTC(clipRoot.mixDuration))
++                            var text = K.KdenliveSettings.overlapCrossfade
++                            ? KI18n.i18n("Mix duration: %1", clipRoot.timeline.simplifiedTC(clipRoot.mixDuration))
++                            : KI18n.i18n("Mix duration: %1, Cut at: %2".arg(clipRoot.timeline.simplifiedTC(clipRoot.mixDuration))
+                             .arg(clipRoot.timeline.simplifiedTC(clipRoot.mixDuration - clipRoot.mixCut)))
+                             clipRoot.timeline.showToolTip(text)
+                         }
+@@ -575,33 +632,81 @@
+                         // Right mix resize handle
+                         id: trimInMixArea
+                         anchors.left: parent.left
+-                        anchors.leftMargin: clipRoot.mixDuration * clipRoot.timeScale
++                        anchors.leftMargin: (clipRoot.mixPreviewFrames > -1 ? clipRoot.mixPreviewFrames : clipRoot.mixDuration) * clipRoot.timeScale
+                         height: parent.height
                          width: K.UiUtils.baseSizeMedium / 2
                          visible: K.Core.activeTool === K.ToolType.SelectTool
                          property int previousMix
@@ -4031,7 +4406,7 @@
                                  clipRoot.controller.resizeStartMix(clipRoot.clipId, Math.round(Math.max(0, x) / clipRoot.timeScale), mouse.modifiers & Qt.ShiftModifier)
                                  sizeChanged = false
                              }
-@@ -616,6 +705,17 @@
+@@ -616,6 +721,17 @@
                                  return
                              }
                              var currentFrame = Math.round(x / clipRoot.timeScale)
@@ -4049,7 +4424,16 @@
                              if (currentFrame != previousMix) {
                                  parent.width = currentFrame * clipRoot.timeScale
                                  sizeChanged = true
-@@ -1066,6 +1166,7 @@
+@@ -627,7 +743,7 @@
+                             } else {
+                                 clipRoot.timeline.showToolTip(KI18n.i18n("Mix duration: %1", clipRoot.timeline.simplifiedTC(currentFrame)))
+                             }
+-                            if (x < mixCutPos.x) {
++                            if (x < (K.KdenliveSettings.overlapCrossfade ? 0 : mixCutPos.x)) {
+                                 // This will delete the mix
+                                 mixBackground.anchors.bottom = mixContainer.top
+                             } else {
+@@ -1066,6 +1182,7 @@
                  drag.smoothed: false
                  property bool shiftTrim: false
                  property bool controlTrim: false
@@ -4057,7 +4441,7 @@
                  property bool sizeChanged: false
                  property int lastDuration
                  cursorShape: (enabled && (containsMouse || pressed) ? Qt.SizeHorCursor : Qt.OpenHandCursor)
-@@ -1080,11 +1181,21 @@
+@@ -1080,11 +1197,21 @@
                      if (!shiftTrim && (clipRoot.grouped || clipRoot.controller.hasMultipleSelection())) {
                          clipRoot.initGroupTrim(clipRoot.clipId)
                      }
@@ -4079,7 +4463,7 @@
                      trimIn.opacity = 0
                      x = -itemBorder.border.width
                      if (sizeChanged) {
-@@ -1108,7 +1219,8 @@
+@@ -1108,7 +1235,8 @@
                      }
                  }
                  onDoubleClicked: {
@@ -4089,7 +4473,7 @@
                          clipRoot.timeline.mixClip(clipRoot.clipId, -1)
                      }
                  }
-@@ -1118,7 +1230,8 @@
+@@ -1118,7 +1246,8 @@
                          var currentClipPos = clipRoot.modelStart
                          var delta = currentFrame - currentClipPos
                          if (delta !== 0) {
@@ -4099,7 +4483,7 @@
                                  if (clipRoot.mixCut == 0 && clipRoot.mixDuration > 1) {
                                      delta = clipRoot.mixDuration - clipRoot.mixCut - 1
                                  } else if (clipRoot.mixCut > 0 && clipRoot.mixDuration > clipRoot.mixCut) {
-@@ -1128,7 +1241,9 @@
+@@ -1128,7 +1257,9 @@
                                  }
                              }
                              var newDuration = 0;
@@ -4110,7 +4494,7 @@
                                  newDuration = clipRoot.originalDuration - delta
                              } else {
                                  if (clipRoot.maxDuration > 0 && delta < -clipRoot.inPoint && !(mouse.modifiers & Qt.ControlModifier)) {
-@@ -1140,6 +1255,7 @@
+@@ -1140,6 +1271,7 @@
                                  sizeChanged = true
                                  clipRoot.trimmingIn(clipRoot, newDuration, shiftTrim, controlTrim)
                                  lastDuration = newDuration
@@ -4118,7 +4502,7 @@
                              }
                          }
                      }
-@@ -1207,11 +1323,20 @@
+@@ -1207,11 +1339,20 @@
                      if (!shiftTrim && (clipRoot.grouped || clipRoot.controller.hasMultipleSelection())) {
                          clipRoot.initGroupTrim(clipRoot.clipId)
                      }
@@ -4139,7 +4523,7 @@
                      trimOut.opacity = 0
                      anchors.right = parent.right
                      if (sizeChanged) {
-@@ -1234,7 +1359,10 @@
+@@ -1234,7 +1375,10 @@
                      }
                  }
                  onDoubleClicked: {
@@ -4151,7 +4535,7 @@
                  }
                  onPositionChanged: mouse => {
                      if (mouse.buttons === Qt.LeftButton) {
-@@ -1246,6 +1374,7 @@
+@@ -1246,6 +1390,7 @@
                              sizeChanged = true
                              clipRoot.trimmingOut(clipRoot, newDuration, shiftTrim, controlTrim)
                              lastDuration = newDuration
@@ -4159,7 +4543,7 @@
                          }
                      }
                  }
-@@ -1606,7 +1735,7 @@
+@@ -1606,7 +1751,7 @@
                  name: 'normal'
                  when: clipRoot.selected === false
                  PropertyChanges {
@@ -4168,7 +4552,7 @@
                      clipRoot.z: 0
                  }
              },
-@@ -1614,7 +1743,7 @@
+@@ -1614,7 +1759,7 @@
                  name: 'selectedClip'
                  when: clipRoot.selected === true
                  PropertyChanges {
@@ -4709,7 +5093,7 @@
  "Apenas para usuários avançados, pois você terá que configurar tudo "
  "corretamente por conta própria."
  
-@@ -47932,3 +47932,508 @@
+@@ -47932,3 +47932,541 @@
  #~ msgctxt "@action:button"
  #~ msgid "Confirm"
  #~ msgstr "Confirmar"
@@ -4780,6 +5164,39 @@
 +#: src/ui/configtimeline_ui.ui
 +msgid "Overlapping clips creates a crossfade"
 +msgstr "Sobrepor clipes cria uma transição (crossfade)"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Show the X of the overlap while dragging:"
++msgstr "Mostrar o X da sobreposição ao arrastar:"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid ""
++"While a clip is dragged, an X (the clip before fades out, the dragged one "
++"fades in) marks where the clips overlap. \"When an overlap starts\" shows it "
++"only on a new overlap; \"Always\" shows it over the crossfades the clips "
++"already have too"
++msgstr ""
++"Enquanto um clipe é arrastado, um X (o clipe anterior some, o arrastado "
++"aparece) marca onde os clipes se sobrepõem. \"Ao iniciar uma sobreposição\" "
++"mostra o X só numa sobreposição nova; \"Sempre\" mostra também sobre os "
++"crossfades que os clipes já têm"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "When an overlap starts"
++msgstr "Ao iniciar uma sobreposição"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Never"
++msgstr "Nunca"
++
++#. Catavan
++#: src/ui/configtimeline_ui.ui
++msgid "Always"
++msgstr "Sempre"
 +
 +#. Catavan
 +#: src/ui/configtimeline_ui.ui
@@ -5220,11 +5637,12 @@
 +"começa, saída onde termina), como no Vegas."
 --- a/kdenlive-26.08.2/tests/CMakeLists.txt
 +++ b/kdenlive-26.08.2/tests/CMakeLists.txt
-@@ -39,6 +39,11 @@
+@@ -39,6 +39,12 @@
      treetest.cpp
      trimmingtest.cpp
      utilstest.cpp
 +    vegasrippletest.cpp
++    vegasdragtest.cpp
 +    vegascrossfadetest.cpp
 +    vegasgrouptest.cpp
 +    vegasselectiontest.cpp
@@ -5234,7 +5652,7 @@
  include(ECMAddTests)
 --- a/kdenlive-26.08.2/tests/vegascrossfadetest.cpp
 +++ b/kdenlive-26.08.2/tests/vegascrossfadetest.cpp
-@@ -0,0 +1,665 @@
+@@ -0,0 +1,700 @@
 +/*
 +    Catavan: overlapping clips creates a crossfade (overlapCrossfade)
 +    SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
@@ -5505,6 +5923,41 @@
 +        }
 +        drag(b, 150);
 +        REQUIRE(timeline->crossfadePreview(b).isEmpty());
++    }
++
++    SECTION("Dragging a clip of a crossfade: the mix follows the overlap that is left, then is hidden")
++    {
++        drag(b, 120);
++        REQUIRE(timeline->requestCrossfadeMove(b, true) == 1);
++        overlapState(20);
++        auto mixPreviews = [&](int clipId) {
++            QVariantList preview = timeline->crossfadePreview(clipId);
++            // The video and audio mixes, nothing drawn as a new crossfade
++            REQUIRE(preview.size() == 2);
++            std::vector<int> lengths;
++            for (const QVariant &p : preview) {
++                QVariantMap m = p.toMap();
++                int mixClip = m.value(QStringLiteral("mixClip"), -1).toInt();
++                REQUIRE((mixClip == b || mixClip == audioB));
++                REQUIRE(m.value(QStringLiteral("trackId")).toInt() == timeline->getClipTrackId(mixClip));
++                lengths.push_back(m.value(QStringLiteral("length")).toInt());
++            }
++            REQUIRE(lengths.at(0) == lengths.at(1));
++            return lengths.at(0);
++        };
++        // B dragged to the right, then out of A
++        drag(b, 130);
++        REQUIRE(mixPreviews(b) == 10);
++        drag(b, 160);
++        REQUIRE(mixPreviews(b) == 0);
++        drag(b, 110);
++        REQUIRE(mixPreviews(b) == 30);
++        drag(b, 120);
++        // A dragged to the left, then out of B
++        drag(a, 85);
++        REQUIRE(mixPreviews(a) == 5);
++        drag(a, 50);
++        REQUIRE(mixPreviews(a) == 0);
 +    }
 +
 +    SECTION("Auto Ripple drag over the end of the clip before: crossfade, the clips after it follow")
@@ -5900,3 +6353,345 @@
 +
 +    pCore->projectManager()->closeCurrentDocument(false, false);
 +}
+--- a/kdenlive-26.08.2/tests/vegasdragtest.cpp
++++ b/kdenlive-26.08.2/tests/vegasdragtest.cpp
+@@ -0,0 +1,327 @@
++/*
++    Catavan: dragging clips and groups with crossfades, gesture by gesture as Timeline.qml does it
++    SPDX-License-Identifier: GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
++*/
++#include "catch.hpp"
++#include "test_utils.hpp"
++// test specific headers
++#include "core.h"
++#include "doc/docundostack.hpp"
++#include "doc/kdenlivedoc.h"
++#include "kdenlivesettings.h"
++#include "timeline2/view/timelinecontroller.h"
++
++#include <QRandomGenerator>
++
++using namespace fakeit;
++
++namespace {
++struct ClipState
++{
++    int track;
++    int position;
++    int in;
++    int playtime;
++    int mix;
++    bool operator==(const ClipState &o) const
++    {
++        return track == o.track && position == o.position && in == o.in && playtime == o.playtime && mix == o.mix;
++    }
++};
++using Snapshot = std::map<int, ClipState>;
++
++QString describe(const Snapshot &snapshot)
++{
++    QString text;
++    for (const auto &c : snapshot) {
++        text += QStringLiteral("clip %1: track %2 pos %3 in %4 length %5 mix %6\n")
++                    .arg(c.first)
++                    .arg(c.second.track)
++                    .arg(c.second.position)
++                    .arg(c.second.in)
++                    .arg(c.second.playtime)
++                    .arg(c.second.mix);
++    }
++    return text;
++}
++} // namespace
++
++TEST_CASE("Dragging clips and groups", "[VegasDrag]")
++{
++    auto binModel = pCore->projectItemModel();
++    binModel->clean();
++    std::shared_ptr<DocUndoStack> undoStack = std::make_shared<DocUndoStack>(nullptr);
++
++    KdenliveDoc document(undoStack);
++    pCore->projectManager()->testSetDocument(&document);
++    QDateTime documentDate = QDateTime::currentDateTime();
++    KdenliveTests::updateTimeline(false, QString(), QString(), documentDate, 0);
++    auto timeline = document.getTimeline(document.uuid());
++    pCore->projectManager()->testSetActiveTimeline(timeline);
++    KdenliveSettings::setOverlapCrossfade(true);
++    TimelineController controller(nullptr);
++    controller.setModel(timeline);
++
++    int videoTrack = timeline->getTrackIndexFromPosition(2);
++    QString binId = KdenliveTests::createProducerWithSound(pCore->getProjectProfile(), binModel, 100);
++    QMap<int, QString> audioInfo;
++    audioInfo.insert(1, QStringLiteral("stream1"));
++    KdenliveTests::setAudioTargets(timeline, audioInfo);
++
++    std::vector<int> clips;
++    // 40 frames of the 100 of material, from frame 10, so the edges have room for crossfades
++    auto addClip = [&](int position) {
++        int cid;
++        REQUIRE(timeline->requestClipInsertion(binId, videoTrack, position, cid));
++        REQUIRE(timeline->requestItemResize(cid, 90, false, true));
++        REQUIRE(timeline->requestItemResize(cid, 40, true, true));
++        REQUIRE(timeline->requestClipMove(cid, videoTrack, position));
++        clips.push_back(cid);
++        clips.push_back(timeline->getClipSplitPartner(cid));
++        return cid;
++    };
++    auto snapshot = [&]() {
++        Snapshot state;
++        for (int cid : clips) {
++            state[cid] = {timeline->getClipTrackId(cid), timeline->getClipPosition(cid), timeline->getClipIn(cid), timeline->getClipPlaytime(cid),
++                          timeline->getMixDuration(cid)};
++        }
++        return state;
++    };
++    // Every overlap on a track is a crossfade of that size, nothing is overlapped twice
++    auto checkTracks = [&](const Snapshot &state) {
++        INFO(describe(state).toStdString());
++        REQUIRE(timeline->checkConsistency());
++        std::map<int, std::vector<std::pair<int, int>>> tracks;
++        for (const auto &c : state) {
++            tracks[c.second.track].emplace_back(c.second.position, c.first);
++        }
++        for (auto &track : tracks) {
++            std::sort(track.second.begin(), track.second.end());
++            for (size_t i = 0; i + 1 < track.second.size(); i++) {
++                const ClipState &first = state.at(track.second[i].second);
++                const ClipState &second = state.at(track.second[i + 1].second);
++                int overlap = first.position + first.playtime - second.position;
++                REQUIRE(second.mix == qMax(0, overlap));
++                if (i + 2 < track.second.size()) {
++                    REQUIRE(first.position + first.playtime <= state.at(track.second[i + 2].second).position);
++                }
++            }
++            REQUIRE(state.at(track.second.front().second).mix == 0);
++        }
++    };
++    // Mouse moves of Timeline.qml from the clip position to `target`, on `track`. While dragging, the moved items keep
++    // their distances and stay in the timeline. Returns dragFrame and leaves the release to the caller.
++    auto mouseMoves = [&](int clipId, int track, int target, int steps, int snap = 0) {
++        const auto items = timeline->crossfadeMovingItems(clipId);
++        std::map<int, int> offsets;
++        for (int item : items) {
++            offsets[item] = timeline->getClipPosition(item) - timeline->getClipPosition(clipId);
++        }
++        const int start = timeline->getClipPosition(clipId);
++        int dragFrame = -1;
++        for (int step = 1; step <= steps; step++) {
++            int posx = start + (target - start) * step / steps;
++            QVariantList result = timeline->suggestCrossfadeMove(clipId, track, posx, -1, snap);
++            dragFrame = result.at(0).toInt();
++            timeline->crossfadePreview(clipId);
++            auto main = KdenliveTests::getClipPtr(timeline, clipId);
++            const int mainPos = main->getFakePosition() > -1 ? main->getFakePosition() : timeline->getClipPosition(clipId);
++            for (int item : items) {
++                auto clip = KdenliveTests::getClipPtr(timeline, item);
++                const int fake = clip->getFakePosition();
++                INFO("step " << step << " posx " << posx << " item " << item << " fake " << fake << " dragged at " << mainPos);
++                REQUIRE(fake >= -1);
++                const int pos = fake > -1 ? fake : timeline->getClipPosition(item);
++                REQUIRE(pos >= 0);
++                REQUIRE(pos - mainPos == offsets[item]);
++            }
++        }
++        return dragFrame;
++    };
++    auto release = [&](int clipId, int dragFrame) {
++        controller.endFakeMove(clipId, dragFrame, true, true, true);
++        for (int item : timeline->crossfadeMovingItems(clipId)) {
++            auto clip = KdenliveTests::getClipPtr(timeline, item);
++            REQUIRE(clip->getFakePosition() == -1);
++            REQUIRE(clip->getFakeTrackId() == -1);
++        }
++    };
++
++    // An edge drag of Track.qml: live trim and preview on each mouse move; on release the preview goes back and the
++    // crossfades are applied, or the usual trim
++    auto edgeDrag = [&](int clipId, bool right, int size, int steps) {
++        const int original = timeline->getClipPlaytime(clipId);
++        const bool grouped = KdenliveTests::groupsModel(timeline)->isInGroup(clipId);
++        QVariantList groupData;
++        if (grouped) {
++            groupData = timeline->getGroupData(clipId);
++        }
++        timeline->crossfadeTrimBegin(clipId, right, false);
++        bool pending = false;
++        int lastValid = original;
++        for (int step = 1; step <= steps; step++) {
++            int proposed = original + (size - original) * step / steps;
++            int duration = timeline->requestItemResize(clipId, proposed, right, false, 0, false);
++            const QVariantMap preview = timeline->crossfadeTrimPreview(proposed, 0);
++            pending = preview.value(QStringLiteral("pending")).toBool();
++            if (pending) {
++                duration = preview.value(QStringLiteral("duration")).toInt();
++            }
++            if (duration > 0) {
++                lastValid = duration;
++            }
++        }
++        if (pending) {
++            if (grouped) {
++                controller.restoreItemsData(groupData, right);
++            } else if (timeline->getClipPlaytime(clipId) != original) {
++                timeline->requestItemResize(clipId, original, right, false, 0, true);
++            }
++            REQUIRE(timeline->requestCrossfadeTrim());
++            return;
++        }
++        timeline->crossfadeTrimBegin(-1, right, false);
++        if (grouped) {
++            timeline->processGroupResize(groupData, timeline->getGroupData(clipId), right);
++        } else {
++            timeline->requestItemResize(clipId, original, right, false, 0, false);
++            timeline->requestItemResize(clipId, lastValid, right, true, 0, false);
++        }
++    };
++
++    SECTION("A group with a gap dragged to the start of the timeline by its right clip stops there, in order")
++    {
++        int a = addClip(100);
++        int b = addClip(200);
++        int group = timeline->requestClipsGroup({a, b});
++        REQUIRE(group > -1);
++        // Taken out, moved further and grouped again (the misaligned group of the report)
++        REQUIRE(timeline->requestRemoveItemsFromGroups({b}));
++        REQUIRE(timeline->requestClipMove(b, videoTrack, 230));
++        REQUIRE(timeline->requestClipsGroup({a, b}) > -1);
++        checkTracks(snapshot());
++
++        int dragFrame = mouseMoves(b, videoTrack, -50, 40);
++        REQUIRE(dragFrame == 130);
++        // Wiggling at the limit changes nothing
++        REQUIRE(mouseMoves(b, videoTrack, 90, 5) == 130);
++        REQUIRE(mouseMoves(b, videoTrack, 10, 5) == 130);
++        release(b, dragFrame);
++        REQUIRE(timeline->getClipPosition(a) == 0);
++        REQUIRE(timeline->getClipPosition(b) == 130);
++        checkTracks(snapshot());
++    }
++
++    SECTION("A group with a crossfade between its clips goes to another track, the crossfade with it")
++    {
++        int a = addClip(100);
++        int b = addClip(200);
++        release(b, mouseMoves(b, videoTrack, 120, 4));
++        REQUIRE(timeline->getMixDuration(b) == 20);
++        REQUIRE(timeline->requestClipsGroup({a, b}) > -1);
++        checkTracks(snapshot());
++        const int videoTrack2 = timeline->getTrackIndexFromPosition(3);
++        REQUIRE(timeline->requestGroupMove(b, KdenliveTests::groupsModel(timeline)->getRootId(b), 1, 0));
++        checkTracks(snapshot());
++        REQUIRE(timeline->getClipTrackId(a) == videoTrack2);
++        REQUIRE(timeline->getClipTrackId(b) == videoTrack2);
++        REQUIRE(timeline->getMixDuration(b) == 20);
++        undoStack->undo();
++        checkTracks(snapshot());
++        REQUIRE(timeline->getClipTrackId(b) == videoTrack);
++        REQUIRE(timeline->getMixDuration(b) == 20);
++    }
++
++    SECTION("Random groups and drags: the moved items keep their distances, the others are left alone, undo and redo")
++    {
++        QRandomGenerator random(GENERATE(range(1, 151)));
++        const int seed = random.generate() % 100000;
++        auto pick = [&random](int min, int max) { return min + int(random.bounded(max - min + 1)); };
++        const bool edges = GENERATE(false, true);
++        std::vector<int> videoClips;
++        int position = 60;
++        for (int i = 0; i < 5; i++) {
++            videoClips.push_back(addClip(position));
++            position += 40 + pick(0, 60);
++        }
++        const int videoTrack2 = timeline->getTrackIndexFromPosition(3);
++        QString log;
++        for (int step = 0; step < 30; step++) {
++            const int cid = videoClips[pick(0, 4)];
++            const int kind = pick(0, 9);
++            if (kind == 0) {
++                const int other = videoClips[pick(0, 4)];
++                if (other != cid) {
++                    log += QStringLiteral("group %1 %2\n").arg(cid).arg(other);
++                    timeline->requestClipsGroup({cid, other});
++                }
++            } else if (kind == 1) {
++                log += QStringLiteral("ungroup %1\n").arg(cid);
++                timeline->requestRemoveItemsFromGroups({cid});
++            } else if (edges && kind == 2) {
++                const bool right = pick(0, 1) == 0;
++                const int size = pick(10, 90);
++                log += QStringLiteral("edge %1 %2 to %3\n").arg(cid).arg(right ? QStringLiteral("right") : QStringLiteral("left")).arg(size);
++                INFO("seed " << seed << "\n" << log.toStdString() << describe(snapshot()).toStdString());
++                const Snapshot before = snapshot();
++                const int undoIndex = undoStack->index();
++                edgeDrag(cid, right, size, pick(1, 8));
++                const Snapshot after = snapshot();
++                INFO("after\n" << describe(after).toStdString());
++                checkTracks(after);
++                if (undoStack->index() > undoIndex) {
++                    undoStack->undo();
++                    REQUIRE(describe(snapshot()).toStdString() == describe(before).toStdString());
++                    checkTracks(snapshot());
++                    undoStack->redo();
++                    REQUIRE(describe(snapshot()).toStdString() == describe(after).toStdString());
++                }
++            } else {
++                const int dragged = pick(0, 1) == 0 ? cid : timeline->getClipSplitPartner(cid);
++                if (dragged < 0) {
++                    continue;
++                }
++                const int from = timeline->getClipPosition(dragged);
++                int target = kind < 5 ? pick(-40, 100) : qMax(0, from + pick(-70, 70));
++                int track = timeline->getClipTrackId(dragged);
++                if (kind == 9 && !timeline->isAudioTrack(track)) {
++                    track = track == videoTrack ? videoTrack2 : videoTrack;
++                }
++                log += QStringLiteral("drag %1 from %2 to %3 track %4\n").arg(dragged).arg(from).arg(target).arg(track);
++                INFO("seed " << seed << "\n" << log.toStdString() << describe(snapshot()).toStdString());
++                const Snapshot before = snapshot();
++                const auto items = timeline->crossfadeMovingItems(dragged);
++                const int undoIndex = undoStack->index();
++                const int dragFrame = mouseMoves(dragged, track, target, pick(1, 12), pick(0, 1) * 10);
++                const int delta = dragFrame - from;
++                release(dragged, dragFrame);
++                const Snapshot after = snapshot();
++                INFO("after\n" << describe(after).toStdString());
++                checkTracks(after);
++                for (const auto &c : after) {
++                    const ClipState &old = before.at(c.first);
++                    if (items.count(c.first) > 0) {
++                        // What the drag showed is what the drop does
++                        REQUIRE(c.second.position == old.position + delta);
++                    } else {
++                        REQUIRE(c.second.position == old.position);
++                        REQUIRE(c.second.track == old.track);
++                    }
++                    REQUIRE(c.second.in == old.in);
++                    REQUIRE(c.second.playtime == old.playtime);
++                }
++                if (undoStack->index() > undoIndex) {
++                    undoStack->undo();
++                    REQUIRE(describe(snapshot()).toStdString() == describe(before).toStdString());
++                    checkTracks(snapshot());
++                    undoStack->redo();
++                    REQUIRE(describe(snapshot()).toStdString() == describe(after).toStdString());
++                    checkTracks(snapshot());
++                }
++            }
++        }
++    }
++
++    pCore->projectManager()->closeCurrentDocument(false, false);
++}
+--- a/kdenlive-26.08.2/src/timeline2/view/qml/MixShape.qml
++++ b/kdenlive-26.08.2/src/timeline2/view/qml/MixShape.qml
+@@ -8,7 +8,8 @@
+ 
+ Shape {
+     id: mixShape
+-    asynchronous: true
++    // Catavan (overlapCrossfade): drawn at once, it follows the mix while a clip is dragged
++    asynchronous: false
+     opacity: 0.4
+ 
+     ShapePath {

@@ -16,3 +16,5 @@ kdenlive-26.08.2/src/timeline2/view/qml/Track.qml
 kdenlive-26.08.2/po/pt_BR/kdenlive.po
 kdenlive-26.08.2/tests/CMakeLists.txt
 kdenlive-26.08.2/tests/vegascrossfadetest.cpp
+kdenlive-26.08.2/tests/vegasdragtest.cpp
+kdenlive-26.08.2/src/timeline2/view/qml/MixShape.qml
